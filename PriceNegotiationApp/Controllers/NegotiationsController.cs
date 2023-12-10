@@ -9,7 +9,8 @@ using PriceNegotiationApp.Models;
 
 namespace PriceNegotiationApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Area("Negotiation")]
+    [Route("api/v1/[area]/[controller]")]
     [ApiController]
     public class NegotiationsController : ControllerBase
     {
@@ -20,15 +21,25 @@ namespace PriceNegotiationApp.Controllers
             _context = context;
         }
 
-        // GET: api/Negotiations
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
-        {
-            return await _context.Negotiations.ToListAsync();
-        }
+		/// <summary>
+		/// Retrieves a list of negotiations.
+		/// </summary>
+		/// <returns>Returns a collection of negotiations.</returns>
+		// GET: api/Negotiations
+		[HttpGet]
+        [ResponseCache(Duration = 5)]
+		public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
+		{
+			return await _context.Negotiations.ToListAsync();
+		}
 
-        // GET: api/Negotiations/5
-        [HttpGet("{id}")]
+		/// <summary>
+		/// Retrieves a specific negotiation by its unique identifier.
+		/// </summary>
+		/// <param name="id">The unique identifier of the negotiation to retrieve.</param>
+		/// <returns>Returns a negotiation with the specified ID if found; otherwise, returns a 404 Not Found response.</returns>
+		// GET: api/Negotiations/5
+		[HttpGet("{id}")]
         public async Task<ActionResult<Negotiation>> GetNegotiation(int id)
         {
             var negotiation = await _context.Negotiations.FindAsync(id);

@@ -53,7 +53,7 @@ namespace PriceNegotiationApp.Services
 			return UpdateResultType.Success;
 		}
 
-		public async Task<Product> CreateProduct(Product product)
+		public async Task<Product> AddProductToDb(Product product)
 		{
 			_context.Products.Add(product);
 			await _context.SaveChangesAsync();

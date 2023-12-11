@@ -17,11 +17,11 @@ namespace PriceNegotiationApp.Controllers
     [Route("api/v1/[area]/[controller]")]
     //[Produces]
     [ApiController]
-    public class ProductsController : ControllerBase
+    public class ProductController : ControllerBase
     {
 		private readonly ProductService _productService;
 
-		public ProductsController(ProductService productService)
+		public ProductController(ProductService productService)
         {
 			_productService = productService;
 		}
@@ -81,6 +81,7 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> PutProduct(int id, [FromBody] Product product)
         {
 			var updateResult = await _productService.UpdateProduct(id, product);
@@ -106,9 +107,10 @@ namespace PriceNegotiationApp.Controllers
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
+		[Authorize(Roles = "Customer")]
         public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
         {
-            await _productService.CreateProduct(product);
+            await _productService.AddProductToDb(product);
 
 			return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
@@ -125,6 +127,7 @@ namespace PriceNegotiationApp.Controllers
 		[HttpDelete("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteProduct(int id)
         {
 			var result = await _productService.DeleteProduct(id);

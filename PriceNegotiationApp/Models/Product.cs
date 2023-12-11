@@ -11,6 +11,7 @@ namespace PriceNegotiationApp.Models
 
 		[Required]
 		public string Name { get; set; }
+		[Required]
 
 		[Range(0, double.MaxValue, ErrorMessage = "Price must be greater than or equal to 0")]
 		public decimal Price { get; set; }

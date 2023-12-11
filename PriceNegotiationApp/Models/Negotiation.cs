@@ -1,5 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+using System.Security.Claims;
 
 namespace PriceNegotiationApp.Models
 {
@@ -8,13 +11,18 @@ namespace PriceNegotiationApp.Models
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
+		[Required]
 		public int ProductId { get; set; }
+		[Required]
 		public decimal ProposedPrice { get; set; }
 		public bool IsAccepted { get; set; }
+		[Required]
 		public int RetriesLeft { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
+		[Required]
 		public NegotiationStatus Status { get; set; }
+		[Required]
 		public string UserId { get; set; }
 		//public ApplicationUser User { get; set; }
 
@@ -22,12 +30,17 @@ namespace PriceNegotiationApp.Models
 		{
 			ProductId = productId;
 			ProposedPrice = proposedPrice;
+			UserId = userId;
+			InitializeDefaults();
+		}
+
+		private void InitializeDefaults()
+		{
 			IsAccepted = false;
-			RetriesLeft = 3;
+			RetriesLeft = 2;
 			CreatedAt = DateTime.UtcNow;
 			UpdatedAt = CreatedAt;
 			Status = NegotiationStatus.Open;
-			UserId = userId;
 		}
 	}
 

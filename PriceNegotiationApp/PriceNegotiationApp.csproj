@@ -6,8 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-	<Authors>Łukasz Górski</Authors>
-	<Copyright>Copyright © 2023 Łukasz Górski</Copyright>
+	  <Authors>Łukasz Górski</Authors>
+	  <Copyright>Copyright © 2023 Łukasz Górski</Copyright>
+	  <RepositoryUrl>https://github.com/lukegor/PriceNegotiationApp</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

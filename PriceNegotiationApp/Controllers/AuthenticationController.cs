@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Auth;
 using PriceNegotiationApp.Models;
@@ -19,10 +20,10 @@ namespace PriceNegotiationApp.Controllers
 		}
 
 		/// <summary>Log into an account</summary>
-		/// <param name="username">Admin: admin Doctor: doctor Customer: customer</param>
-		/// <param name="password">Admin: Asd123! Doctor: Doc123! Customer: Customer123!</param>
+		/// <param name="model">username and password</param>
 		/// <returns>Returns true if login is successful, false otherwise.</returns>
 		[HttpPost("Login")]
+		[AllowAnonymous]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> Login([FromBody] LoginModel model)
@@ -53,6 +54,7 @@ namespace PriceNegotiationApp.Controllers
 		/// with details of the validation errors or registration failure.
 		/// </returns>
 		[HttpPost("Registration")]
+		[AllowAnonymous]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDTO userForRegistration)

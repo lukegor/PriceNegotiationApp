@@ -15,7 +15,7 @@ namespace PriceNegotiationApp.Models
 		public int ProductId { get; set; }
 		[Required]
 		public decimal ProposedPrice { get; set; }
-		public bool IsAccepted { get; set; }
+		public bool? IsAccepted { get; set; }
 		[Required]
 		public int RetriesLeft { get; set; }
 		public DateTime CreatedAt { get; set; }

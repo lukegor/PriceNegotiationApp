@@ -101,6 +101,27 @@ namespace PriceNegotiationApp.Services
 			}
 		}
 
+		public async Task<UpdateResultType> RespondToNegotiationProposalAsync(Negotiation negotiation, bool isApproved)
+		{
+			if (isApproved)
+			{
+				negotiation.IsAccepted = true;
+				negotiation.Status = NegotiationStatus.Closed;
+			}
+			else
+			{
+				if (negotiation.RetriesLeft <= 0)
+				{
+					negotiation.IsAccepted = false;
+					negotiation.Status = NegotiationStatus.Closed;
+				}
+			}
+
+			negotiation.UpdatedAt = DateTime.Now;
+
+			return await UpdateNegotiationAsync(negotiation.Id, negotiation);
+		}
+
 		public async Task<Negotiation> AddNegotiationToDbAsync(NegotiationInputModel negotiationDetails)
 		{
 			string userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -132,9 +153,23 @@ namespace PriceNegotiationApp.Services
 			return _context.Negotiations.Any(e => e.Id == id);
 		}
 
+		public string GetLoggedInUserRole()
+		{
+			var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+			System.Diagnostics.Debug.WriteLine(userRole);
+			return userRole;
+		}
+
 		public bool IsUserAssociatedWithNegotiation(int negotiationId)
 		{
-			var userId = GetNegotiationAsync(negotiationId).Result.UserId; // Retrieve userId associated with certain negotiation
+			var negotiation = GetNegotiationAsync(negotiationId).Result;
+
+			if (negotiation == null)
+			{
+				return false;
+			}
+
+			var userId = negotiation.UserId; // Retrieve userId associated with certain negotiation
 			var loggedInUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 			return userId == loggedInUserId;

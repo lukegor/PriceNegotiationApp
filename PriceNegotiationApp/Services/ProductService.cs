@@ -22,17 +22,17 @@ namespace PriceNegotiationApp.Services
 			_context = context;
 		}
 
-		public async Task<IEnumerable<Product>> GetProducts()
+		public async Task<IEnumerable<Product>> GetProductsAsync()
 		{
 			return await _context.Products.ToListAsync();
 		}
 
-		public async Task<Product> GetProduct(int id)
+		public async Task<Product> GetProductAsync(int id)
 		{
 			return await _context.Products.FindAsync(id);
 		}
 
-		public async Task<UpdateResultType> UpdateProduct(int id, Product product)
+		public async Task<UpdateResultType> UpdateProductAsync(int id, Product product)
 		{
 			if (id != product.Id)
 			{
@@ -53,7 +53,7 @@ namespace PriceNegotiationApp.Services
 			return UpdateResultType.Success;
 		}
 
-		public async Task<Product> AddProductToDb(Product product)
+		public async Task<Product> AddProductToDbAsync(Product product)
 		{
 			_context.Products.Add(product);
 			await _context.SaveChangesAsync();
@@ -61,7 +61,7 @@ namespace PriceNegotiationApp.Services
 			return product;
 		}
 
-		public async Task<bool> DeleteProduct(int id)
+		public async Task<bool> DeleteProductAsync(int id)
 		{
 			var product = await _context.Products.FindAsync(id);
 			if (product == null)

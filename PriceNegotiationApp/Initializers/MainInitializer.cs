@@ -21,6 +21,9 @@ namespace PriceNegotiationApp.Initializers
 			if (!await _roleManager.RoleExistsAsync(Roles.Role_Customer))
 				await _roleManager.CreateAsync(new IdentityRole(Roles.Role_Customer));
 
+			if (!await _roleManager.RoleExistsAsync(Roles.Role_Staff))
+				await _roleManager.CreateAsync(new IdentityRole(Roles.Role_Staff));
+
 			if (!await _roleManager.RoleExistsAsync(Roles.Role_Admin))
 				await _roleManager.CreateAsync(new IdentityRole(Roles.Role_Admin));
 		}
@@ -33,21 +36,47 @@ namespace PriceNegotiationApp.Initializers
 				var adminUser = new ApplicationUser
 				{
 					UserName = "admin",
-					Email = "admin@admin.com",
+					Email = "admin@app.com",
 					Name = "Admin",
-					PhoneNumber = "1234567890",
-					StreetAddress = "Street test",
-					State = "SomeState",
-					PostalCode = "12-345",
-					City = "SomeCity"
+					PhoneNumber = "123456789",
+					StreetAddress = "Street",
+					State = "State",
+					PostalCode = "00-000",
+					City = "City"
 				};
 
-				await _userManager.CreateAsync(adminUser, "Asd123!");
+				await _userManager.CreateAsync(adminUser, "Admin123!");
 
 				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync("admin@admin.com");
 
 				if (user != null)
 					await _userManager.AddToRoleAsync(user, Roles.Role_Admin);
+			}
+		}
+
+		public async Task InitializeStaffUserAsync()
+		{
+			// Create admin user if it doesn't exist
+			if (_userManager.FindByEmailAsync("admin@admin.com").GetAwaiter().GetResult() == null)
+			{
+				var staffUser = new ApplicationUser
+				{
+					UserName = "Staff1",
+					Email = "Staff1@app.com",
+					Name = "Bob Smith",
+					PhoneNumber = "987654321",
+					StreetAddress = "Street",
+					State = "State",
+					PostalCode = "00-000",
+					City = "City"
+				};
+
+				await _userManager.CreateAsync(staffUser, "Staff123!");
+
+				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync("Staff1@app.com");
+
+				if (user != null)
+					await _userManager.AddToRoleAsync(user, Roles.Role_Staff);
 			}
 		}
 	}

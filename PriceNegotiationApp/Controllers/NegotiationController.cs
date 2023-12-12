@@ -7,24 +7,26 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
+using static PriceNegotiationApp.Services.NegotiationService;
 
 namespace PriceNegotiationApp.Controllers
 {
-    [Area("Negotiation")]
-    [Route("api/v1/[area]/[controller]")]
-    [ApiController]
-    public class NegotiationController : ControllerBase
-    {
-        private readonly NegotiationService _service;
+	[Area("Negotiations")]
+	[Route("api/v1/[area]/[controller]")]
+	[ApiController]
+	public class NegotiationController : ControllerBase
+	{
+		private readonly NegotiationService _service;
 
 		public NegotiationController(NegotiationService service)
-        {
+		{
 			_service = service;
-        }
+		}
 
 		/// <summary>
 		/// Retrieves a list of all negotiations.
@@ -32,13 +34,14 @@ namespace PriceNegotiationApp.Controllers
 		/// <returns>Returns a collection of negotiations.</returns>
 		// GET: api/Negotiations
 		[HttpGet]
+		[Route("all")]
 		[ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		[Authorize(Roles = "Admin")]
+		[Authorize(Roles = "Admin, Staff")]
 		public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
 		{
 			var negotiations = await _service.GetNegotiationsAsync();
-            return Ok(negotiations);
+			return Ok(negotiations);
 		}
 
 		/// <summary>
@@ -49,16 +52,17 @@ namespace PriceNegotiationApp.Controllers
 		// GET: api/Negotiations/5
 		[HttpGet("{id}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[Authorize(Roles = "Admin, Customer")]
-		public async Task<ActionResult<Negotiation>> GetNegotiation(int id)
-        {
-			if (!IsUserAssociatedWithNegotiation(id))
+		[Authorize(Roles = "Admin, Staff, Customer")]
+		public async Task<ActionResult<Negotiation>> GetNegotiation(int negotiationId)
+		{
+			if (!IsUserAuthorizedForNegotiation(negotiationId))
 			{
 				return StatusCode((int)HttpStatusCode.Forbidden);
 			}
 
-			var negotiation = await _service.GetNegotiationAsync(id);
+			var negotiation = await _service.GetNegotiationAsync(negotiationId);
 
             if (negotiation == null)
             {
@@ -128,6 +132,37 @@ namespace PriceNegotiationApp.Controllers
 		}
 
 		/// <summary>
+		/// Responds to a negotiation proposal.
+		/// </summary>
+		/// <param name="negotiation">The negotiation object.</param>
+		/// <param name="isApproved">A flag indicating whether the proposal is approved or not.</param>
+		/// <returns>Returns an <see cref="IActionResult"/> status code representing the result of the operation.</returns>
+		[HttpPatch]
+		[Route("response")]
+		[Authorize(Roles = "Staff")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> RespondToNegotiationProposal([FromBody] Negotiation negotiation, [FromQuery] bool isApproved)
+		{
+			if (negotiation == null)
+			{
+				return BadRequest();
+			}
+
+			var result = await _service.RespondToNegotiationProposalAsync(negotiation, isApproved);
+
+			return result switch
+			{
+				UpdateResultType.Success => isApproved ? Ok("Proposal accepted") : Ok("Proposal rejected"),
+				UpdateResultType.NotFound => NotFound(),
+				UpdateResultType.Conflict => BadRequest(),
+				_ => StatusCode(500, "Internal Server Error")
+			};
+		}
+
+		/// <summary>
 		/// Creates a new negotiation.
 		/// </summary>
 		/// <param name="negotiationDetails">The negotiation data to be processed into negotiation.</param>
@@ -184,6 +219,23 @@ namespace PriceNegotiationApp.Controllers
 		private bool IsUserAssociatedWithNegotiation(int negotiationId)
 		{
 			return _service.IsUserAssociatedWithNegotiation(negotiationId);
+		}
+
+		/// <summary>
+		/// if the authorized user is Customer, then check if the negotiation belongs to him; if user role is different then just return true
+		/// </summary>
+		/// <param name="negotiationId"></param>
+		/// <returns></returns>
+		private bool IsUserAuthorizedForNegotiation(int negotiationId)
+		{
+			var userRole = _service.GetLoggedInUserRole();
+
+			if (userRole == "Customer" && !IsUserAssociatedWithNegotiation(negotiationId))
+			{
+				return false;
+			}
+
+			return true;
 		}
 	}
 }

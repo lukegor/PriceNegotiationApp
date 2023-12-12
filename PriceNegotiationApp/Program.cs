@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PriceNegotiationApp.Auth;
+using PriceNegotiationApp.Extensions;
 using PriceNegotiationApp.Initializers;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Services;
@@ -63,53 +64,7 @@ namespace PriceNegotiationApp
 			builder.Services.AddScoped<NegotiationService>();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen(options =>
-			{
-				options.SwaggerDoc("v1", new OpenApiInfo
-				{
-					Title = "Price Negotiation App",
-					Version = "v1",
-					Contact = new OpenApiContact
-					{
-						Name = "£ukasz Górski",
-						Email = "lukaszgorski02@gmail.com",
-						Url = new Uri("https://www.linkedin.com/in/lukasz-gorski-lukegor/")
-					},
-					License = new OpenApiLicense
-					{
-						Name = "Apache License 2.0",
-						Url = new Uri("https://opensource.org/license/apache-2-0/")
-					}
-				});
-
-				options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-				{
-					Name = "Authorization",
-					Description = "Authorization header using the Bearer scheme for JWT",
-					In = ParameterLocation.Header
-				});
-
-				options.AddSecurityRequirement(new OpenApiSecurityRequirement
-				{
-					{
-						new OpenApiSecurityScheme
-						{
-							Reference = new OpenApiReference
-							{
-								Type = ReferenceType.SecurityScheme,
-								Id = "Bearer"
-							}
-						},
-						new string[] {}
-					}
-				});
-
-				// generate docs from xml comments to drive Swagger docs
-				var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-				var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-
-				options.IncludeXmlComments(xmlPath);
-			});
+			builder.Services.ConfigureSwagger();
 
 			builder.Services.AddHttpContextAccessor();
 
@@ -119,6 +74,7 @@ namespace PriceNegotiationApp
 				var dbInitializer = scope.ServiceProvider.GetRequiredService<MainInitializer>();
 				dbInitializer.InitializeRolesAsync().Wait(); // Synchronously wait for completion
 				dbInitializer.InitializeAdminUserAsync().Wait();
+				dbInitializer.InitializeStaffUserAsync().Wait();
 			}
 
 			var app = builder.Build();

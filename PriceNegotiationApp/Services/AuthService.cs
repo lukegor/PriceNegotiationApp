@@ -50,7 +50,6 @@ namespace PriceNegotiationApp.Services
 
 			if (result.Succeeded)
 			{
-				// Assuming Roles.Role_Customer is a constant representing the role name
 				await _userManager.AddToRoleAsync(user, Roles.Role_Customer);
 			}
 

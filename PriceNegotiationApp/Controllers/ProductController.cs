@@ -13,7 +13,7 @@ using PriceNegotiationApp.Utility;
 
 namespace PriceNegotiationApp.Controllers
 {
-    [Area("Product")]
+    [Area("Products")]
     [Route("api/v1/[area]/[controller]")]
     //[Produces]
     [ApiController]
@@ -32,12 +32,13 @@ namespace PriceNegotiationApp.Controllers
 		/// <returns>Returns a collection of products.</returns>
 		// GET: api/Products
 		[HttpGet]
+		[Route("all")]
 		[AllowAnonymous]
 		[ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
 		[ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-			var products = await _productService.GetProducts();
+			var products = await _productService.GetProductsAsync();
             return Ok(products);
         }
 
@@ -53,7 +54,7 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _productService.GetProduct(id);
+            var product = await _productService.GetProductAsync(id);
 
 			if (product == null)
             {
@@ -81,10 +82,10 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		[Authorize(Roles = "Admin")]
+		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> PutProduct(int id, [FromBody] Product product)
         {
-			var updateResult = await _productService.UpdateProduct(id, product);
+			var updateResult = await _productService.UpdateProductAsync(id, product);
 
 			return updateResult switch
 			{
@@ -107,10 +108,10 @@ namespace PriceNegotiationApp.Controllers
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
-		[Authorize(Roles = "Customer")]
+		[Authorize(Roles = "Admin, Staff")]
         public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
         {
-            await _productService.AddProductToDb(product);
+            await _productService.AddProductToDbAsync(product);
 
 			return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
@@ -127,10 +128,10 @@ namespace PriceNegotiationApp.Controllers
 		[HttpDelete("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[Authorize(Roles = "Admin")]
+		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> DeleteProduct(int id)
         {
-			var result = await _productService.DeleteProduct(id);
+			var result = await _productService.DeleteProductAsync(id);
 
 			if (!result)
 			{

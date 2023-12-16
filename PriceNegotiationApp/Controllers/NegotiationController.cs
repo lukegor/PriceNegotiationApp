@@ -31,12 +31,16 @@ namespace PriceNegotiationApp.Controllers
 		/// <summary>
 		/// Retrieves a list of all negotiations.
 		/// </summary>
-		/// <returns>Returns a collection of negotiations.</returns>
+		/// <returns>
+		/// Returns a 200 Ok response with a collection of negotiations,
+		/// or a 403 Forbidden if the user is not authorized or does not possess the required role
+		/// </returns>
 		// GET: api/Negotiations
 		[HttpGet]
 		[Route("all")]
 		[ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
 		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
 		{
@@ -48,16 +52,19 @@ namespace PriceNegotiationApp.Controllers
 		/// Retrieves a specific negotiation by its unique identifier.
 		/// </summary>
 		/// <param name="id">The unique identifier of the negotiation to retrieve.</param>
-		/// <returns>Returns a negotiation with the specified ID if found; otherwise, returns a 404 Not Found response.</returns>
+		/// <returns>
+		/// Returns a negotiation with the specified ID if found
+		/// or a 403 Forbidden if the user is not authorized or does not possess the required role,
+		/// or a 404 Not Found response if the resource was not found</returns>
 		// GET: api/Negotiations/5
 		[HttpGet("{id}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin, Staff, Customer")]
-		public async Task<ActionResult<Negotiation>> GetNegotiation(int negotiationId)
+		public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] int Id)
 		{
-			if (!IsUserAuthorizedForNegotiation(negotiationId))
+			if (!IsUserAuthorizedForNegotiation(id))
 			{
 				return StatusCode((int)HttpStatusCode.Forbidden);
 			}
@@ -79,16 +86,18 @@ namespace PriceNegotiationApp.Controllers
 		/// <param name="negotiation">The updated negotiation data.</param>
 		/// <returns>
 		/// Returns a 204 No Content response if the update is successful,
-		/// 404 Not Found if the specified negotiation is not found,
 		/// 400 Bad Request with a message "Concurrency conflict" if a concurrency conflict occurs,
+		/// 403 Forbidden if the user is not authorized or does not possess the required role,
+		/// 404 Not Found if the specified negotiation is not found,
 		/// or a 500 Internal Server Error for other errors.
 		/// </returns>
 		// PUT: api/Negotiation/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Customer")]
 		public async Task<IActionResult> PutNegotiation(int id, Negotiation negotiation)
@@ -113,9 +122,9 @@ namespace PriceNegotiationApp.Controllers
 		[HttpPatch]
 		[Authorize(Roles = "Customer")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> ProposeNewPrice([FromBody] Negotiation negotiation, decimal proposedPrice)
 		{
@@ -141,8 +150,9 @@ namespace PriceNegotiationApp.Controllers
 		[Route("response")]
 		[Authorize(Roles = "Staff")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> RespondToNegotiationProposal([FromBody] Negotiation negotiation, [FromQuery] bool isApproved)
 		{
@@ -173,6 +183,7 @@ namespace PriceNegotiationApp.Controllers
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Customer")]
 		public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] NegotiationInputModel negotiationDetails)
         {
@@ -192,6 +203,7 @@ namespace PriceNegotiationApp.Controllers
 		// DELETE: api/Negotiation/5
 		[HttpDelete("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteNegotiation(int id)

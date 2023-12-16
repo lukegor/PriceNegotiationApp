@@ -61,7 +61,7 @@ namespace PriceNegotiationApp
 
 			builder.Services.AddScoped<AuthService>();
 			builder.Services.AddScoped<IProductService, ProductService>();
-			builder.Services.AddScoped<NegotiationService>();
+			builder.Services.AddScoped<INegotiationService, NegotiationService>();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.ConfigureSwagger();

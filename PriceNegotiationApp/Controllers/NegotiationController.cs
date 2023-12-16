@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
 using static PriceNegotiationApp.Services.NegotiationService;
@@ -62,14 +63,14 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin, Staff, Customer")]
-		public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] int Id)
+		public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] int id)
 		{
 			if (!IsUserAuthorizedForNegotiation(id))
 			{
-				return StatusCode((int)HttpStatusCode.Forbidden);
+				return Forbid();
 			}
 
-			var negotiation = await _service.GetNegotiationAsync(negotiationId);
+			var negotiation = await _service.GetNegotiationAsync(id);
 
             if (negotiation == null)
             {
@@ -100,7 +101,7 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Customer")]
-		public async Task<IActionResult> PutNegotiation(int id, Negotiation negotiation)
+		public async Task<IActionResult> PutNegotiation([FromRoute] int id, [FromBody] Negotiation negotiation)
         {
 			var updateResult = await _service.UpdateNegotiationAsync(id, negotiation);
 
@@ -187,7 +188,7 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Customer")]
 		public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] NegotiationInputModel negotiationDetails)
         {
-			Negotiation negotiation = await _service.AddNegotiationToDbAsync(negotiationDetails);
+			Negotiation negotiation = await _service.CreateNegotiationAsync(negotiationDetails);
 
             return CreatedAtAction(nameof(GetNegotiation), new { id = negotiation.Id }, negotiation);
         }
@@ -206,7 +207,7 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin")]
-		public async Task<IActionResult> DeleteNegotiation(int id)
+		public async Task<IActionResult> DeleteNegotiation([FromRoute] int id)
         {
             var result = await _service.DeleteNegotiationAsync(id);
 

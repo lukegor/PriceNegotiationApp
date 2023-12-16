@@ -1,21 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Models.DTO;
+using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Utility;
 using System.Security.Claims;
 
 namespace PriceNegotiationApp.Services
 {
-	public class NegotiationService
+	public interface INegotiationService
 	{
-		public interface INegotiationService
-		{
-			Task<IEnumerable<Negotiation>> GetNegotiations();
-			Task<Negotiation> GetNegotiation(int id);
-			Task<UpdateResultType> UpdateNegotiation(int id, Negotiation Negotiation);
-			Task<Negotiation> CreateNegotiation(Negotiation Negotiation);
-			Task<bool> DeleteNegotiation(int id);
-		}
+		Task<IEnumerable<Negotiation>> GetNegotiationsAsync();
+		Task<Negotiation> GetNegotiationAsync(int id);
+		Task<UpdateResultType> UpdateNegotiationAsync(int id, Negotiation Negotiation);
+		Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel Negotiation);
+		Task<bool> DeleteNegotiationAsync(int id);
+	}
 
+	public class NegotiationService: INegotiationService
+	{
 		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly AppDbContext _context;
 
@@ -122,7 +124,7 @@ namespace PriceNegotiationApp.Services
 			return await UpdateNegotiationAsync(negotiation.Id, negotiation);
 		}
 
-		public async Task<Negotiation> AddNegotiationToDbAsync(NegotiationInputModel negotiationDetails)
+		public async Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel negotiationDetails)
 		{
 			string userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

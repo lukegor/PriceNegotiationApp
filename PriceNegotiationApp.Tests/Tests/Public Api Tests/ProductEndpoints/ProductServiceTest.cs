@@ -98,12 +98,12 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 
 		private IProductService CreateProductServiceWithTestData()
 		{
-			//var context = DbContextProvider.GetInMemoryDbContext();
-			//PopulateData(context);
-			//return new ProductService(context);
-			var mockProductService = new Mock<IProductService>();
-			mockProductService.Setup(x => x.GetProductsAsync()).ReturnsAsync(GetSampleProducts());
-			return mockProductService.Object;
+			var context = DbContextProvider.GetInMemoryDbContext();
+			PopulateData(context);
+			return new ProductService(context);
+			//var mockProductService = new Mock<IProductService>();
+			//mockProductService.Setup(x => x.GetProductsAsync()).ReturnsAsync(GetSampleProducts());
+			//return mockProductService.Object;
 		}
 
 		private void PopulateData(AppDbContext dbContext)
@@ -116,23 +116,23 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 			=> new List<Product>
 			{
 				new Product{
-					//Id = 1,
+					Id = 1,
 					Name = "Demo1",
 					Price = 5.36M },
 				new Product{
-					//Id = 2,
+					Id = 2,
 					Name = "Demo2",
 					Price = 2.36M },
 				new Product{
-					//Id = 3,
+					Id = 3,
 					Name = "Demo3",
 					Price = 3.36M },
 				new Product{
-					//Id = 4,
+					Id = 4,
 					Name = "Demo4",
 					Price = 4.36M },
 				new Product{
-					//Id = 5,
+					Id = 5,
 					Name = "Demo5",
 					Price = 5.36M }
 			};

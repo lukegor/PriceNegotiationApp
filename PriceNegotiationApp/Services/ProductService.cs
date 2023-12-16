@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Extensions.Conversions;
 using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Utility;
 
 namespace PriceNegotiationApp.Services
@@ -9,7 +11,7 @@ namespace PriceNegotiationApp.Services
 		Task<IEnumerable<Product>> GetProductsAsync();
 		Task<Product> GetProductAsync(int id);
 		Task<UpdateResultType> UpdateProductAsync(int id, Product product);
-		Task<Product> CreateProductAsync(Product product);
+		Task<Product> CreateProductAsync(ProductInputModel product);
 		Task<bool> DeleteProductAsync(int id);
 	}
 
@@ -34,7 +36,8 @@ namespace PriceNegotiationApp.Services
 
 		public async Task<UpdateResultType> UpdateProductAsync(int id, Product product)
 		{
-			if (id != product.Id)
+			var idInDb = GetProductAsync(id).Id;
+			if (id != idInDb)
 			{
 				return UpdateResultType.NotFound;
 			}
@@ -53,12 +56,14 @@ namespace PriceNegotiationApp.Services
 			return UpdateResultType.Success;
 		}
 
-		public async Task<Product> CreateProductAsync(Product product)
+		public async Task<Product> CreateProductAsync(ProductInputModel product)
 		{
-			_context.Products.Add(product);
+			Product dbProduct = product.ToDb();
+
+			_context.Products.Add(dbProduct);
 			await _context.SaveChangesAsync();
 
-			return product;
+			return dbProduct;
 		}
 
 		public async Task<bool> DeleteProductAsync(int id)

@@ -31,12 +31,13 @@ namespace PriceNegotiationApp.Initializers
 		public async Task InitializeAdminUserAsync()
 		{
 			// Create admin user if it doesn't exist
-			if (_userManager.FindByEmailAsync("admin@admin.com").GetAwaiter().GetResult() == null)
+			const string adminMail = @"admin@app.com";
+			if (_userManager.FindByEmailAsync(adminMail).GetAwaiter().GetResult() == null)
 			{
 				var adminUser = new ApplicationUser
 				{
 					UserName = "admin",
-					Email = "admin@app.com",
+					Email = adminMail,
 					Name = "Admin",
 					PhoneNumber = "123456789",
 					StreetAddress = "Street",
@@ -47,7 +48,7 @@ namespace PriceNegotiationApp.Initializers
 
 				await _userManager.CreateAsync(adminUser, "Admin123!");
 
-				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync("admin@admin.com");
+				ApplicationUser user = (ApplicationUser) await _userManager.FindByEmailAsync(adminMail);
 
 				if (user != null)
 					await _userManager.AddToRoleAsync(user, Roles.Role_Admin);
@@ -57,12 +58,13 @@ namespace PriceNegotiationApp.Initializers
 		public async Task InitializeStaffUserAsync()
 		{
 			// Create admin user if it doesn't exist
-			if (_userManager.FindByEmailAsync("admin@admin.com").GetAwaiter().GetResult() == null)
+			const string staffMail = @"Staff1@app.com";
+			if (_userManager.FindByEmailAsync(staffMail).GetAwaiter().GetResult() == null)
 			{
 				var staffUser = new ApplicationUser
 				{
 					UserName = "Staff1",
-					Email = "Staff1@app.com",
+					Email = staffMail,
 					Name = "Bob Smith",
 					PhoneNumber = "987654321",
 					StreetAddress = "Street",
@@ -73,7 +75,7 @@ namespace PriceNegotiationApp.Initializers
 
 				await _userManager.CreateAsync(staffUser, "Staff123!");
 
-				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync("Staff1@app.com");
+				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync(staffMail);
 
 				if (user != null)
 					await _userManager.AddToRoleAsync(user, Roles.Role_Staff);

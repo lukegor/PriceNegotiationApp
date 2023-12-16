@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCaching;
 using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
 
@@ -114,11 +115,11 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Admin, Staff")]
-        public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
+        public async Task<ActionResult<Product>> PostProduct([FromBody] ProductInputModel product)
         {
-            await _productService.CreateProductAsync(product);
+            var dbProduct = await _productService.CreateProductAsync(product);
 
-			return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+			return CreatedAtAction(nameof(GetProduct), new { id = dbProduct.Id }, dbProduct);
         }
 
 		/// <summary>

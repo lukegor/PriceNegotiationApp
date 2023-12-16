@@ -19,9 +19,9 @@ namespace PriceNegotiationApp.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-		private readonly ProductService _productService;
+		private readonly IProductService _productService;
 
-		public ProductController(ProductService productService)
+		public ProductController(IProductService productService)
         {
 			_productService = productService;
 		}
@@ -39,6 +39,7 @@ namespace PriceNegotiationApp.Controllers
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
 			var products = await _productService.GetProductsAsync();
+
             return Ok(products);
         }
 
@@ -72,6 +73,7 @@ namespace PriceNegotiationApp.Controllers
 		/// <returns>
 		/// Returns a 204 No Content response if the update is successful,
 		/// 404 Not Found if the specified product is not found,
+		/// 403 Forbidden if the user is not authorized or does not possess the required role,
 		/// 400 Bad Request with a message "Concurrency conflict" if a concurrency conflict occurs,
 		/// or a 500 Internal Server Error for other errors.
 		/// </returns>
@@ -79,8 +81,9 @@ namespace PriceNegotiationApp.Controllers
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> PutProduct(int id, [FromBody] Product product)
@@ -102,16 +105,18 @@ namespace PriceNegotiationApp.Controllers
 		/// <param name="product">The product data to create.</param>
 		/// <returns>
 		/// Returns a 201 Created response with the newly created product and a location header pointing to the product,
+		/// or a 403 Forbidden if the user is not authorized or does not possess the required role,
 		/// or a 500 Internal Server Error if an error occurs during the creation process.
 		/// </returns>
 		// POST: api/Products
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Admin, Staff")]
         public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
         {
-            await _productService.AddProductToDbAsync(product);
+            await _productService.CreateProductAsync(product);
 
 			return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
@@ -122,11 +127,13 @@ namespace PriceNegotiationApp.Controllers
 		/// <param name="id">The unique identifier of the product to delete.</param>
 		/// <returns>
 		/// Returns a 404 Not Found response if the specified product is not found,
+		/// or a 403 Forbidden if the user is not authorized or does not possess the required role,
 		/// or a 204 No Content response if the deletion is successful.
 		/// </returns>
 		// DELETE: api/Products/5
 		[HttpDelete("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> DeleteProduct(int id)
@@ -140,15 +147,5 @@ namespace PriceNegotiationApp.Controllers
 
 			return NoContent();
 		}
-
-		/// <summary>
-		/// Checks if a product with the specified unique identifier exists.
-		/// </summary>
-		/// <param name="id">The unique identifier of the product to check for existence.</param>
-		/// <returns>Returns true if a product with the specified ID exists; otherwise, returns false.</returns>
-		private bool ProductExists(int id)
-        {
-            return _productService.ProductExists(id);
-        }
     }
 }

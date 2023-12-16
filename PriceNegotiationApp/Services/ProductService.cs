@@ -6,14 +6,14 @@ namespace PriceNegotiationApp.Services
 {
 	public interface IProductService
 	{
-		Task<IEnumerable<Product>> GetProducts();
-		Task<Product> GetProduct(int id);
-		Task<UpdateResultType> UpdateProduct(int id, Product product);
-		Task<Product> CreateProduct(Product product);
-		Task<bool> DeleteProduct(int id);
+		Task<IEnumerable<Product>> GetProductsAsync();
+		Task<Product> GetProductAsync(int id);
+		Task<UpdateResultType> UpdateProductAsync(int id, Product product);
+		Task<Product> CreateProductAsync(Product product);
+		Task<bool> DeleteProductAsync(int id);
 	}
 
-	public class ProductService
+	public class ProductService: IProductService
 	{
 		private readonly AppDbContext _context;
 
@@ -53,7 +53,7 @@ namespace PriceNegotiationApp.Services
 			return UpdateResultType.Success;
 		}
 
-		public async Task<Product> AddProductToDbAsync(Product product)
+		public async Task<Product> CreateProductAsync(Product product)
 		{
 			_context.Products.Add(product);
 			await _context.SaveChangesAsync();
@@ -75,6 +75,11 @@ namespace PriceNegotiationApp.Services
 			return true;
 		}
 
+		/// <summary>
+		/// Checks if a product with the specified unique identifier exists.
+		/// </summary>
+		/// <param name="id">The unique identifier of the product to check for existence.</param>
+		/// <returns>Returns true if a product with the specified ID exists; otherwise, returns false.</returns>
 		public bool ProductExists(int id)
 		{
 			return _context.Products.Any(e => e.Id == id);

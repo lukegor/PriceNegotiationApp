@@ -20,19 +20,5 @@ namespace PriceNegotiationApp.Models
 			Name = string.Empty;
 			Role = "Customer";
 		}
-
-
-		// constructor to convert RegisterUserDTO to ApplicationUser
-		public ApplicationUser(RegisterUserDTO userDto)
-		{
-			UserName = userDto.UserName;
-			Name = userDto.Name;
-			Email = userDto.Email;
-			StreetAddress = userDto.StreetAddress;
-			City = userDto.City;
-			State = userDto.State;
-			PostalCode = userDto.PostalCode;
-			Role = userDto.Role;
-		}
 	}
 }

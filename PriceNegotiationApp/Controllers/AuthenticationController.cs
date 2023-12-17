@@ -6,6 +6,7 @@ using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.DTO;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace PriceNegotiationApp.Controllers
@@ -50,8 +51,9 @@ namespace PriceNegotiationApp.Controllers
 		/// Registers a new user.
 		/// </summary>
 		/// <param name="userForRegistration">The data required for user registration.</param>
-		/// <returns>Returns a 201 Created response if successful; otherwise, returns a 400 Bad Request response
-		/// with details of the validation errors or registration failure.
+		/// <returns>
+		/// Returns a 201 Created response if successful,
+		/// or a a 400 Bad Request response with details of the validation errors or registration failure.
 		/// </returns>
 		[HttpPost("Registration")]
 		[AllowAnonymous]
@@ -60,7 +62,17 @@ namespace PriceNegotiationApp.Controllers
 		public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDTO userForRegistration)
 		{
 			if (userForRegistration == null || !ModelState.IsValid)
-				return BadRequest("Invalid user registration data");
+			{
+				var inputErrors = ModelState.Where(e => e.Value.Errors.Count > 0)
+					.Select(e => new
+					{
+						Name = e.Key,
+						Message = e.Value.Errors.First().ErrorMessage,
+						Exception = e.Value.Errors.First().Exception
+					}).ToList();
+
+				return BadRequest(inputErrors);
+			}
 
 			var result = await _authService.RegisterUserAsync(userForRegistration);
 
@@ -73,7 +85,9 @@ namespace PriceNegotiationApp.Controllers
 
 		public class LoginModel
 		{
+			[Required]
 			public string Username { get; set; }
+			[Required]
 			public string Password { get; set; }
 		}
 	}

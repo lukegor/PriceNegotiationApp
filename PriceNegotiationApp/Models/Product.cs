@@ -29,7 +29,6 @@ namespace PriceNegotiationApp.Models
 			var other = (Product)obj;
 
 			// Step 3: Compare individual properties
-			// Note: You can customize this comparison based on your requirements
 			return Id == other.Id && Name == other.Name && Price == other.Price;
 		}
 

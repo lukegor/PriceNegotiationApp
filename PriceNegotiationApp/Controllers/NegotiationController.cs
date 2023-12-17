@@ -34,6 +34,7 @@ namespace PriceNegotiationApp.Controllers
 		/// </summary>
 		/// <returns>
 		/// Returns a 200 Ok response with a collection of negotiations,
+		/// a 400 Bad Request response if the model state is invalid,
 		/// or a 403 Forbidden if the user is not authorized or does not possess the required role
 		/// </returns>
 		// GET: api/Negotiations
@@ -41,10 +42,24 @@ namespace PriceNegotiationApp.Controllers
 		[Route("all")]
 		[ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
 		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
 		{
+			if (!ModelState.IsValid)
+			{
+				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
+					.Select(e => new
+					{
+						Name = e.Key,
+						Message = e.Value.Errors.First().ErrorMessage,
+						Exception = e.Value.Errors.First().Exception
+					}).ToList();
+
+				return BadRequest(errors);
+			}
+
 			var negotiations = await _service.GetNegotiationsAsync();
 			return Ok(negotiations);
 		}
@@ -87,7 +102,7 @@ namespace PriceNegotiationApp.Controllers
 		/// <param name="negotiation">The updated negotiation data.</param>
 		/// <returns>
 		/// Returns a 204 No Content response if the update is successful,
-		/// 400 Bad Request with a message "Concurrency conflict" if a concurrency conflict occurs,
+		/// 400 Bad Request if the model state is invalid or if a concurrency conflict occurs,
 		/// 403 Forbidden if the user is not authorized or does not possess the required role,
 		/// 404 Not Found if the specified negotiation is not found,
 		/// or a 500 Internal Server Error for other errors.
@@ -103,6 +118,19 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Customer")]
 		public async Task<IActionResult> PutNegotiation([FromRoute] int id, [FromBody] Negotiation negotiation)
         {
+			if (!ModelState.IsValid)
+			{
+				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
+					.Select(e => new
+					{
+						Name = e.Key,
+						Message = e.Value.Errors.First().ErrorMessage,
+						Exception = e.Value.Errors.First().Exception
+					}).ToList();
+
+				return BadRequest(errors);
+			}
+
 			var updateResult = await _service.UpdateNegotiationAsync(id, negotiation);
 
 			return updateResult switch

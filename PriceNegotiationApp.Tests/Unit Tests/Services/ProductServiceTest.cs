@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Moq;
 using PriceNegotiationApp.Controllers;
 using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
 using System;
@@ -17,15 +19,8 @@ using System.Threading.Tasks;
 using Xunit.Abstractions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
+namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 {
-	public static class DbContextProvider
-	{
-		public static AppDbContext GetInMemoryDbContext() =>
-			new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
-				.UseInMemoryDatabase("Tests").Options);
-	}
-
 	public class ProductServiceTest
 	{
 		private readonly ITestOutputHelper _output;
@@ -47,6 +42,8 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 
 			// Assert
 			Assert.NotNull(returnedModels);
+			//var okResult = Assert.IsType<IEnumerable<Product>>(returnedModels);
+			Assert.IsAssignableFrom<IEnumerable<Product>>(returnedModels);
 
 			var resultList = returnedModels.ToList();
 			_output.WriteLine(resultList.Count().ToString());
@@ -57,8 +54,6 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 			// Check if each test data item is present in the returned products
 			foreach (var product in testData)
 			{
-				//_output.WriteLine($"{product.GetType().ToString()} {resultList.ElementAt(counter)}");
-				//_output.WriteLine($"{product.Name} {resultList.ElementAt(counter).Name}");
 				Assert.Contains(product, resultList);
 			}
 		}
@@ -70,24 +65,10 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 			var productService = CreateProductServiceWithTestData();
 			var testData = GetSampleProducts();
 
-			//int randomId = ChooseRandomId(testData);
-
-			foreach (var product in testData)
-			{
-				_output.WriteLine(product.Id.ToString());
-			}
-
-			var productExists = await productService.GetProductsAsync();
-			var productExists2 = productExists.ToList().Any(p => p.Id == testData.First().Id);
-			if (!productExists2)
-			{
-				_output.WriteLine("XD");
-			}
+			int randomId = ChooseRandomId(testData);
 
 			// Act
-			//_output.WriteLine($"index: {randomId.ToString()}");
-			//_output.WriteLine($"item: {testData.ElementAt(randomId-1).Id.ToString()}");
-			var returnedProduct = await productService.GetProductAsync(testData.First().Id);
+			var returnedProduct = await productService.GetProductAsync(randomId);
 
 			// Assert
 			Assert.NotNull(returnedProduct);
@@ -96,7 +77,76 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 			Assert.Contains(returnedProduct, testData);
 		}
 
-		private IProductService CreateProductServiceWithTestData()
+		[Theory]
+		[InlineData("name", 13.37)]
+		[InlineData("", 0.01)]
+		public async Task CreateProductAsync_ShouldCreateProduct(string name, decimal price)
+		{
+			// Arrange
+			var productInputModel = new ProductInputModel
+			{
+				Name = name,
+				Price = price
+			};
+
+			var dbContextOptions = new DbContextOptionsBuilder<AppDbContext>()
+				.UseInMemoryDatabase(databaseName: "InMemoryDatabase")
+				.Options;
+
+			var db = DbContextProvider.GetInMemoryDbContext();
+
+			using (var context = new AppDbContext(dbContextOptions))
+			{
+				// Initialize the service with the in-memory DbContext
+				var productService = new ProductService(context);
+
+				// Act
+				var createdProduct = await productService.CreateProductAsync(productInputModel);
+
+				// Assert
+				Assert.NotNull(createdProduct);
+				Assert.Equal(productInputModel.Name, createdProduct.Name);
+				Assert.Equal(productInputModel.Price, createdProduct.Price);
+			}
+		}
+
+		[Fact]
+		public async Task DeleteProductAsync_ExistingProduct_ShouldRemoveProduct()
+		{
+			// Arrange
+			var productService = CreateProductServiceWithTestData();
+			var testData = GetSampleProducts();
+
+			int randomId = ChooseRandomId(testData);
+
+			var product = await productService.GetProductAsync(randomId);
+
+			// Act
+			bool result = await productService.DeleteProductAsync(randomId);
+
+			var products = await productService.GetProductsAsync();
+			var allProducts = products.ToList();
+
+			// Assert
+			Assert.True(result);
+			Assert.DoesNotContain(product, allProducts);
+		}
+
+		[Fact]
+		public async Task DeleteProductAsync_NonExistingProduct_ShouldRemoveProduct()
+		{
+			// Arrange
+			var productService = CreateProductServiceWithTestData();
+			const int nonExistingProductId = 20;
+
+			// Act
+			bool result = await productService.DeleteProductAsync(nonExistingProductId);
+
+			// Assert
+			Assert.False(result);
+		}
+
+		private ProductService CreateProductServiceWithTestData()
 		{
 			var context = DbContextProvider.GetInMemoryDbContext();
 			PopulateData(context);
@@ -108,11 +158,20 @@ namespace PriceNegotiationApp.Tests.Tests.Public_Api_Tests.ProductEndpoints
 
 		private void PopulateData(AppDbContext dbContext)
 		{
+			// Clear existing data
+			dbContext.Products.RemoveRange(dbContext.Products);
+			dbContext.SaveChanges();
+
+			// Ensure a clean database state
+			//dbContext.Database.EnsureDeleted();
+			//dbContext.Database.EnsureCreated();
+
+			// Add sample products
 			dbContext.Products.AddRange(GetSampleProducts());
 			dbContext.SaveChanges();
 		}
 
-		private IEnumerable<Product> GetSampleProducts()
+		private static IEnumerable<Product> GetSampleProducts()
 			=> new List<Product>
 			{
 				new Product{

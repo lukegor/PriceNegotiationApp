@@ -31,4 +31,8 @@
     <ProjectReference Include="..\PriceNegotiationApp\PriceNegotiationApp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Unit Tests\Controllers\" />
+  </ItemGroup>
+
 </Project>

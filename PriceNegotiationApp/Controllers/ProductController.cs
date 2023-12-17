@@ -73,9 +73,9 @@ namespace PriceNegotiationApp.Controllers
 		/// <param name="product">The updated product data.</param>
 		/// <returns>
 		/// Returns a 204 No Content response if the update is successful,
-		/// 404 Not Found if the specified product is not found,
-		/// 403 Forbidden if the user is not authorized or does not possess the required role,
-		/// 400 Bad Request with a message "Concurrency conflict" if a concurrency conflict occurs,
+		/// a 400 Bad Request if a the model state is invalid or if a concurrency conflict occurs in database,
+		/// a 403 Forbidden if the user is not authorized or does not possess the required role,
+		/// a 404 Not Found if the specified product is not found,
 		/// or a 500 Internal Server Error for other errors.
 		/// </returns>
 		// PUT: api/Products/5
@@ -89,6 +89,19 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> PutProduct(int id, [FromBody] Product product)
         {
+			if (!ModelState.IsValid)
+			{
+				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
+					.Select(e => new
+					{
+						Name = e.Key,
+						Message = e.Value.Errors.First().ErrorMessage,
+						Exception = e.Value.Errors.First().Exception
+					}).ToList();
+
+				return BadRequest(errors);
+			}
+
 			var updateResult = await _productService.UpdateProductAsync(id, product);
 
 			return updateResult switch
@@ -106,17 +119,32 @@ namespace PriceNegotiationApp.Controllers
 		/// <param name="product">The product data to create.</param>
 		/// <returns>
 		/// Returns a 201 Created response with the newly created product and a location header pointing to the product,
-		/// or a 403 Forbidden if the user is not authorized or does not possess the required role,
+		/// a 400 Bad Request response if the model state is invalid
+		/// a 403 Forbidden response if the user is not authorized or does not possess the required role,
 		/// or a 500 Internal Server Error if an error occurs during the creation process.
 		/// </returns>
 		// POST: api/Products
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Admin, Staff")]
         public async Task<ActionResult<Product>> PostProduct([FromBody] ProductInputModel product)
         {
+			if (!ModelState.IsValid)
+			{
+				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
+					.Select(e => new
+					{
+						Name = e.Key,
+						Message = e.Value.Errors.First().ErrorMessage,
+						Exception = e.Value.Errors.First().Exception
+					}).ToList();
+
+				return BadRequest(errors);
+			}
+
             var dbProduct = await _productService.CreateProductAsync(product);
 
 			return CreatedAtAction(nameof(GetProduct), new { id = dbProduct.Id }, dbProduct);

@@ -9,10 +9,10 @@ namespace PriceNegotiationApp.Services
 	public interface IProductService
 	{
 		Task<IEnumerable<Product>> GetProductsAsync();
-		Task<Product> GetProductAsync(int id);
-		Task<UpdateResultType> UpdateProductAsync(int id, Product product);
+		Task<Product> GetProductAsync(string id);
+		Task<UpdateResultType> UpdateProductAsync(string id, Product product);
 		Task<Product> CreateProductAsync(ProductInputModel product);
-		Task<bool> DeleteProductAsync(int id);
+		Task<bool> DeleteProductAsync(string id);
 	}
 
 	public class ProductService: IProductService
@@ -29,14 +29,14 @@ namespace PriceNegotiationApp.Services
 			return await _context.Products.ToListAsync();
 		}
 
-		public async Task<Product> GetProductAsync(int id)
+		public async Task<Product> GetProductAsync(string id)
 		{
 			return await _context.Products.FindAsync(id);
 		}
 
-		public async Task<UpdateResultType> UpdateProductAsync(int id, Product product)
+		public async Task<UpdateResultType> UpdateProductAsync(string id, Product product)
 		{
-			var idInDb = GetProductAsync(id).Id;
+			var idInDb = (await GetProductAsync(id)).Id;
 			if (id != idInDb)
 			{
 				return UpdateResultType.NotFound;
@@ -66,7 +66,7 @@ namespace PriceNegotiationApp.Services
 			return dbProduct;
 		}
 
-		public async Task<bool> DeleteProductAsync(int id)
+		public async Task<bool> DeleteProductAsync(string id)
 		{
 			var product = await _context.Products.FindAsync(id);
 			if (product == null)
@@ -85,7 +85,7 @@ namespace PriceNegotiationApp.Services
 		/// </summary>
 		/// <param name="id">The unique identifier of the product to check for existence.</param>
 		/// <returns>Returns true if a product with the specified ID exists; otherwise, returns false.</returns>
-		public bool ProductExists(int id)
+		public bool ProductExists(string id)
 		{
 			return _context.Products.Any(e => e.Id == id);
 		}

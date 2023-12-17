@@ -12,7 +12,8 @@ namespace PriceNegotiationApp.Models
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		[Required]
-		public int ProductId { get; set; }
+		[ForeignKey(nameof(Product))]
+		public string ProductId { get; set; }
 		[Required]
 		public decimal ProposedPrice { get; set; }
 		public bool? IsAccepted { get; set; }
@@ -26,7 +27,7 @@ namespace PriceNegotiationApp.Models
 		public string UserId { get; set; }
 		//public ApplicationUser User { get; set; }
 
-		public Negotiation(int productId, decimal proposedPrice, string userId)
+		public Negotiation(string productId, decimal proposedPrice, string userId)
 		{
 			ProductId = productId;
 			ProposedPrice = proposedPrice;

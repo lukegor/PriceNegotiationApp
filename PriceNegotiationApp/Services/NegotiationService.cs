@@ -179,7 +179,9 @@ namespace PriceNegotiationApp.Services
 
 		public async Task<Product> FindRelevantProductAsync(Negotiation negotiation)
 		{
-			Product product = await _context.Products.FirstOrDefaultAsync(e => e.Id == negotiation.Id);
+			var dbNegotiation = await _context.Negotiations.FirstOrDefaultAsync(e => e.Id == negotiation.Id);
+			var productId = dbNegotiation.ProductId;
+			Product product = await _context.Products.FindAsync(productId);
 
 			return product;
 		}

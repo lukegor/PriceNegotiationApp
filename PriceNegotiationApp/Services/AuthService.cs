@@ -5,6 +5,7 @@ using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Utility;
 using static PriceNegotiationApp.Controllers.AuthenticationController;
 using System.IdentityModel.Tokens.Jwt;
+using PriceNegotiationApp.Extensions.Conversions;
 
 namespace PriceNegotiationApp.Services
 {
@@ -45,7 +46,7 @@ namespace PriceNegotiationApp.Services
 
 		public async Task<IdentityResult> RegisterUserAsync(RegisterUserDTO userForRegistration)
 		{
-			var user = new ApplicationUser(userForRegistration);
+			ApplicationUser user = userForRegistration.ToDb();
 			var result = await _userManager.CreateAsync(user, userForRegistration.Password);
 
 			if (result.Succeeded)

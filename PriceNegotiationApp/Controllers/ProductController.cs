@@ -54,7 +54,7 @@ namespace PriceNegotiationApp.Controllers
 		[AllowAnonymous]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<Product>> GetProduct(int id)
+		public async Task<ActionResult<Product>> GetProduct([FromRoute] int id)
         {
             var product = await _productService.GetProductAsync(id);
 
@@ -87,7 +87,7 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Admin, Staff")]
-		public async Task<IActionResult> PutProduct(int id, [FromBody] Product product)
+		public async Task<IActionResult> PutProduct([FromRoute] int id, [FromBody] Product product)
         {
 			if (!ModelState.IsValid)
 			{
@@ -165,7 +165,7 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin, Staff")]
-		public async Task<IActionResult> DeleteProduct(int id)
+		public async Task<IActionResult> DeleteProduct([FromRoute] int id)
         {
 			var result = await _productService.DeleteProductAsync(id);
 

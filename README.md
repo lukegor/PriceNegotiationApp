@@ -8,7 +8,7 @@
 <br>
 
 ## Project Description
-This application is a backend service built using ASP.NET Core Web API, designed exclusively as an API-only service. It enables customers to negotiate prices with online store staff, offering data management through CRUD operations. Up to 3 proposal retries are allowed. If a proposal is more than double the base price, it's auto-rejected.
+<b>PriceNegotiationApp</b> is a backend project built using ASP.NET Core Web API. The application also utilizes Entity Framework and xUnit. It is designed exclusively as an API-only service. It enables customers to negotiate prices with online store staff, offering data management through CRUD operations. Up to 3 proposal retries are allowed within the negotiation process. If a proposal is more than double the base price, it's auto-rejected.
 
 Customers may register, log in, request data about products, open up price negotiation regarding a product, propose a price for 3 times. Shop staff may add products, view negotiations, accept or deny the proposed price. Administrator is privileged to manage data, inluding user data.
 

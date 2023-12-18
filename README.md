@@ -20,9 +20,20 @@ Customers may register, log in, request data about products, open up price negot
 
 
 
-# API Documentation
+## Swagger UI
 
 ![PriceNegotiationApp_Swagger-UI_Endpoints](https://github.com/lukegor/PriceNegotiationApp/assets/105490868/2ec1841b-2ed2-45d5-9283-f0acbf8c5aba)
+
+## Swagger API Documentation
+
+The documentation in .yaml format is located in the <b>swagger-docs.yaml</b> file<br/>
+To visualize and interact with the documentation using Swagger UI, you can run it on the <b>https://editor-next.swagger.io/</b> website.
+
+## Defaul accounts
+| Login                 | Password   | Role  |
+|-----------------------|------------|-------|
+| admin@app.com         | Admin123!  | Admin |
+| Staff1@app.com        | Staff123!  | Staff |
 
 ## Security
 

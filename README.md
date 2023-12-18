@@ -26,8 +26,8 @@ Customers may register, log in, request data about products, open up price negot
 
 ## API Documentation
 
-The documentation in .yaml format is located in the <b>swagger-docs.yaml</b> file.<br/>
-To visualize and interact with the documentation using Swagger UI, upload the <b>swagger-docs.yaml</b> file on the <b>https://editor-next.swagger.io/</b> or <b>https://redocly.github.io/redoc/</b>.
+The documentation in .yaml format is located in the <b>openapi-docs.yaml</b> file.<br/>
+To visualize and interact with the documentation using Swagger UI, upload the <b>openapi-docs.yaml</b> file on the <b>https://editor-next.swagger.io/</b> or <b>https://redocly.github.io/redoc/</b>.
 
 ## Default accounts
 | Login                 | Password   | Role  |

@@ -131,7 +131,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		}
 
 		[Fact]
-		public async Task DeleteProductAsync_NonExistingProduct_ShouldRemoveProduct()
+		public async Task DeleteProductAsync_NonExistingProduct_ShouldNotRemoveProduct()
 		{
 			// Arrange
 			var productService = CreateProductServiceWithTestData();

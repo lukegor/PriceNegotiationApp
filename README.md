@@ -26,10 +26,10 @@ Customers may register, log in, request data about products, open up price negot
 
 ## Swagger API Documentation
 
-The documentation in .yaml format is located in the <b>swagger-docs.yaml</b> file<br/>
-To visualize and interact with the documentation using Swagger UI, you can run it on the <b>https://editor-next.swagger.io/</b> website.
+The documentation in .yaml format is located in the <b>swagger-docs.yaml</b> file.<br/>
+To visualize and interact with the documentation using Swagger UI, upload the <b>swagger-docs.yaml</b> file on the <b>https://editor-next.swagger.io/</b> website.
 
-## Defaul accounts
+## Default accounts
 | Login                 | Password   | Role  |
 |-----------------------|------------|-------|
 | admin@app.com         | Admin123!  | Admin |

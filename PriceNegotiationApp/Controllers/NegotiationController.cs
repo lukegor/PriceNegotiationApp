@@ -47,19 +47,6 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
 		{
-			if (!ModelState.IsValid)
-			{
-				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
-					.Select(e => new
-					{
-						Name = e.Key,
-						Message = e.Value.Errors.First().ErrorMessage,
-						Exception = e.Value.Errors.First().Exception
-					}).ToList();
-
-				return BadRequest(errors);
-			}
-
 			var negotiations = await _service.GetNegotiationsAsync();
 			return Ok(negotiations);
 		}
@@ -145,7 +132,7 @@ namespace PriceNegotiationApp.Controllers
 		/// <summary>
 		/// Proposes a new price for a negotiation.
 		/// </summary>
-		/// <param name="negotiation">The negotiation to update.</param>
+		/// <param name="negotiationId">The unique identifier of the negotiation to update.</param>
 		/// <param name="proposedPrice">The proposed price for the negotiation.</param>
 		// PATCH: api/Negotiations
 		[HttpPatch]
@@ -155,15 +142,16 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> ProposeNewPrice([FromBody] Negotiation negotiation, decimal proposedPrice)
+		public async Task<IActionResult> ProposeNewPrice(int negotiationId, decimal proposedPrice)
 		{
-			var result = await _service.ProposeNewPriceAsync(negotiation.Id, proposedPrice);
+			var result = await _service.ProposeNewPriceAsync(negotiationId, proposedPrice);
 
 			return result switch
 			{
-				ProposePriceResult.Success => Ok(negotiation),
+				ProposePriceResult.Success => Ok("Price proposed successfully."),
 				ProposePriceResult.NotFound => NotFound("Negotiation not found."),
 				ProposePriceResult.Unauthorized => Forbid("You are not authorized to propose a new price for this negotiation."),
+				ProposePriceResult.IncorrectAction => BadRequest("No more retries are left for this negotiation."),
 				ProposePriceResult.InvalidInput => BadRequest("Invalid negotiation or proposed price."),
 				_ => StatusCode(500, "An error occurred while processing the proposal."),
 			};
@@ -172,7 +160,7 @@ namespace PriceNegotiationApp.Controllers
 		/// <summary>
 		/// Responds to a negotiation proposal.
 		/// </summary>
-		/// <param name="negotiation">The negotiation object.</param>
+		/// <param name="negotiationId">The unique identifier of the negotiation to update.</param>
 		/// <param name="isApproved">A flag indicating whether the proposal is approved or not.</param>
 		/// <returns>Returns an <see cref="IActionResult"/> status code representing the result of the operation.</returns>
 		[HttpPatch]
@@ -183,14 +171,9 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> RespondToNegotiationProposal([FromBody] Negotiation negotiation, [FromQuery] bool isApproved)
+		public async Task<IActionResult> RespondToNegotiationProposal(int negotiationId, [FromQuery] bool isApproved)
 		{
-			if (negotiation == null)
-			{
-				return BadRequest();
-			}
-
-			var result = await _service.RespondToNegotiationProposalAsync(negotiation, isApproved);
+			var result = await _service.RespondToNegotiationProposalAsync(negotiationId, isApproved);
 
 			return result switch
 			{
@@ -216,6 +199,19 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Customer")]
 		public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] NegotiationInputModel negotiationDetails)
         {
+			if (!ModelState.IsValid)
+			{
+				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
+					.Select(e => new
+					{
+						Name = e.Key,
+						Message = e.Value.Errors.First().ErrorMessage,
+						Exception = e.Value.Errors.First().Exception
+					}).ToList();
+
+				return BadRequest(errors);
+			}
+
 			Negotiation negotiation = await _service.CreateNegotiationAsync(negotiationDetails);
 
             return CreatedAtAction(nameof(GetNegotiation), new { id = negotiation.Id }, negotiation);
@@ -265,7 +261,7 @@ namespace PriceNegotiationApp.Controllers
 		/// <summary>
 		/// if the authorized user is Customer, then check if the negotiation belongs to him; if user role is different then just return true
 		/// </summary>
-		/// <param name="negotiationId"></param>
+		/// <param name="negotiationId">The unique identifier of the negotiation</param>
 		/// <returns></returns>
 		private bool IsUserAuthorizedForNegotiation(int negotiationId)
 		{

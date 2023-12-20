@@ -70,9 +70,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 
 			// Assert
 			Assert.NotNull(returnedProduct);
-
-			// Check if each test data item is present in the returned products
-			Assert.Contains(returnedProduct, testData);
+			Assert.Contains(returnedProduct, testData); // Check if each test data item is present in the returned products
 		}
 
 		[Theory]
@@ -91,21 +89,18 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 				.UseInMemoryDatabase(databaseName: "InMemoryDatabase")
 				.Options;
 
-			var db = DbContextProvider.GetInMemoryDbContext();
+			using var context = DbContextProvider.GetInMemoryDbContext();
 
-			using (var context = new AppDbContext(dbContextOptions))
-			{
-				// Initialize the service with the in-memory DbContext
-				var productService = new ProductService(context);
+			// Initialize the service with the in-memory DbContext
+			var productService = new ProductService(context);
 
-				// Act
-				var createdProduct = await productService.CreateProductAsync(productInputModel);
+			// Act
+			var createdProduct = await productService.CreateProductAsync(productInputModel);
 
-				// Assert
-				Assert.NotNull(createdProduct);
-				Assert.Equal(productInputModel.Name, createdProduct.Name);
-				Assert.Equal(productInputModel.Price, createdProduct.Price);
-			}
+			// Assert
+			Assert.NotNull(createdProduct);
+			Assert.Equal(productInputModel.Name, createdProduct.Name);
+			Assert.Equal(productInputModel.Price, createdProduct.Price);
 		}
 
 		[Fact]
@@ -113,7 +108,6 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		{
 			// Arrange
 			var productService = CreateProductServiceWithTestData();
-			var testData = GetSampleProducts();
 
 			string randomId = "123abc";
 
@@ -123,11 +117,10 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			bool result = await productService.DeleteProductAsync(randomId);
 
 			var products = await productService.GetProductsAsync();
-			var allProducts = products.ToList();
 
 			// Assert
 			Assert.True(result);
-			Assert.DoesNotContain(product, allProducts);
+			Assert.DoesNotContain(product, products);
 		}
 
 		[Fact]

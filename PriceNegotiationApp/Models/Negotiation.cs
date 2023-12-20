@@ -18,6 +18,7 @@ namespace PriceNegotiationApp.Models
 		public decimal ProposedPrice { get; set; }
 		public bool? IsAccepted { get; set; }
 		[Required]
+		[Range(0, 2)]
 		public int RetriesLeft { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
@@ -38,7 +39,7 @@ namespace PriceNegotiationApp.Models
 		private void InitializeDefaults()
 		{
 			IsAccepted = false;
-			RetriesLeft = 2;
+			RetriesLeft = 2; // by creating a negotiation with a certain price, one try is used up (that's why initialized with 2 and not 3 retries)
 			CreatedAt = DateTime.UtcNow;
 			UpdatedAt = CreatedAt;
 			Status = NegotiationStatus.Open;
@@ -74,6 +75,13 @@ namespace PriceNegotiationApp.Models
 			hash.Add(Status);
 			hash.Add(UserId);
 			return hash.ToHashCode();
+		}
+
+		public void ProposeNewPrice(decimal proposedPrice)
+		{
+			--this.RetriesLeft;
+			this.ProposedPrice = proposedPrice;
+			this.UpdatedAt = DateTime.Now;
 		}
 	}
 

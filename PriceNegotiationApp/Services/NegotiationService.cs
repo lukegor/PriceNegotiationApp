@@ -88,9 +88,8 @@ namespace PriceNegotiationApp.Services
 				return ProposePriceResult.InvalidInput;
 			}
 
-			--negotiation.RetriesLeft;
-			negotiation.ProposedPrice = proposedPrice;
-			negotiation.UpdatedAt = DateTime.Now;
+			// update negotiation fields values
+			negotiation.ProposeNewPrice(proposedPrice);
 
 			try
 			{
@@ -103,9 +102,16 @@ namespace PriceNegotiationApp.Services
 			}
 		}
 
-		public async Task<UpdateResultType> RespondToNegotiationProposalAsync(Negotiation negotiation, bool isApproved)
+		public async Task<UpdateResultType> RespondToNegotiationProposalAsync(int negotiationId, bool isApproved)
 		{
-			if (isApproved)
+			var negotiation = await _context.Negotiations.FindAsync(negotiationId);
+
+            if (negotiation == null)
+            {
+                return UpdateResultType.NotFound;
+            }
+
+            if (isApproved)
 			{
 				negotiation.IsAccepted = true;
 				negotiation.Status = NegotiationStatus.Closed;

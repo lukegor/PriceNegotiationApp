@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using PriceNegotiationApp.Extensions.Conversions;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Utility;
 
@@ -75,7 +76,7 @@ namespace PriceNegotiationApp.Initializers
 
 				await _userManager.CreateAsync(staffUser, "Staff123!");
 
-				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync(staffMail);
+				ApplicationUser user = (await _userManager.FindByEmailAsync(staffMail)).ToDb();
 
 				if (user != null)
 					await _userManager.AddToRoleAsync(user, Roles.Role_Staff);

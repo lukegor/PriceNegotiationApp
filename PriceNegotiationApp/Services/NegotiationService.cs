@@ -3,6 +3,7 @@ using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.DTO;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Utility;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace PriceNegotiationApp.Services
@@ -58,20 +59,20 @@ namespace PriceNegotiationApp.Services
 			return UpdateResultType.Success;
 		}
 
-		public async Task<ProposePriceResult> ProposeNewPriceAsync(int negotiationId, decimal proposedPrice)
+		public async Task<ProposePriceResponse> ProposeNewPriceAsync(int negotiationId, decimal proposedPrice)
 		{
 			var negotiation = await _context.Negotiations.FindAsync(negotiationId);
 
 			if (negotiation == null)
 			{
-				return ProposePriceResult.NotFound;
+				return new ProposePriceResponse { Result = ProposePriceResult.NotFound };
 			}
 
 			var isUserAssociated = IsUserAssociatedWithNegotiation(negotiationId);
 
 			if (!isUserAssociated)
 			{
-				return ProposePriceResult.Unauthorized;
+				return new ProposePriceResponse { Result = ProposePriceResult.Unauthorized };
 			}
 
 			Product relevantProduct = await FindRelevantProductAsync(negotiation);
@@ -80,12 +81,17 @@ namespace PriceNegotiationApp.Services
 
 			if (negotiation.RetriesLeft <= 0)
 			{
-				return ProposePriceResult.IncorrectAction;
+				return new ProposePriceResponse { Result = ProposePriceResult.IncorrectAction };
 			}
 
-			if (proposedPrice <= 0 || proposedPrice > Multiplier * relevantProduct.Price)
+			decimal maxAllowedPriceProposition = CalculateMaxAllowedPrice(Multiplier, relevantProduct.Price);
+			if (proposedPrice <= 0 || proposedPrice > maxAllowedPriceProposition)
 			{
-				return ProposePriceResult.InvalidInput;
+				return new ProposePriceResponse
+				{
+					Result = ProposePriceResult.InvalidInput,
+					MaxAllowedPrice = maxAllowedPriceProposition
+				};
 			}
 
 			// update negotiation fields values
@@ -94,11 +100,11 @@ namespace PriceNegotiationApp.Services
 			try
 			{
 				await _context.SaveChangesAsync();
-				return ProposePriceResult.Success;
+				return new ProposePriceResponse { Result = ProposePriceResult.Success };
 			}
 			catch (DbUpdateException)
 			{
-				return ProposePriceResult.Error;
+				return new ProposePriceResponse { Result = ProposePriceResult.Error };
 			}
 		}
 
@@ -190,6 +196,11 @@ namespace PriceNegotiationApp.Services
 			Product product = await _context.Products.FindAsync(productId);
 
 			return product;
+		}
+
+		public decimal CalculateMaxAllowedPrice(int multiplier, decimal productPrice)
+		{
+			return multiplier * productPrice;
 		}
 	}
 }

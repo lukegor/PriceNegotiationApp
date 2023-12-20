@@ -144,15 +144,15 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> ProposeNewPrice(int negotiationId, decimal proposedPrice)
 		{
-			var result = await _service.ProposeNewPriceAsync(negotiationId, proposedPrice);
+			var response = await _service.ProposeNewPriceAsync(negotiationId, proposedPrice);
 
-			return result switch
+			return response.Result switch
 			{
 				ProposePriceResult.Success => Ok("Price proposed successfully."),
 				ProposePriceResult.NotFound => NotFound("Negotiation not found."),
 				ProposePriceResult.Unauthorized => Forbid("You are not authorized to propose a new price for this negotiation."),
 				ProposePriceResult.IncorrectAction => BadRequest("No more retries are left for this negotiation."),
-				ProposePriceResult.InvalidInput => BadRequest("Invalid negotiation or proposed price."),
+				ProposePriceResult.InvalidInput => BadRequest($"Invalid proposed price. Please note that the proposed price should be within the range of 0.01 - {response.MaxAllowedPrice}."),
 				_ => StatusCode(500, "An error occurred while processing the proposal."),
 			};
 		}

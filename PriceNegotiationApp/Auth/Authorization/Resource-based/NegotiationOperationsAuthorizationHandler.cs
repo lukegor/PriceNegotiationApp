@@ -59,6 +59,12 @@ namespace PriceNegotiationApp.Auth.Authorization.Resource_based
                         context.Succeed(requirement);
                     }
                     break;
+                case RequirementsNames.IsOwnerRequirement:
+                    if (context.User.HasClaim(ClaimTypes.Role, "Customer") && context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value == negotiation.UserId)
+                    {
+                        context.Succeed(requirement);
+                    }
+                    break;
             }
             return Task.CompletedTask;
         }

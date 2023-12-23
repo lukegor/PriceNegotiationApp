@@ -7,5 +7,7 @@
         public const string UpdateRequirement = nameof(UpdateRequirement);
         public const string DeleteRequirement = nameof(DeleteRequirement);
         public const string IsAdminOrStaffOrOwnerRequirement = nameof(IsAdminOrStaffOrOwnerRequirement);
+        public const string IsOwnerRequirement = nameof(IsOwnerRequirement);
+
     }
 }

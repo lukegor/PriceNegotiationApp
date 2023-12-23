@@ -79,12 +79,12 @@ namespace PriceNegotiationApp.Services
 				return new ProposePriceResponse { Result = ProposePriceResult.NotFound };
 			}
 
-			var isUserAssociated = IsUserAssociatedWithNegotiation(negotiationId);
+			//var isUserAssociated = IsUserAssociatedWithNegotiation(negotiationId);
 
-			if (!isUserAssociated)
-			{
-				return new ProposePriceResponse { Result = ProposePriceResult.Unauthorized };
-			}
+			//if (!isUserAssociated)
+			//{
+			//	return new ProposePriceResponse { Result = ProposePriceResult.Unauthorized };
+			//}
 
 			Product relevantProduct = await FindRelevantProductAsync(negotiation);
 

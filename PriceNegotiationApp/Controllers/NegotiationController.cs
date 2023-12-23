@@ -69,7 +69,7 @@ namespace PriceNegotiationApp.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[Authorize(Policy = "AdminOrStaffOrRelevantUser")]
+		[Authorize(Policy = RequirementsNames.IsAdminOrStaffOrOwnerRequirement)]
 		public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] int id)
 		{
 			//if (!IsUserAuthorizedForNegotiation(id))
@@ -149,7 +149,7 @@ namespace PriceNegotiationApp.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Policy = RequirementsNames.IsOwnerRequirement)]
         public async Task<IActionResult> ProposeNewPrice(int negotiationId, decimal proposedPrice)
 		{
 			var response = await _service.ProposeNewPriceAsync(negotiationId, proposedPrice);
@@ -173,14 +173,14 @@ namespace PriceNegotiationApp.Controllers
 		/// <returns>Returns an <see cref="IActionResult"/> status code representing the result of the operation.</returns>
 		[HttpPatch]
 		[Route("response")]
-		[Authorize(Roles = "Staff")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> RespondToNegotiationProposal(int negotiationId, [FromQuery] bool isApproved)
+        [Authorize(Roles = "Staff")]
+        public async Task<IActionResult> RespondToNegotiationProposal(int negotiationId, [FromQuery] bool isApproved)
 		{
 			var result = await _service.RespondToNegotiationProposalAsync(negotiationId, isApproved);
 
@@ -266,7 +266,8 @@ namespace PriceNegotiationApp.Controllers
             return _service.NegotiationExists(id);
         }
 
-		private bool IsUserAssociatedWithNegotiation(int negotiationId)
+        [Obsolete("Deprecated: Replaced by custom policies realizing resource-based authorization.")]
+        private bool IsUserAssociatedWithNegotiation(int negotiationId)
 		{
 			return _service.IsUserAssociatedWithNegotiation(negotiationId);
 		}
@@ -276,6 +277,7 @@ namespace PriceNegotiationApp.Controllers
 		/// </summary>
 		/// <param name="negotiationId">The unique identifier of the negotiation</param>
 		/// <returns></returns>
+		[Obsolete("Deprecated: Replaced by custom policies realizing resource-based authorization.")]
 		private bool IsUserAuthorizedForNegotiation(int negotiationId)
 		{
 			var userRole = _service.GetLoggedInUserRole();

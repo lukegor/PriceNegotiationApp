@@ -9,7 +9,5 @@ namespace PriceNegotiationApp.Models.Input_Models
 		[Required]
 		[Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than or equal to 0.01")]
 		public decimal ProposedPrice { get; set; }
-		[Required]
-		public string UserId { get; set; }
 	}
 }

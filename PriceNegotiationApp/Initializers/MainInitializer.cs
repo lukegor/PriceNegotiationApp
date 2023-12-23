@@ -32,13 +32,13 @@ namespace PriceNegotiationApp.Initializers
 		public async Task InitializeAdminUserAsync()
 		{
 			// Create admin user if it doesn't exist
-			const string adminMail = @"admin@app.com";
-			if (_userManager.FindByEmailAsync(adminMail).GetAwaiter().GetResult() == null)
+			const string AdminMail = @"admin@app.com";
+			if (_userManager.FindByEmailAsync(AdminMail).GetAwaiter().GetResult() == null)
 			{
 				var adminUser = new ApplicationUser
 				{
 					UserName = "admin",
-					Email = adminMail,
+					Email = AdminMail,
 					Name = "Admin",
 					PhoneNumber = "123456789",
 					StreetAddress = "Street",
@@ -49,7 +49,7 @@ namespace PriceNegotiationApp.Initializers
 
 				await _userManager.CreateAsync(adminUser, "Admin123!");
 
-				ApplicationUser user = (ApplicationUser) await _userManager.FindByEmailAsync(adminMail);
+				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync(AdminMail);
 
 				if (user != null)
 					await _userManager.AddToRoleAsync(user, Roles.Role_Admin);
@@ -59,13 +59,13 @@ namespace PriceNegotiationApp.Initializers
 		public async Task InitializeStaffUserAsync()
 		{
 			// Create admin user if it doesn't exist
-			const string staffMail = @"Staff1@app.com";
-			if (_userManager.FindByEmailAsync(staffMail).GetAwaiter().GetResult() == null)
+			const string StaffMail = @"Staff1@app.com";
+			if (_userManager.FindByEmailAsync(StaffMail).GetAwaiter().GetResult() == null)
 			{
 				var staffUser = new ApplicationUser
 				{
 					UserName = "Staff1",
-					Email = staffMail,
+					Email = StaffMail,
 					Name = "Bob Smith",
 					PhoneNumber = "987654321",
 					StreetAddress = "Street",
@@ -76,7 +76,7 @@ namespace PriceNegotiationApp.Initializers
 
 				await _userManager.CreateAsync(staffUser, "Staff123!");
 
-				ApplicationUser user = (await _userManager.FindByEmailAsync(staffMail)).ToDb();
+				ApplicationUser user = (ApplicationUser)await _userManager.FindByEmailAsync(StaffMail);
 
 				if (user != null)
 					await _userManager.AddToRoleAsync(user, Roles.Role_Staff);

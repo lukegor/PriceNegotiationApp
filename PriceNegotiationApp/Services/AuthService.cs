@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PriceNegotiationApp.Auth;
 using PriceNegotiationApp.Models.DTO;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Utility;
 using static PriceNegotiationApp.Controllers.AuthenticationController;
 using System.IdentityModel.Tokens.Jwt;
 using PriceNegotiationApp.Extensions.Conversions;
+using PriceNegotiationApp.Auth.Authentication.JWT;
 
 namespace PriceNegotiationApp.Services
 {
-	public class AuthService
+    public class AuthService
 	{
 		private readonly SignInManager<IdentityUser> _signInManager;
 		private readonly UserManager<IdentityUser> _userManager;

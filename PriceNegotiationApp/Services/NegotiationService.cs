@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.DTO;
 using PriceNegotiationApp.Models.Input_Models;
+using PriceNegotiationApp.Services.Providers;
 using PriceNegotiationApp.Utility;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -13,19 +15,28 @@ namespace PriceNegotiationApp.Services
 		Task<IEnumerable<Negotiation>> GetNegotiationsAsync();
 		Task<Negotiation> GetNegotiationAsync(int id);
 		Task<UpdateResultType> UpdateNegotiationAsync(int id, Negotiation Negotiation);
-		Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel Negotiation);
+		Task<ProposePriceResponse> ProposeNewPriceAsync(int negotiationId, decimal proposedPrice);
+		Task<UpdateResultType> RespondToNegotiationProposalAsync(int negotiationId, bool isApproved);
+        Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel Negotiation);
 		Task<bool> DeleteNegotiationAsync(int id);
-	}
+		bool NegotiationExists(int id);
+		bool IsUserAssociatedWithNegotiation(int negotiationId);
+		string GetLoggedInUserRole();
+
+    }
 
 	public class NegotiationService: INegotiationService
 	{
-		private readonly IHttpContextAccessor _httpContextAccessor;
+		//private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly AppDbContext _context;
+        private readonly IClaimsProvider _claimsProvider;
 
-		public NegotiationService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+
+        public NegotiationService(AppDbContext context,/* IHttpContextAccessor httpContextAccessor, */IClaimsProvider claimsProvider)
 		{
 			_context = context;
-			_httpContextAccessor = httpContextAccessor;
+			//_httpContextAccessor = httpContextAccessor;
+			_claimsProvider = claimsProvider;
 		}
 
 		public async Task<IEnumerable<Negotiation>> GetNegotiationsAsync()
@@ -138,7 +149,7 @@ namespace PriceNegotiationApp.Services
 
 		public async Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel negotiationDetails)
 		{
-			string userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			string userId = _claimsProvider.UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);//_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 			Negotiation negotiation = new Negotiation(negotiationDetails.ProductId, negotiationDetails.ProposedPrice, userId);
 
@@ -169,8 +180,8 @@ namespace PriceNegotiationApp.Services
 
 		public string GetLoggedInUserRole()
 		{
-			var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-			System.Diagnostics.Debug.WriteLine(userRole);
+			var userRole = _claimsProvider.UserClaimsPrincipal.FindFirstValue(ClaimTypes.Role);//_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+            System.Diagnostics.Debug.WriteLine(userRole);
 			return userRole;
 		}
 
@@ -184,9 +195,9 @@ namespace PriceNegotiationApp.Services
 			}
 
 			var userId = negotiation.UserId; // Retrieve userId associated with certain negotiation
-			var loggedInUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var loggedInUserId = _claimsProvider.UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);//_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-			return userId == loggedInUserId;
+            return userId == loggedInUserId;
 		}
 
 		public async Task<Product> FindRelevantProductAsync(Negotiation negotiation)
@@ -198,7 +209,7 @@ namespace PriceNegotiationApp.Services
 			return product;
 		}
 
-		public decimal CalculateMaxAllowedPrice(int multiplier, decimal productPrice)
+		private decimal CalculateMaxAllowedPrice(int multiplier, decimal productPrice)
 		{
 			return multiplier * productPrice;
 		}

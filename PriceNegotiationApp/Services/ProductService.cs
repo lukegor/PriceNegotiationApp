@@ -36,7 +36,7 @@ namespace PriceNegotiationApp.Services
 
 		public async Task<UpdateResultType> UpdateProductAsync(string id, Product product)
 		{
-			var idInDb = (await GetProductAsync(id)).Id;
+			var idInDb = (await GetProductAsync(id)).Id.ToString();
 			if (id != idInDb)
 			{
 				return UpdateResultType.NotFound;
@@ -87,7 +87,7 @@ namespace PriceNegotiationApp.Services
 		/// <returns>Returns true if a product with the specified ID exists; otherwise, returns false.</returns>
 		public bool ProductExists(string id)
 		{
-			return _context.Products.Any(e => e.Id == id);
+			return _context.Products.Any(e => e.Id.ToString() == id);
 		}
 	}
 }

@@ -16,7 +16,9 @@ namespace PriceNegotiationApp.Auth.Authorization.Resource_based
         public static OperationAuthorizationRequirement DeleteRequirement =
             new OperationAuthorizationRequirement() { Name = nameof(RequirementsNames.DeleteRequirement) };
         #endregion
-        public static OperationAuthorizationRequirement AdminOrStaffOrOwner =
-            new OperationAuthorizationRequirement() { Name = "AdminOrStaffOrOwner" };
+        public static OperationAuthorizationRequirement IsAdminOrStaffOrOwnerRequirement =
+            new OperationAuthorizationRequirement() { Name = nameof(RequirementsNames.IsAdminOrStaffOrOwnerRequirement) };
+        public static OperationAuthorizationRequirement IsOwnerRequirement =
+            new OperationAuthorizationRequirement() { Name = nameof(RequirementsNames.IsOwnerRequirement) };
     }
 }

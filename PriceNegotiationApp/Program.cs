@@ -28,12 +28,13 @@ namespace PriceNegotiationApp
 			var builder = WebApplication.CreateBuilder(args);
 
 			// Add services to the container.
-
-			builder.Services.AddControllers();
+            builder.Services.AddControllers();
 			builder.Services.AddResponseCaching();
 
+			// add database context
 			builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("DbContext"));
 
+			// add Microsoft.Identity
 			builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 				.AddEntityFrameworkStores<AppDbContext>()
 				.AddDefaultTokenProviders();
@@ -61,8 +62,10 @@ namespace PriceNegotiationApp
 
 			builder.Services.AddAuthorization(opt =>
 			{
-                opt.AddPolicy(OperationRequirements.AdminOrStaffOrOwner.Name, policy =>
-                    policy.Requirements.Add(OperationRequirements.AdminOrStaffOrOwner));
+                opt.AddPolicy(OperationRequirements.IsAdminOrStaffOrOwnerRequirement.Name, policy =>
+                    policy.Requirements.Add(OperationRequirements.IsAdminOrStaffOrOwnerRequirement));
+                opt.AddPolicy(OperationRequirements.IsOwnerRequirement.Name, policy =>
+                    policy.Requirements.Add(OperationRequirements.IsOwnerRequirement));
 
                 opt.AddPolicy(OperationRequirements.CreateRequirement.Name, policy =>
 					policy.Requirements.Add(OperationRequirements.CreateRequirement));
@@ -79,13 +82,16 @@ namespace PriceNegotiationApp
 					policy.Requirements.Add(OperationRequirements.DeleteRequirement));
             });
 
+			// add negotiation policies handler
 			builder.Services.AddSingleton<IAuthorizationHandler, NegotiationOperationsAuthorizationHandler>();
 
 			builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 			builder.Services.AddScoped<JwtManager>();
 
+			// add initializer
 			builder.Services.AddScoped<MainInitializer>();
 
+			// add services
 			builder.Services.AddScoped<AuthService>();
 			builder.Services.AddScoped<IProductService, ProductService>();
 			builder.Services.AddScoped<INegotiationService, NegotiationService>();
@@ -111,11 +117,15 @@ namespace PriceNegotiationApp
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
+				// OpenAPI/Swagger
 				app.UseSwagger();
 				app.UseSwaggerUI();
-			}
 
-			app.UseHttpsRedirection();
+                // display detailed error information in the browser when an unhandled exception occurs
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
 
 			app.UseResponseCaching();
 

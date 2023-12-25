@@ -11,6 +11,7 @@ using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Custom_Exceptions;
 
 namespace PriceNegotiationApp.Controllers
 {
@@ -56,14 +57,16 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<ActionResult<Product>> GetProduct([FromRoute] string id)
         {
-            var product = await _productService.GetProductAsync(id);
+			try
+			{
+				var product = await _productService.GetProductAsync(id);
 
-			if (product == null)
-            {
+                return Ok(product);
+            }
+			catch (NotFoundException)
+			{
                 return NotFound();
             }
-
-            return Ok(product);
         }
 
 		/// <summary>

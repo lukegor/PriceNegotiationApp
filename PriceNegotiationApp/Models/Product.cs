@@ -6,8 +6,8 @@ namespace PriceNegotiationApp.Models
 	public class Product
 	{
 		[Key]
-		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-		public Guid Id { get; set; }
+		//[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+		public string Id { get; set; } = Guid.NewGuid().ToString();
 
 		[Required]
 		public string Name { get; set; }

@@ -5,6 +5,7 @@ using PriceNegotiationApp.Models.DTO;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services.Providers;
 using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Custom_Exceptions;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
@@ -30,29 +31,52 @@ namespace PriceNegotiationApp.Services
 		//private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly AppDbContext _context;
         private readonly IClaimsProvider _claimsProvider;
+		private readonly ILogger<NegotiationService> _logger;
 
 
-        public NegotiationService(AppDbContext context,/* IHttpContextAccessor httpContextAccessor, */IClaimsProvider claimsProvider)
+		public NegotiationService(AppDbContext context,/* IHttpContextAccessor httpContextAccessor, */IClaimsProvider claimsProvider, ILogger<NegotiationService> logger)
 		{
 			_context = context;
 			//_httpContextAccessor = httpContextAccessor;
 			_claimsProvider = claimsProvider;
+			_logger = logger;
 		}
 
 		public async Task<IEnumerable<Negotiation>> GetNegotiationsAsync()
 		{
-			return await _context.Negotiations.ToListAsync();
+			var negotiations = await _context.Negotiations.ToListAsync();
+			_logger.LogInformation("List of {Count} negotiations was returned.", negotiations.Count);
+			return negotiations;
 		}
 
 		public async Task<Negotiation> GetNegotiationAsync(int id)
 		{
-			return await _context.Negotiations.FindAsync(id);
+			var negotiation = await _context.Negotiations.FindAsync(id);
+
+			if (negotiation == null)
+			{
+				throw new NotFoundException();
+			}
+			_logger.LogInformation("Negotiation with ID '{Id}' was found.", negotiation.Id);
+
+			return negotiation;
 		}
 
 		public async Task<UpdateResultType> UpdateNegotiationAsync(int id, Negotiation Negotiation)
 		{
-			if (id != Negotiation.Id)
+			try
 			{
+				var existingNegotiation = await GetNegotiationAsync(id);
+				var idInDb = existingNegotiation.Id;
+				if (id != idInDb)
+				{
+					_logger.LogWarning("Update failed: Provided ID {ProvidedId} does not match the ID {IdInDb} in the database.", id, idInDb);
+					return UpdateResultType.NotFound;
+				}
+			}
+			catch (NotFoundException)
+			{
+				_logger.LogWarning("Update failed: Negotiation with ID {Id} was not found.", id);
 				return UpdateResultType.NotFound;
 			}
 
@@ -61,9 +85,11 @@ namespace PriceNegotiationApp.Services
 			try
 			{
 				await _context.SaveChangesAsync();
+				_logger.LogInformation("Negotiation with ID {Id} updated successfully.", id);
 			}
 			catch (DbUpdateConcurrencyException)
 			{
+				_logger.LogError("Concurrency exception occurred while updating negotiation with ID '{Id}'", id);
 				return UpdateResultType.Conflict;
 			}
 
@@ -76,6 +102,7 @@ namespace PriceNegotiationApp.Services
 
 			if (negotiation == null)
 			{
+				_logger.LogWarning("Negotiation with ID '{Id}' not found.", negotiationId);
 				return new ProposePriceResponse { Result = ProposePriceResult.NotFound };
 			}
 
@@ -92,12 +119,14 @@ namespace PriceNegotiationApp.Services
 
 			if (negotiation.RetriesLeft <= 0)
 			{
+				_logger.LogWarning("ProposeNewPrice failed: Incorrect action for negotiation with ID '{Id}'.", negotiation.Id);
 				return new ProposePriceResponse { Result = ProposePriceResult.IncorrectAction };
 			}
 
 			decimal maxAllowedPriceProposition = CalculateMaxAllowedPrice(Multiplier, relevantProduct.Price);
 			if (proposedPrice <= 0 || proposedPrice > maxAllowedPriceProposition)
 			{
+				_logger.LogWarning("ProposeNewPrice failed: Invalid input for negotiation with ID '{Id}'.", negotiation.Id);
 				return new ProposePriceResponse
 				{
 					Result = ProposePriceResult.InvalidInput,
@@ -111,10 +140,12 @@ namespace PriceNegotiationApp.Services
 			try
 			{
 				await _context.SaveChangesAsync();
+				_logger.LogInformation("ProposeNewPrice succeeded for negotiation with ID '{Id}'.", negotiation.Id);
 				return new ProposePriceResponse { Result = ProposePriceResult.Success };
 			}
 			catch (DbUpdateException)
 			{
+				_logger.LogError("ProposeNewPrice failed: Error occurred while updating negotiation with ID '{Id}'.", negotiation.Id);
 				return new ProposePriceResponse { Result = ProposePriceResult.Error };
 			}
 		}
@@ -125,7 +156,8 @@ namespace PriceNegotiationApp.Services
 
             if (negotiation == null)
             {
-                return UpdateResultType.NotFound;
+				_logger.LogWarning("Negotiation with ID '{Id}' not found.", negotiationId);
+				return UpdateResultType.NotFound;
             }
 
             if (isApproved)
@@ -156,6 +188,8 @@ namespace PriceNegotiationApp.Services
 			_context.Negotiations.Add(negotiation);
 			await _context.SaveChangesAsync();
 
+			_logger.LogInformation("Negotiation with ID '{Id}' created successfully.", negotiation.Id);
+
 			return negotiation;
 		}
 
@@ -164,18 +198,26 @@ namespace PriceNegotiationApp.Services
 			var negotiation = await _context.Negotiations.FindAsync(id);
 			if (negotiation == null)
 			{
+				_logger.LogWarning("Negotiation with ID '{Id}' was not found.", id);
 				return false;
 			}
 
 			_context.Negotiations.Remove(negotiation);
 			await _context.SaveChangesAsync();
 
+			_logger.LogInformation("Negotiation with ID {Id} was deleted successfully.", id);
+
+
 			return true;
 		}
 
 		public bool NegotiationExists(int id)
 		{
-			return _context.Negotiations.Any(e => e.Id == id);
+			bool exists = _context.Negotiations.Any(e => e.Id == id);
+
+			_logger.LogInformation(exists ? $"Negotiation with ID '{id}' exists." : $"Negotiation with ID '{id}' does not exist.");
+
+			return exists;
 		}
 
 		public string GetLoggedInUserRole()

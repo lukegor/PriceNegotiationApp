@@ -23,6 +23,7 @@ namespace PriceNegotiationApp.Models
             if (_environment.IsDevelopment())
             {
                 optionsBuilder.EnableSensitiveDataLogging();
+                optionsBuilder.EnableDetailedErrors();
             }
         }
 

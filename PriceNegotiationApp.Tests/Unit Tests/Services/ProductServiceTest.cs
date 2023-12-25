@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Moq;
 using PriceNegotiationApp.Controllers;
@@ -90,9 +91,10 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 				.Options;
 
 			using var context = DbContextProvider.GetInMemoryDbContext();
+            var mockLogger = new Mock<ILogger<ProductService>>();
 
-			// Initialize the service with the in-memory DbContext
-			var productService = new ProductService(context);
+            // Initialize the service with the in-memory DbContext
+            var productService = new ProductService(context, mockLogger.Object);
 
 			// Act
 			var createdProduct = await productService.CreateProductAsync(productInputModel);
@@ -141,7 +143,8 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		{
 			var context = DbContextProvider.GetInMemoryDbContext();
 			PopulateData(context, isCustomGuid);
-			return new ProductService(context);
+            var mockLogger = new Mock<ILogger<ProductService>>();
+            return new ProductService(context, mockLogger.Object);
 			//var mockProductService = new Mock<IProductService>();
 			//mockProductService.Setup(x => x.GetProductsAsync()).ReturnsAsync(GetSampleProducts());
 			//return mockProductService.Object;

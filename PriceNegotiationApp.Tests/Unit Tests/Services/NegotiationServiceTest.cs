@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Protocol.Core.Types;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
+using PriceNegotiationApp.Services.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
@@ -77,15 +80,27 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task CreateNegotiationAsync_ShouldCreateNegotiation(string productId, decimal proposedPrice, string userId)
 		{
 			// Arrange
+
+			// Create a ClaimsPrincipal with the desired user
+			//ClaimsIdentity claimsIdentity = new ClaimsIdentity(new Claim[]
+			//{
+			//	new Claim(ClaimTypes.Name, userId),
+			//});
+
+			//ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+			//// Inject the claimsPrincipal into IClaimsProvider
+			//var claimsProviderMock = new Mock<IClaimsProvider>();
+			//claimsProviderMock.Setup(cp => cp.UserClaimsPrincipal).Returns(claimsPrincipal);
+
+			var negotiationService = CreateNegotiationServiceWithTestData(true);
+			var testData = _dbContext.Negotiations;
+
 			NegotiationInputModel negotiationInputModel = new()
 			{
 				ProductId = productId,
 				ProposedPrice = proposedPrice,
-				UserId = userId
 			};
-
-			var negotiationService = CreateNegotiationServiceWithTestData(true);
-			var testData = _dbContext.Negotiations;
 
 			// Act
 			var createdNegotiation = await negotiationService.CreateNegotiationAsync(negotiationInputModel);
@@ -94,7 +109,6 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			Assert.NotNull(createdNegotiation);
 			Assert.Equal(negotiationInputModel.ProductId, createdNegotiation.ProductId);
 			Assert.Equal(negotiationInputModel.ProposedPrice, createdNegotiation.ProposedPrice);
-			Assert.Equal(negotiationInputModel.UserId, createdNegotiation.UserId);
 		}
 
 		public static IEnumerable<object[]> ProvideNegotiationData(AppDbContext dbContext)
@@ -108,17 +122,27 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			return negotiations;
 		}
 
-		private NegotiationService CreateNegotiationServiceWithTestData(bool isCustomProductId = false)
+		private NegotiationService CreateNegotiationServiceWithTestData(bool isCustomProductId = false, string userId = "user2")
 		{
 			var context = DbContextProvider.GetInMemoryDbContext();
 			PopulateData(context, isCustomProductId);
 
 			// Create a mock for IHttpContextAccessor and set up a basic behavior
-			Mock<IHttpContextAccessor> httpAccessorMock = new Mock<IHttpContextAccessor>();
-			httpAccessorMock.Setup(x => x.HttpContext)
-							.Returns(new DefaultHttpContext());
+			Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+			httpContextAccessorMock.Setup(x => x.HttpContext)
+				.Returns(new DefaultHttpContext
+				{
+					User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+					{
+						new Claim(ClaimTypes.Name, userId),
+						new Claim(ClaimTypes.NameIdentifier, userId)
+					}))
+				});
 
-			return new NegotiationService(context, httpAccessorMock.Object);
+			var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorMock.Object);
+			var mockLogger = new Mock<ILogger<NegotiationService>>();
+
+			return new NegotiationService(context, claimsProvider, mockLogger.Object);
 		}
 
 		private void PopulateData(AppDbContext dbContext, bool isCustomProductId = false)

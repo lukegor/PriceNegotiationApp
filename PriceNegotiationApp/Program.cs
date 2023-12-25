@@ -14,6 +14,7 @@ using PriceNegotiationApp.Initializers;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Services.Providers;
+using Serilog;
 using System;
 using System.Configuration;
 using System.Reflection;
@@ -27,7 +28,17 @@ namespace PriceNegotiationApp
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			// Add services to the container.
+            // Add services to the container.
+
+			// configure Serilog
+            var logger = new LoggerConfiguration()
+				.ReadFrom.Configuration(builder.Configuration)
+				.Enrich.FromLogContext()
+				.CreateLogger();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
+
             builder.Services.AddControllers();
 			builder.Services.AddResponseCaching();
 

@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using NuGet.Protocol.Core.Types;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Services.Providers;
+using PriceNegotiationApp.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 {
-	public class NegotiationServiceTest
+	public class NegotiationServiceTest// : IDisposable
 	{
 		private readonly ITestOutputHelper _output;
 		private readonly AppDbContext _dbContext;
@@ -93,7 +94,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			//var claimsProviderMock = new Mock<IClaimsProvider>();
 			//claimsProviderMock.Setup(cp => cp.UserClaimsPrincipal).Returns(claimsPrincipal);
 
-			var negotiationService = CreateNegotiationServiceWithTestData(true);
+			var negotiationService = CreateNegotiationServiceWithTestData(true, userId);
 			var testData = _dbContext.Negotiations;
 
 			NegotiationInputModel negotiationInputModel = new()
@@ -109,6 +110,62 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			Assert.NotNull(createdNegotiation);
 			Assert.Equal(negotiationInputModel.ProductId, createdNegotiation.ProductId);
 			Assert.Equal(negotiationInputModel.ProposedPrice, createdNegotiation.ProposedPrice);
+		}
+
+		//[Theory]
+		//[InlineData("123ab", 20, "")]
+		//[InlineData("", 20, "user2")]
+		//public async Task CreateNegotiationAsync_ShouldNotCreateNegotiation(string productId, decimal proposedPrice, string userId)
+		//{
+		//	// Arrange
+		//	var negotiationService = CreateNegotiationServiceWithTestData(true, userId);
+		//	var testData = _dbContext.Negotiations;
+
+		//	NegotiationInputModel negotiationInputModel = new()
+		//	{
+		//		ProductId = productId,
+		//		ProposedPrice = proposedPrice,
+		//	};
+
+		//	// Act
+		//	var createdNegotiation = await negotiationService.CreateNegotiationAsync(negotiationInputModel);
+
+		//	// Assert
+		//	Assert.Null(createdNegotiation);
+		//	//Assert.Equal(negotiationInputModel.ProductId, createdNegotiation.ProductId);
+		//	//Assert.Equal(negotiationInputModel.ProposedPrice, createdNegotiation.ProposedPrice);
+		//}
+
+		[Theory]
+		//[InlineData(true, NegotiationStatus.Closed, 0)]
+		[InlineData(false, NegotiationStatus.Open, 1)]
+		public async Task RespondToNegotiationProposalAsync_ShouldUpdateNegotiation(bool isApproved, NegotiationStatus expectedStatus, int expectedRetries)
+		{
+			// Arrange
+			var negotiationService = CreateNegotiationServiceWithTestData();
+			var existingNegotiation = (await negotiationService.GetNegotiationsAsync()).First();
+
+			// Act
+			var result = await negotiationService.RespondToNegotiationProposalAsync(existingNegotiation.Id, isApproved);
+
+			// Assert
+			Assert.Equal(UpdateResultType.Success, result);
+			Assert.Equal(expectedStatus, existingNegotiation.Status);
+			//Assert.Equal(expectedRetries, existingNegotiation.RetriesLeft);
+		}
+
+		[Fact]
+		public async Task DeleteNegotiationAsync_NonExistingNegotiation_ShouldNotRemoveProduct()
+		{
+			// Arrange
+			var negotiationService = CreateNegotiationServiceWithTestData();
+			int nonExistingNegotiationId = new Random().Next(1000000000);
+
+			// Act
+			bool result = await negotiationService.DeleteNegotiationAsync(nonExistingNegotiationId);
+
+			// Assert
+			Assert.False(result);
 		}
 
 		public static IEnumerable<object[]> ProvideNegotiationData(AppDbContext dbContext)
@@ -128,22 +185,27 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			PopulateData(context, isCustomProductId);
 
 			// Create a mock for IHttpContextAccessor and set up a basic behavior
-			Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-			httpContextAccessorMock.Setup(x => x.HttpContext)
-				.Returns(new DefaultHttpContext
+			var httpContextAccessorSubstitute = Substitute.For<IHttpContextAccessor>();
+			httpContextAccessorSubstitute.HttpContext.Returns(new DefaultHttpContext
+			{
+				User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
 				{
-					User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-					{
-						new Claim(ClaimTypes.Name, userId),
-						new Claim(ClaimTypes.NameIdentifier, userId)
-					}))
-				});
+					new Claim(ClaimTypes.Name, userId),
+					new Claim(ClaimTypes.NameIdentifier, userId)
+				}))
+			});
 
-			var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorMock.Object);
-			var mockLogger = new Mock<ILogger<NegotiationService>>();
 
-			return new NegotiationService(context, claimsProvider, mockLogger.Object);
+			var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorSubstitute);
+			var fakeLogger = Substitute.For<ILogger<NegotiationService>>();
+
+			return new NegotiationService(context, claimsProvider, fakeLogger);
 		}
+
+		//public void Dispose()
+		//{
+		//	_dbContext.Dispose();
+		//}
 
 		private void PopulateData(AppDbContext dbContext, bool isCustomProductId = false)
 		{

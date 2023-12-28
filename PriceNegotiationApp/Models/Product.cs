@@ -8,27 +8,25 @@ namespace PriceNegotiationApp.Models
 		[Key]
 		//[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public string Id { get; set; } = Guid.NewGuid().ToString();
-
 		[Required]
 		public string Name { get; set; }
 		[Required]
-
 		[Range(0, double.MaxValue, ErrorMessage = "Price must be greater than or equal to 0")]
 		public decimal Price { get; set; }
 
 
 		public override bool Equals(object obj)
 		{
-			// Step 1: Check for null and type matching
+			// 1
 			if (obj == null || this.GetType() != obj.GetType())
 			{
 				return false;
 			}
 
-			// Step 2: Cast the object to the correct type
+			// 2
 			var other = (Product)obj;
 
-			// Step 3: Compare individual properties
+			// 3
 			return Id == other.Id && Name == other.Name && Price == other.Price;
 		}
 

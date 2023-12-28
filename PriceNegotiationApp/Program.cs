@@ -114,7 +114,7 @@ namespace PriceNegotiationApp
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.ConfigureSwagger();
 
-			var serviceProvider = builder.Services.BuildServiceProvider(); ;
+			var serviceProvider = builder.Services.BuildServiceProvider();
 			using (var scope = serviceProvider.CreateScope())
 			{
 				var dbInitializer = scope.ServiceProvider.GetRequiredService<MainInitializer>();
@@ -135,6 +135,12 @@ namespace PriceNegotiationApp
                 // display detailed error information in the browser when an unhandled exception occurs
                 app.UseDeveloperExceptionPage();
             }
+
+			if (app.Environment.IsProduction())
+			{
+				app.UseHttpsRedirection();
+				app.UseHsts();
+			}
 
             app.UseHttpsRedirection();
 

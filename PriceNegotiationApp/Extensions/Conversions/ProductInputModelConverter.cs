@@ -7,7 +7,7 @@ namespace PriceNegotiationApp.Extensions.Conversions
 	{
 		public static Product ToDb(this ProductInputModel product)
 		{
-			return new Product()
+			return new Product
 			{
 				Name = product.Name,
 				Price = product.Price

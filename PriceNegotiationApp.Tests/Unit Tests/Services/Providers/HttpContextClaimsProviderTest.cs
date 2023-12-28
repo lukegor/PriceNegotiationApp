@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Moq;
+using NSubstitute;
 using PriceNegotiationApp.Services.Providers;
 using System;
 using System.Collections.Generic;
@@ -24,10 +24,10 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Providers
 
             var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthenticationType"));
 
-            var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(user);
+			var httpContextAccessorSubstitute = Substitute.For<IHttpContextAccessor>();
+			httpContextAccessorSubstitute.HttpContext.User.Returns(user);
 
-            var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorMock.Object);
+			var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorSubstitute);
 
             // Act
             var result = claimsProvider.UserClaimsPrincipal;

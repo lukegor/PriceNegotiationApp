@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Extensions;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
@@ -112,18 +113,12 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Staff, Admin")]
 		public async Task<IActionResult> PutNegotiation([FromRoute] int id, [FromBody] Negotiation negotiation)
         {
-			if (!ModelState.IsValid)
+			var errors = ModelStateHelper.GetErrors(ModelState);
+			if (errors.Any())
 			{
-				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
-					.Select(e => new
-					{
-						Name = e.Key,
-						Message = e.Value.Errors.First().ErrorMessage,
-						Exception = e.Value.Errors.First().Exception
-					}).ToList();
-
 				return BadRequest(errors);
 			}
+
 
 			var updateResult = await _service.UpdateNegotiationAsync(id, negotiation);
 
@@ -209,16 +204,9 @@ namespace PriceNegotiationApp.Controllers
 		[Authorize(Roles = "Customer")]
 		public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] NegotiationInputModel negotiationDetails)
         {
-			if (!ModelState.IsValid)
+			var errors = ModelStateHelper.GetErrors(ModelState);
+			if (errors.Any())
 			{
-				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
-					.Select(e => new
-					{
-						Name = e.Key,
-						Message = e.Value.Errors.First().ErrorMessage,
-						Exception = e.Value.Errors.First().Exception
-					}).ToList();
-
 				return BadRequest(errors);
 			}
 

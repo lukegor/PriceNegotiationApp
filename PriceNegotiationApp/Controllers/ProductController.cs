@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.ResponseCaching;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using PriceNegotiationApp.Extensions;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
@@ -15,16 +10,16 @@ using PriceNegotiationApp.Utility.Custom_Exceptions;
 
 namespace PriceNegotiationApp.Controllers
 {
-    [Area("Products")]
-    [Route("api/v1/[area]/[controller]")]
-    //[Produces]
-    [ApiController]
-    public class ProductController : ControllerBase
-    {
+	[Area("Products")]
+	[Route("api/v1/[area]/[controller]")]
+	//[Produces]
+	[ApiController]
+	public class ProductController : ControllerBase
+	{
 		private readonly IProductService _productService;
 
 		public ProductController(IProductService productService)
-        {
+		{
 			_productService = productService;
 		}
 
@@ -38,12 +33,12 @@ namespace PriceNegotiationApp.Controllers
 		[AllowAnonymous]
 		[ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
 		[ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
-        {
+		public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+		{
 			var products = await _productService.GetProductsAsync();
 
-            return Ok(products);
-        }
+			return Ok(products);
+		}
 
 		/// <summary>
 		/// Retrieves a specific product by its unique identifier.
@@ -56,18 +51,18 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<ActionResult<Product>> GetProduct([FromRoute] string id)
-        {
+		{
 			try
 			{
 				var product = await _productService.GetProductAsync(id);
 
-                return Ok(product);
-            }
+				return Ok(product);
+			}
 			catch (NotFoundException)
 			{
-                return NotFound();
-            }
-        }
+				return NotFound();
+			}
+		}
 
 		/// <summary>
 		/// Updates a specific product by its unique identifier.
@@ -86,23 +81,16 @@ namespace PriceNegotiationApp.Controllers
 		[HttpPut("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> PutProduct([FromRoute] string id, [FromBody] Product product)
-        {
-			if (!ModelState.IsValid)
+		{
+			var errors = ModelStateHelper.GetErrors(ModelState);
+			if (errors.Any())
 			{
-				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
-					.Select(e => new
-					{
-						Name = e.Key,
-						Message = e.Value.Errors.First().ErrorMessage,
-						Exception = e.Value.Errors.First().Exception
-					}).ToList();
-
 				return BadRequest(errors);
 			}
 
@@ -132,28 +120,21 @@ namespace PriceNegotiationApp.Controllers
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Admin, Staff")]
-        public async Task<ActionResult<Product>> PostProduct([FromBody] ProductInputModel product)
-        {
-			if (!ModelState.IsValid)
+		public async Task<ActionResult<Product>> PostProduct([FromBody] ProductInputModel product)
+		{
+			var errors = ModelStateHelper.GetErrors(ModelState);
+			if (errors.Any())
 			{
-				var errors = ModelState.Where(e => e.Value.Errors.Count > 0)
-					.Select(e => new
-					{
-						Name = e.Key,
-						Message = e.Value.Errors.First().ErrorMessage,
-						Exception = e.Value.Errors.First().Exception
-					}).ToList();
-
 				return BadRequest(errors);
 			}
 
-            var dbProduct = await _productService.CreateProductAsync(product);
+			var dbProduct = await _productService.CreateProductAsync(product);
 
 			return CreatedAtAction(nameof(GetProduct), new { id = dbProduct.Id }, dbProduct);
-        }
+		}
 
 		/// <summary>
 		/// Deletes a specific product by its unique identifier.
@@ -167,12 +148,12 @@ namespace PriceNegotiationApp.Controllers
 		// DELETE: api/Products/5
 		[HttpDelete("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> DeleteProduct([FromRoute] string id)
-        {
+		{
 			var result = await _productService.DeleteProductAsync(id);
 
 			if (!result)
@@ -182,5 +163,5 @@ namespace PriceNegotiationApp.Controllers
 
 			return NoContent();
 		}
-    }
+	}
 }

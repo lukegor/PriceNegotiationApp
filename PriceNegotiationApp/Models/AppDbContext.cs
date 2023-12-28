@@ -31,8 +31,6 @@ namespace PriceNegotiationApp.Models
         //{
         //    base.OnModelCreating(modelBuilder);
 
-        //    // Configure your entity relationships and other model configurations here
-        //    // For example:
         //    modelBuilder.Entity<Negotiation>()
         //        .HasOne(n => n.Product)
         //        .WithMany(p => p.Negotiations)

@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
-using Moq;
+using NSubstitute;
 using PriceNegotiationApp.Controllers;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Custom_Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -74,6 +75,20 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			Assert.Contains(returnedProduct, testData); // Check if each test data item is present in the returned products
 		}
 
+		[Fact]
+		public async Task GetProduct_ShouldThrowNotFoundExceptionForNonExistingProduct()
+		{
+			// Arrange
+			var productService = CreateProductServiceWithTestData();
+			var nonExistingProductId = "nonExistingId";
+
+			// Act and Assert
+			await Assert.ThrowsAsync<NotFoundException>(async () =>
+			{
+				await productService.GetProductAsync(nonExistingProductId);
+			});
+		}
+
 		[Theory]
 		[InlineData("name", 13.37)]
 		[InlineData("", 0.01)]
@@ -91,10 +106,11 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 				.Options;
 
 			using var context = DbContextProvider.GetInMemoryDbContext();
-            var mockLogger = new Mock<ILogger<ProductService>>();
+			var fakeLogger = Substitute.For<ILogger<ProductService>>();
 
-            // Initialize the service with the in-memory DbContext
-            var productService = new ProductService(context, mockLogger.Object);
+
+			// Initialize the service with the in-memory DbContext
+			var productService = new ProductService(context, fakeLogger);
 
 			// Act
 			var createdProduct = await productService.CreateProductAsync(productInputModel);
@@ -112,6 +128,11 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			var productService = CreateProductServiceWithTestData();
 
 			string randomId = "123abc";
+
+			foreach (var prooduct in await productService.GetProductsAsync())
+			{
+				_output.WriteLine(prooduct.Id);
+			}
 
 			var product = await productService.GetProductAsync(randomId);
 
@@ -143,8 +164,8 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		{
 			var context = DbContextProvider.GetInMemoryDbContext();
 			PopulateData(context, isCustomGuid);
-            var mockLogger = new Mock<ILogger<ProductService>>();
-            return new ProductService(context, mockLogger.Object);
+			var fakeLogger = Substitute.For<ILogger<ProductService>>();
+			return new ProductService(context, fakeLogger);
 			//var mockProductService = new Mock<IProductService>();
 			//mockProductService.Setup(x => x.GetProductsAsync()).ReturnsAsync(GetSampleProducts());
 			//return mockProductService.Object;

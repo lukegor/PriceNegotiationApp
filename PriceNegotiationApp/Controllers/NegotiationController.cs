@@ -222,7 +222,7 @@ namespace PriceNegotiationApp.Controllers
         /// <returns>
         /// Returns a 404 Not Found response if the specified negotiation is not found,
         /// a 401 Unauthorized response if the user is unauthorized,
-		/// 
+		/// a 403 Forbidden response if the user does not possess the required role
         /// or a 204 No Content response if the deletion is successful.
         /// </returns>
         // DELETE: api/Negotiation/5

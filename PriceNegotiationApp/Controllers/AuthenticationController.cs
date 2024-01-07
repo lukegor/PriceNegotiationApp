@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Auth;
+using PriceNegotiationApp.Extensions;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.DTO;
 using PriceNegotiationApp.Services;
@@ -61,25 +62,19 @@ namespace PriceNegotiationApp.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDTO userForRegistration)
 		{
-			if (userForRegistration == null || !ModelState.IsValid)
-			{
-				var inputErrors = ModelState.Where(e => e.Value.Errors.Count > 0)
-					.Select(e => new
-					{
-						Name = e.Key,
-						Message = e.Value.Errors.First().ErrorMessage,
-						Exception = e.Value.Errors.First().Exception
-					}).ToList();
+            var inputErrors = ModelStateHelper.GetErrors(ModelState);
 
+            if (userForRegistration == null || inputErrors.Any())
+			{
 				return BadRequest(inputErrors);
 			}
 
 			var result = await _authService.RegisterUserAsync(userForRegistration);
 
 			if (result.Succeeded)
-				return StatusCode(201);
+                return CreatedAtAction(nameof(RegisterUser), new { userName = userForRegistration.UserName }, new { Message = "User registration successful" });
 
-			var errors = result.Errors.Select(e => e.Description);
+            var errors = result.Errors.Select(e => e.Description);
 			return BadRequest(errors);
 		}
 

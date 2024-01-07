@@ -64,27 +64,29 @@ namespace PriceNegotiationApp.Controllers
 			}
 		}
 
-		/// <summary>
-		/// Updates a specific product by its unique identifier.
-		/// </summary>
-		/// <param name="id">The unique identifier of the product to update.</param>
-		/// <param name="product">The updated product data.</param>
-		/// <returns>
-		/// Returns a 204 No Content response if the update is successful,
-		/// a 400 Bad Request if a the model state is invalid or if a concurrency conflict occurs in database,
-		/// a 403 Forbidden if the user is not authorized or does not possess the required role,
-		/// a 404 Not Found if the specified product is not found,
-		/// or a 500 Internal Server Error for other errors.
-		/// </returns>
-		// PUT: api/Products/5
-		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-		[HttpPut("{id}")]
+        /// <summary>
+        /// Updates a specific product by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the product to update.</param>
+        /// <param name="product">The updated product data.</param>
+        /// <returns>
+        /// Returns a 204 No Content response if the update is successful,
+        /// a 400 Bad Request if a the model state is invalid,
+        /// a 403 Forbidden if the user is not authorized or does not possess the required role,
+        /// a 404 Not Found if the specified product is not found,
+        /// a 409 Conflict if a concurrency conflict occurs in database,
+        /// or a 500 Internal Server Error for other errors.
+        /// </returns>
+        // PUT: api/Products/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Admin, Staff")]
 		public async Task<IActionResult> PutProduct([FromRoute] string id, [FromBody] Product product)
 		{
@@ -100,7 +102,7 @@ namespace PriceNegotiationApp.Controllers
 			{
 				UpdateResultType.Success => NoContent(),// 204 No Content
 				UpdateResultType.NotFound => NotFound(),// 404 Not Found
-				UpdateResultType.Conflict => BadRequest("Concurrency conflict"),// 400 Bad Request
+				UpdateResultType.Conflict => Conflict("Concurrency conflict"),// 409 Conflict
 				_ => StatusCode(500, "Internal Server Error")// Handle other errors as a generic bad request
 			};
 		}

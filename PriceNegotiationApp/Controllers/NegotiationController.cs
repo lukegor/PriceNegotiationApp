@@ -95,10 +95,11 @@ namespace PriceNegotiationApp.Controllers
         /// <param name="negotiation">The updated negotiation data.</param>
         /// <returns>
         /// Returns a 204 No Content response if the update is successful,
-        /// a 400 Bad Request if the model state is invalid or if a concurrency conflict occurs,
+        /// a 400 Bad Request if the model state is invalid,
         /// a 401 Unauthorized response if the user is unauthorized,
         /// a 403 Forbidden if the user is not authorized or does not possess the required role,
         /// a 404 Not Found if the specified negotiation is not found,
+		/// a 409 Conflict if a concurrency conflict occurs,
         /// or a 500 Internal Server Error for other errors.
         /// </returns>
         // PUT: api/Negotiation/5
@@ -109,6 +110,7 @@ namespace PriceNegotiationApp.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status409Conflict)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(Roles = "Staff, Admin")]
 		public async Task<IActionResult> PutNegotiation([FromRoute] int id, [FromBody] Negotiation negotiation)
@@ -126,7 +128,7 @@ namespace PriceNegotiationApp.Controllers
 			{
 				UpdateResultType.Success => NoContent(),// 204 No Content
 				UpdateResultType.NotFound => NotFound(),// 404 Not Found
-				UpdateResultType.Conflict => BadRequest("Concurrency conflict"),// 400 Bad Request
+				UpdateResultType.Conflict => Conflict("Concurrency conflict"),// 409 Conflict
 				_ => StatusCode(500, "Internal Server Error")// Handle other errors as a generic bad request
 			};
 		}

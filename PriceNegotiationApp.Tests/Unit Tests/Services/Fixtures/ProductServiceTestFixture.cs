@@ -19,7 +19,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
         public ProductServiceTestFixture()
         {
             DbContext = DbContextProvider.GetInMemoryDbContext();
-            ProductService = CreateProductServiceWithTestData();
+            ProductService = SetUpEmptyProductService();
         }
 
         public void Dispose()
@@ -27,30 +27,26 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
             DbContext.Dispose();
         }
 
-        internal ProductService CreateProductServiceWithTestData(bool isCustomGuid = true)
+        private ProductService SetUpEmptyProductService()
         {
-            var context = DbContext;
-            PopulateData(context, isCustomGuid);
             var fakeLogger = Substitute.For<ILogger<ProductService>>();
-            return new ProductService(context, fakeLogger);
-            //var mockProductService = new Mock<IProductService>();
-            //mockProductService.Setup(x => x.GetProductsAsync()).ReturnsAsync(GetSampleProducts());
-            //return mockProductService.Object;
+            return new ProductService(DbContext, fakeLogger);
+
         }
 
-        internal void PopulateData(AppDbContext dbContext, bool isCustomGuid = true)
+        internal void PopulateData(bool isCustomGuid = true)
         {
             // Clear existing data
-            dbContext.Products.RemoveRange(dbContext.Products);
-            dbContext.SaveChanges();
+            DbContext.Products.RemoveRange(DbContext.Products);
+            DbContext.SaveChanges();
 
             // Ensure a clean database state
             //dbContext.Database.EnsureDeleted();
             //dbContext.Database.EnsureCreated();
 
             // Add sample products
-            dbContext.Products.AddRange(GetSampleProducts(isCustomGuid));
-            dbContext.SaveChanges();
+            DbContext.Products.AddRange(GetSampleProducts(isCustomGuid));
+            DbContext.SaveChanges();
         }
 
         internal static IEnumerable<Product> GetSampleProducts(bool isCustomGuid = true)

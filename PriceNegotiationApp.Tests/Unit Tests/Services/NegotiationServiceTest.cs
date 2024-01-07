@@ -9,6 +9,7 @@ using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Services.Providers;
 using PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures;
 using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Custom_Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,7 +81,23 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			Assert.Contains(negotiation, testData);
 		}
 
-		[Theory]
+        [Fact]
+        public async Task GetNegotiation_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            var negotiationService = _fixture.NegotiationService;
+            _fixture.PopulateData();
+
+            var nonExistingNegotiationId = new Random().Next(1000000000);
+
+			// Act and Assert
+			await Assert.ThrowsAsync<NotFoundException>(async () =>
+			{
+				await negotiationService.GetNegotiationAsync(nonExistingNegotiationId);
+			});
+        }
+
+        [Theory]
 		[InlineData("123ab", 1.78/*, "user2"*/)]
 		[InlineData("123ac", 1.99/*, "user3"*/)]
 		public async Task CreateNegotiationAsync_ShouldCreateNegotiation(string productId, decimal proposedPrice/*, string userId*/)

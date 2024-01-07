@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using NSubstitute;
 using PriceNegotiationApp.Controllers;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Services;
@@ -12,28 +13,29 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
 {
 	public class ProductControllerTests
 	{
-		//[Fact]
-		//public void GetProductById_ReturnsProduct()
-		//{
-		//	// Arrange
-		//	string productId = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e";
-		//	var productServiceMock = new Mock<IProductService>();
-		//	var loggerMock = new Mock<ILogger<ProductService>>();
+		[Fact]
+		public void GetProductById_ReturnsProduct()
+		{
+			// Arrange
+			string productId = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e";
 
-		//	var controller = new ProductController(productServiceMock.Object);
+			var loggerMock = Substitute.For<ILogger<ProductService>>();
+            var productServiceMock = Substitute.For<IProductService>();
 
-		//	// Assume you have a product with ID 1 in your test data
-		//	var expectedProduct = new Product { Id = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e", Name = "TestProduct", Price = 4.50M };
+            var controller = new ProductController(productServiceMock);
 
-		//	productServiceMock.Setup(x => x.GetProductAsync(productId))
-		//					  .ReturnsAsync(expectedProduct);
+			// Assume you have a product such product in your test data
+			var expectedProduct = new Product { Id = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e", Name = "TestProduct", Price = 4.50M };
 
-		//	// Act
-		//	var result = controller.GetProduct(productId).GetAwaiter().GetResult();
+            productServiceMock.GetProductAsync(productId)
+				.Returns(Task.FromResult(expectedProduct));
 
-		//	// Assert
-		//	Assert.NotNull(result);
-		//	Assert.Equal(expectedProduct, result.Value);
-		//}
+            // Act
+            var result = controller.GetProduct(productId).GetAwaiter().GetResult();
+
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal(expectedProduct, result.Value);
+		}
 	}
 }

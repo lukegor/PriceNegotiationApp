@@ -34,10 +34,9 @@ namespace PriceNegotiationApp.Services
 		private readonly ILogger<NegotiationService> _logger;
 
 
-		public NegotiationService(AppDbContext context,/* IHttpContextAccessor httpContextAccessor, */IClaimsProvider claimsProvider, ILogger<NegotiationService> logger)
+		public NegotiationService(AppDbContext context, IClaimsProvider claimsProvider, ILogger<NegotiationService> logger)
 		{
 			_context = context;
-			//_httpContextAccessor = httpContextAccessor;
 			_claimsProvider = claimsProvider;
 			_logger = logger;
 		}

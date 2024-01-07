@@ -7,6 +7,7 @@ using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Services.Providers;
+using PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures;
 using PriceNegotiationApp.Utility;
 using System;
 using System.Collections.Generic;
@@ -18,23 +19,25 @@ using Xunit.Abstractions;
 
 namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 {
-	public class NegotiationServiceTest// : IDisposable
-	{
+	public class NegotiationServiceTest : IClassFixture<NegotiationServiceTestFixture>
+    {
 		private readonly ITestOutputHelper _output;
-		private readonly AppDbContext _dbContext;
+        private readonly NegotiationServiceTestFixture _fixture;
 
-		public NegotiationServiceTest(ITestOutputHelper output)
+        public NegotiationServiceTest(ITestOutputHelper output, NegotiationServiceTestFixture fixture)
 		{
 			_output = output;
-			_dbContext = DbContextProvider.GetInMemoryDbContext();
+			_fixture = fixture;
 		}
 
 		[Fact]
 		public async Task GetNegotiations_ShouldReturnAllNegotiations()
 		{
 			// Arrange
-			var negotiationService = CreateNegotiationServiceWithTestData();
-			var testData = _dbContext.Negotiations;
+			var negotiationService = _fixture.NegotiationService;
+			_fixture.PopulateData();
+
+			var testData = _fixture.DbContext.Negotiations;
 
 			// Act
 			var returnedModels = await negotiationService.GetNegotiationsAsync();
@@ -59,8 +62,10 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task GetNegotiation_ShouldReturnSpecifiedNegotiation()
 		{
 			// Arrange
-			var negotiationService = CreateNegotiationServiceWithTestData();
-			var testData = _dbContext.Negotiations;
+			var negotiationService = _fixture.NegotiationService;
+			_fixture.PopulateData();
+
+			var testData = _fixture.DbContext.Negotiations;
 
 			var negotiation = (await negotiationService.GetNegotiationsAsync()).First();
 
@@ -76,9 +81,9 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		}
 
 		[Theory]
-		[InlineData("123ab", 1.78, "user2")]
-		[InlineData("123ac", 1.99, "user3")]
-		public async Task CreateNegotiationAsync_ShouldCreateNegotiation(string productId, decimal proposedPrice, string userId)
+		[InlineData("123ab", 1.78/*, "user2"*/)]
+		[InlineData("123ac", 1.99/*, "user3"*/)]
+		public async Task CreateNegotiationAsync_ShouldCreateNegotiation(string productId, decimal proposedPrice/*, string userId*/)
 		{
 			// Arrange
 
@@ -94,8 +99,10 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			//var claimsProviderMock = new Mock<IClaimsProvider>();
 			//claimsProviderMock.Setup(cp => cp.UserClaimsPrincipal).Returns(claimsPrincipal);
 
-			var negotiationService = CreateNegotiationServiceWithTestData(true, userId);
-			var testData = _dbContext.Negotiations;
+			var negotiationService = _fixture.NegotiationService;
+            _fixture.PopulateData(true);
+
+			var testData = _fixture.DbContext.Negotiations;
 
 			NegotiationInputModel negotiationInputModel = new()
 			{
@@ -142,7 +149,9 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task RespondToNegotiationProposalAsync_ShouldUpdateNegotiation(bool isApproved, NegotiationStatus expectedStatus, int expectedRetries)
 		{
 			// Arrange
-			var negotiationService = CreateNegotiationServiceWithTestData();
+			var negotiationService = _fixture.NegotiationService;
+			_fixture.PopulateData();
+
 			var existingNegotiation = (await negotiationService.GetNegotiationsAsync()).First();
 
 			// Act
@@ -158,7 +167,9 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task DeleteNegotiationAsync_NonExistingNegotiation_ShouldNotRemoveProduct()
 		{
 			// Arrange
-			var negotiationService = CreateNegotiationServiceWithTestData();
+			var negotiationService = _fixture.NegotiationService;
+			_fixture.PopulateData();
+
 			int nonExistingNegotiationId = new Random().Next(1000000000);
 
 			// Act
@@ -167,147 +178,5 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			// Assert
 			Assert.False(result);
 		}
-
-		public static IEnumerable<object[]> ProvideNegotiationData(AppDbContext dbContext)
-		{
-			List<object[]> negotiations = new List<object[]>
-			{
-				new object[] { "123ab", 1.78M, "user2" },
-				new object[] { "123ac", 1.99M, "user3" },
-			};
-
-			return negotiations;
-		}
-
-		private NegotiationService CreateNegotiationServiceWithTestData(bool isCustomProductId = false, string userId = "user2")
-		{
-			var context = DbContextProvider.GetInMemoryDbContext();
-			PopulateData(context, isCustomProductId);
-
-			// Create a mock for IHttpContextAccessor and set up a basic behavior
-			var httpContextAccessorSubstitute = Substitute.For<IHttpContextAccessor>();
-			httpContextAccessorSubstitute.HttpContext.Returns(new DefaultHttpContext
-			{
-				User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-				{
-					new Claim(ClaimTypes.Name, userId),
-					new Claim(ClaimTypes.NameIdentifier, userId)
-				}))
-			});
-
-
-			var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorSubstitute);
-			var fakeLogger = Substitute.For<ILogger<NegotiationService>>();
-
-			return new NegotiationService(context, claimsProvider, fakeLogger);
-		}
-
-		//public void Dispose()
-		//{
-		//	_dbContext.Dispose();
-		//}
-
-		private void PopulateData(AppDbContext dbContext, bool isCustomProductId = false)
-		{
-			//dbContext.Products.Load();
-			//foreach (var existingProduct in dbContext.Products)
-			//{
-			//	_output.WriteLine($"Existing Product ID: {existingProduct.Id}, Name: {existingProduct.Name}");
-			//}
-			//var sampleProducts = dbContext.Products.ToList();
-			//var sampleNegotiations = GetSampleNegotiations().ToList();
-
-			//_output.WriteLine($"Sample Products Count: {sampleProducts.Count}");
-			//_output.WriteLine($"Sample Negotiations Count: {sampleNegotiations.Count}");
-
-
-			//// Clear existing data
-			dbContext.Negotiations.RemoveRange(dbContext.Negotiations);
-			dbContext.Products.RemoveRange(dbContext.Products);
-			dbContext.SaveChanges();
-
-			dbContext.Database.EnsureDeleted();
-			dbContext.Database.EnsureCreated();
-
-			// Add samples
-			if (!isCustomProductId)
-			{
-				dbContext.Products.AddRange(GetSampleProducts());
-			}
-			else
-			{
-				dbContext.Products.AddRange(GetSampleProductsWithCustomIds());
-			}
-			dbContext.Negotiations.AddRange(GetSampleNegotiations());
-			dbContext.SaveChanges();
-		}
-
-		private static IEnumerable<Negotiation> GetSampleNegotiations(bool isCustomProductId = false)
-		{
-			var sampleProducts = GetSampleProducts().ToList(); // Assuming GetSampleProducts is defined
-			if (isCustomProductId)
-			{
-				sampleProducts = GetSampleProductsWithCustomIds().ToList();
-			}
-
-			List<Negotiation> negotiations = new List<Negotiation>
-			{
-				new Negotiation(sampleProducts[0].Id, 4.50M, "user1"),
-				new Negotiation(sampleProducts[1].Id, 2.00M, "user2"),
-				new Negotiation(sampleProducts[2].Id, 3.00M, "user3"),
-			};
-
-			return negotiations;
-		}
-
-		private static IEnumerable<Product> GetSampleProducts()
-			=> new List<Product>
-			{
-				new Product{
-					//Id = 1,
-					Name = "Demo1",
-					Price = 5.36M },
-				new Product{
-					//Id = 2,
-					Name = "Demo2",
-					Price = 2.36M },
-				new Product{
-					//Id = 3,
-					Name = "Demo3",
-					Price = 3.36M },
-				new Product{
-					//Id = 4,
-					Name = "Demo4",
-					Price = 4.36M },
-				new Product{
-					//Id = 5,
-					Name = "Demo5",
-					Price = 5.36M }
-			};
-
-		private static IEnumerable<Product> GetSampleProductsWithCustomIds()
-			=> new List<Product>
-			{
-				new Product{
-					//Id = 1,
-					Name = "Demo1",
-					Price = 5.36M },
-				new Product{
-					Id = "123ab",
-					Name = "Demo2",
-					Price = 2.36M },
-				new Product{
-					Id = "123ac",
-					Name = "Demo3",
-					Price = 3.36M },
-				new Product{
-					//Id = 4,
-					Name = "Demo4",
-					Price = 4.36M },
-				new Product{
-					//Id = 5,
-					Name = "Demo5",
-					Price = 5.36M }
-			};
 	}
 }

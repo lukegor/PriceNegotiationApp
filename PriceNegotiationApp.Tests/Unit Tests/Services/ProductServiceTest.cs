@@ -9,6 +9,7 @@ using PriceNegotiationApp.Controllers;
 using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
+using PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures;
 using PriceNegotiationApp.Utility;
 using PriceNegotiationApp.Utility.Custom_Exceptions;
 using System;
@@ -23,20 +24,22 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 {
-	public class ProductServiceTest
+	public class ProductServiceTest: IClassFixture<ProductServiceTestFixture>
 	{
 		private readonly ITestOutputHelper _output;
+        private readonly ProductServiceTestFixture _fixture;
 
-		public ProductServiceTest(ITestOutputHelper output)
+        public ProductServiceTest(ITestOutputHelper output, ProductServiceTestFixture fixture)
 		{
 			_output = output;
-		}
+            _fixture = fixture;
+        }
 
 		[Fact]
 		public async Task GetProducts_ShouldReturnAllProducts()
 		{
 			// Arrange
-			var productService = CreateProductServiceWithTestData(false);
+			var productService = _fixture.CreateProductServiceWithTestData(false);
 			//var testData = productService.;
 
 			// Act
@@ -64,8 +67,8 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task GetProduct_ShouldReturnSpecifiedProduct()
 		{
 			// Arrange
-			var productService = CreateProductServiceWithTestData();
-			var testData = GetSampleProducts();
+			var productService = _fixture.CreateProductServiceWithTestData();
+			var testData = ProductServiceTestFixture.GetSampleProducts();
 
 			// Act
 			var returnedProduct = await productService.GetProductAsync("123abc");
@@ -79,7 +82,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task GetProduct_ShouldThrowNotFoundExceptionForNonExistingProduct()
 		{
 			// Arrange
-			var productService = CreateProductServiceWithTestData();
+			var productService = _fixture.CreateProductServiceWithTestData();
 			var nonExistingProductId = "nonExistingId";
 
 			// Act and Assert
@@ -125,7 +128,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task DeleteProductAsync_ExistingProduct_ShouldRemoveProduct()
 		{
 			// Arrange
-			var productService = CreateProductServiceWithTestData();
+			var productService = _fixture.CreateProductServiceWithTestData();
 
 			string randomId = "123abc";
 
@@ -150,7 +153,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 		public async Task DeleteProductAsync_NonExistingProduct_ShouldNotRemoveProduct()
 		{
 			// Arrange
-			var productService = CreateProductServiceWithTestData();
+			var productService = _fixture.CreateProductServiceWithTestData();
 			string nonExistingProductId = Guid.NewGuid().ToString();
 
 			// Act
@@ -158,66 +161,6 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 
 			// Assert
 			Assert.False(result);
-		}
-
-		private ProductService CreateProductServiceWithTestData(bool isCustomGuid = true)
-		{
-			var context = DbContextProvider.GetInMemoryDbContext();
-			PopulateData(context, isCustomGuid);
-			var fakeLogger = Substitute.For<ILogger<ProductService>>();
-			return new ProductService(context, fakeLogger);
-			//var mockProductService = new Mock<IProductService>();
-			//mockProductService.Setup(x => x.GetProductsAsync()).ReturnsAsync(GetSampleProducts());
-			//return mockProductService.Object;
-		}
-
-		private void PopulateData(AppDbContext dbContext, bool isCustomGuid = true)
-		{
-			// Clear existing data
-			dbContext.Products.RemoveRange(dbContext.Products);
-			dbContext.SaveChanges();
-
-			// Ensure a clean database state
-			//dbContext.Database.EnsureDeleted();
-			//dbContext.Database.EnsureCreated();
-
-			// Add sample products
-			dbContext.Products.AddRange(GetSampleProducts(isCustomGuid));
-			dbContext.SaveChanges();
-		}
-
-		private static IEnumerable<Product> GetSampleProducts(bool isCustomGuid = true)
-		{
-			List<Product> products = new List<Product>
-			{
-				new Product{
-					//Id = "123abc",
-					Name = "Demo1",
-					Price = 5.36M },
-				new Product{
-					//Id = "123abc",
-					Name = "Demo2",
-					Price = 2.36M },
-				new Product{
-					//Id = 3,
-					Name = "Demo3",
-					Price = 3.36M },
-				new Product{
-					//Id = 4,
-					Name = "Demo4",
-					Price = 4.36M },
-				new Product{
-					//Id = 5,
-					Name = "Demo5",
-					Price = 5.36M }
-			};
-
-			if (isCustomGuid)
-			{
-				products[1].Id = "123abc";
-			}
-
-			return products;
 		}
 
 		//static int ChooseRandomId<Product>(IEnumerable<Product> items)

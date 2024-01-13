@@ -85,7 +85,7 @@ namespace PriceNegotiationApp.Controllers
                 return NotFound();
             }
 
-            return negotiation;
+            return Ok(negotiation);
         }
 
         /// <summary>

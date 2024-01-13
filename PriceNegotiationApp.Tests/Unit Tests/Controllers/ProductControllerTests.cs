@@ -35,7 +35,6 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             {
                 new Product { Id = "123", Name = "Product1" },
                 new Product { Id = "321", Name = "Product2" }
-                // Add more products as needed
             };
 
             productServiceSubstitute.GetProductsAsync().Returns(Task.FromResult<IEnumerable<Product>>(products));
@@ -64,7 +63,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
 
             var controller = new ProductController(productServiceMock);
 
-            // Assume you have a product such product in your test data
+            // Assume you have such a product in your test data
             var expectedProduct = new Product { Id = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e", Name = "TestProduct", Price = 4.50M };
 
             productServiceMock.GetProductAsync(productId)
@@ -137,7 +136,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         }
 
         [Fact]
-        public async Task DeleteProduct_ProductExists_ReturnsNoContent()
+        public async Task DeleteProduct_ProductExists_ShouldReturnNoContent()
         {
             // Arrange
             string productId = "123";
@@ -156,7 +155,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         }
 
         [Fact]
-        public async Task DeleteProduct_ProductDoesNotExist_ReturnsNotFound()
+        public async Task DeleteProduct_ProductDoesNotExist_ShouldReturnNotFound()
         {
             // Arrange
             string productId = "nonexistent-id";
@@ -175,7 +174,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         }
 
         [Fact]
-        public async Task PutProduct_ShouldUpdateProduct()
+        public async Task PutProduct_Success_ShouldUpdateProduct()
         {
             // Arrange
             string productId = "123";
@@ -196,7 +195,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         }
 
         [Fact]
-        public async Task PutProduct_ProductNotFound_ReturnsNotFound()
+        public async Task PutProduct_ProductNotFound_ShouldReturnNotFound()
         {
             // Arrange
             string nonExistingProductId = "nonexistent-id";
@@ -216,7 +215,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         }
 
         [Fact]
-        public async Task PutProduct_ConcurrencyConflict_ReturnsBadRequest()
+        public async Task PutProduct_ConcurrencyConflict_ShouldReturnBadRequest()
         {
             // Arrange
             string productId = "123";

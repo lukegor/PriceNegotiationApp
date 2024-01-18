@@ -33,8 +33,7 @@ namespace PriceNegotiationApp
 			// configure Serilog
             var logger = new LoggerConfiguration()
 				.ReadFrom.Configuration(builder.Configuration)
-				.Enrich.FromLogContext()
-				.CreateLogger();
+                .CreateLogger();
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
@@ -87,7 +86,7 @@ namespace PriceNegotiationApp
 						//	context.User.IsInRole("Staff") ||
 						//	(context.User.IsInRole("Customer") && context.User.));
 
-				opt.AddPolicy(OperationRequirements.UpdateRequirement.Name, policy => 
+				opt.AddPolicy(OperationRequirements.UpdateRequirement.Name, policy =>
 					policy.Requirements.Add(OperationRequirements.UpdateRequirement));
                 opt.AddPolicy(OperationRequirements.DeleteRequirement.Name, policy =>
 					policy.Requirements.Add(OperationRequirements.DeleteRequirement));
@@ -96,6 +95,7 @@ namespace PriceNegotiationApp
 			// add negotiation policies handler
 			builder.Services.AddSingleton<IAuthorizationHandler, NegotiationOperationsAuthorizationHandler>();
 
+			// add handling JWT
 			builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 			builder.Services.AddScoped<JwtManager>();
 
@@ -103,7 +103,7 @@ namespace PriceNegotiationApp
 			builder.Services.AddScoped<MainInitializer>();
 
 			// add services
-			builder.Services.AddScoped<AuthService>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<IProductService, ProductService>();
 			builder.Services.AddScoped<INegotiationService, NegotiationService>();
 
@@ -118,9 +118,9 @@ namespace PriceNegotiationApp
 			using (var scope = serviceProvider.CreateScope())
 			{
 				var dbInitializer = scope.ServiceProvider.GetRequiredService<MainInitializer>();
-				dbInitializer.InitializeRolesAsync().Wait(); // Synchronously wait for completion
-				dbInitializer.InitializeAdminUserAsync().Wait();
-				dbInitializer.InitializeStaffUserAsync().Wait();
+				dbInitializer.InitializeRolesAsync().GetAwaiter().GetResult(); // Synchronously wait for completion
+				dbInitializer.InitializeAdminUserAsync().GetAwaiter().GetResult();
+				dbInitializer.InitializeStaffUserAsync().GetAwaiter().GetResult();
 			}
 
 			var app = builder.Build();

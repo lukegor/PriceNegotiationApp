@@ -14,9 +14,9 @@ namespace PriceNegotiationApp.Controllers
 {
 	public class AuthenticationController : ControllerBase
 	{
-		private readonly AuthService _authService;
+		private readonly IAuthService _authService;
 
-		public AuthenticationController(AuthService authService)
+		public AuthenticationController(IAuthService authService)
 		{
 			_authService = authService;
 		}
@@ -63,11 +63,21 @@ namespace PriceNegotiationApp.Controllers
 		public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDTO userForRegistration)
 		{
             var inputErrors = ModelStateHelper.GetErrors(ModelState);
+            bool isEmailInUse = await _authService.IsEmailInUse(userForRegistration.Email);
+			bool isUserNameInUse = await _authService.IsUsernameInUse(userForRegistration.UserName);
 
             if (userForRegistration == null || inputErrors.Any())
 			{
 				return BadRequest(inputErrors);
 			}
+            else if (isEmailInUse)
+			{
+				return BadRequest("The email is already in use");
+			}
+			else if (isUserNameInUse)
+			{
+                return BadRequest("The username is already in use");
+            }
 
 			var result = await _authService.RegisterUserAsync(userForRegistration);
 
@@ -78,7 +88,7 @@ namespace PriceNegotiationApp.Controllers
 			return BadRequest(errors);
 		}
 
-		public class LoginModel
+        public class LoginModel
 		{
 			[Required]
 			public string Username { get; set; }

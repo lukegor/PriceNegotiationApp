@@ -9,8 +9,17 @@ using PriceNegotiationApp.Auth.Authentication.JWT;
 
 namespace PriceNegotiationApp.Services
 {
-    public class AuthService
+	public interface IAuthService
 	{
+		Task<AuthResponseDTO> AuthenticateAsync(LoginModel model);
+		Task SignOutAsync();
+		Task<IdentityResult> RegisterUserAsync(RegisterUserDTO userForRegistration);
+		Task<bool> IsEmailInUse(string email);
+		Task<bool> IsUsernameInUse(string username);
+    }
+
+    public class AuthService : IAuthService
+    {
 		private readonly SignInManager<IdentityUser> _signInManager;
 		private readonly UserManager<IdentityUser> _userManager;
 		private readonly JwtManager _jwtHandler;
@@ -65,5 +74,29 @@ namespace PriceNegotiationApp.Services
 
 			return result;
 		}
-	}
+
+        public async Task<bool> IsEmailInUse(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+			if (user == null)
+			{
+				return false;
+			}
+
+			return true;
+        }
+
+        public async Task<bool> IsUsernameInUse(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
 }

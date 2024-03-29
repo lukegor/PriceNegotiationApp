@@ -8,6 +8,7 @@ using PriceNegotiationApp.Utility;
 using PriceNegotiationApp.Utility.Custom_Exceptions;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace PriceNegotiationApp.Services
 {
@@ -187,7 +188,7 @@ namespace PriceNegotiationApp.Services
 			_context.Negotiations.Add(negotiation);
 			await _context.SaveChangesAsync();
 
-			_logger.LogInformation("Negotiation with ID '{Id}' created successfully.", negotiation.Id);
+			_logger.LogInformation("Negotiation with ID '{Id}' created successfully.", Regex.Replace((negotiation.Id).ToString(), "\n|\r", "-"));
 
 			return negotiation;
 		}

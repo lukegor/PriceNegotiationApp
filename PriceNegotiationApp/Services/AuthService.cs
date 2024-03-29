@@ -6,6 +6,7 @@ using static PriceNegotiationApp.Controllers.AuthenticationController;
 using System.IdentityModel.Tokens.Jwt;
 using PriceNegotiationApp.Extensions.Conversions;
 using PriceNegotiationApp.Auth.Authentication.JWT;
+using System.Text.RegularExpressions;
 
 namespace PriceNegotiationApp.Services
 {
@@ -50,7 +51,7 @@ namespace PriceNegotiationApp.Services
 
 			var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
-			_logger.LogInformation("User {Username} authenticated successfully.", model.Username);
+			_logger.LogInformation("User {Username} authenticated successfully.", Regex.Replace((model.Username).ToString(), "\n|\r", "-"));
 
 			return new AuthResponseDTO { IsAuthSuccessful = true, Token = token };
 		}

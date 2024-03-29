@@ -4,6 +4,7 @@ using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Utility;
 using PriceNegotiationApp.Utility.Custom_Exceptions;
+using System.Text.RegularExpressions;
 
 namespace PriceNegotiationApp.Services
 {
@@ -92,7 +93,7 @@ namespace PriceNegotiationApp.Services
 			_context.Products.Add(dbProduct);
 			await _context.SaveChangesAsync();
 
-			_logger.LogInformation("Product with ID '{Id}' created successfully.", dbProduct.Id);
+			_logger.LogInformation("Product with ID '{Id}' created successfully.", Regex.Replace((dbProduct.Id).ToString(), "\n|\r", "-"));
 
 			return dbProduct;
 		}

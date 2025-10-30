@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using PriceNegotiationApp.Models;
 using PriceNegotiationApp.Services.Providers;
 using PriceNegotiationApp.Services;
 using System;
@@ -11,11 +10,13 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Data;
 
 namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
 {
     public class NegotiationServiceTestFixture: IDisposable
     {
+        private readonly DbContextOptions<AppDbContext> _options;
         public AppDbContext DbContext { get; }
         public NegotiationService NegotiationService { get; }
 
@@ -37,7 +38,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
             // Create a mock for IHttpContextAccessor and set up a basic behavior
             var httpContextAccessorSubstitute = CreateHttpContextAccessor(userId);
 
-            var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorSubstitute);
+            var claimsProvider = new HttpExecutionContext(httpContextAccessorSubstitute);
             var fakeLogger = Substitute.For<ILogger<NegotiationService>>();
 
             return new NegotiationService(context, claimsProvider, fakeLogger);
@@ -79,7 +80,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
             //dbContext.Products.Load();
             //foreach (var existingProduct in dbContext.Products)
             //{
-            //	_output.WriteLine($"Existing Product ID: {existingProduct.Id}, Name: {existingProduct.Name}");
+            //	_output.WriteLine($"Existing Products ID: {existingProduct.Id}, Name: {existingProduct.Name}");
             //}
             //var sampleProducts = dbContext.Products.ToList();
             //var sampleNegotiations = GetSampleNegotiations().ToList();
@@ -119,9 +120,9 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
 
             List<Negotiation> negotiations = new List<Negotiation>
             {
-                new Negotiation(sampleProducts[0].Id, 4.50M, "user1"),
-                new Negotiation(sampleProducts[1].Id, 2.00M, "user2"),
-                new Negotiation(sampleProducts[2].Id, 3.00M, "user3"),
+                new Negotiation(sampleProducts[0].Id, 4.50M, false, "user1"),
+                new Negotiation(sampleProducts[1].Id, 2.00M, false, "user2"),
+                new Negotiation(sampleProducts[2].Id, 3.00M, false, "user3"),
             };
 
             return negotiations;
@@ -130,51 +131,55 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
         private static IEnumerable<Product> GetSampleProducts()
             => new List<Product>
             {
-                new Product{
+                new Product(
 					//Id = 1,
-					Name = "Demo1",
-                    Price = 5.36M },
-                new Product{
+					"Demo1",
+                    new ProductPrice(5.36M) ),
+                new Product(
 					//Id = 2,
-					Name = "Demo2",
-                    Price = 2.36M },
-                new Product{
+					"Demo2",
+                    new ProductPrice(2.36M) ),
+                new Product(
 					//Id = 3,
-					Name = "Demo3",
-                    Price = 3.36M },
-                new Product{
+					"Demo3",
+                    new ProductPrice(3.36M) ),
+                new Product(
 					//Id = 4,
-					Name = "Demo4",
-                    Price = 4.36M },
-                new Product{
+					"Demo4",
+                    new ProductPrice(4.36M) ),
+                new Product(
 					//Id = 5,
-					Name = "Demo5",
-                    Price = 5.36M }
+					"Demo5",
+                    new ProductPrice(5.36M) )
             };
 
         private static IEnumerable<Product> GetSampleProductsWithCustomIds()
             => new List<Product>
             {
-                new Product{
+                new Product(
 					//Id = 1,
-					Name = "Demo1",
-                    Price = 5.36M },
-                new Product{
+					"Demo1",
+                    new ProductPrice(5.36M) ),
+                new Product(
+                    "Demo2",
+                    new ProductPrice(2.36M) )
+                {
                     Id = "123ab",
-                    Name = "Demo2",
-                    Price = 2.36M },
-                new Product{
+                },
+                new Product(
+                    "Demo3",
+                    new ProductPrice(3.36M) )
+                {
                     Id = "123ac",
-                    Name = "Demo3",
-                    Price = 3.36M },
-                new Product{
+                },
+                new Product(
 					//Id = 4,
-					Name = "Demo4",
-                    Price = 4.36M },
-                new Product{
+					"Demo4",
+                    new ProductPrice(4.36M)),
+                new Product(
 					//Id = 5,
-					Name = "Demo5",
-                    Price = 5.36M }
+					"Demo5",
+                    new ProductPrice(5.36M) )
             };
     }
 }

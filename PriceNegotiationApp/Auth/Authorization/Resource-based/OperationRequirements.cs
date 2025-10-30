@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization.Infrastructure;
-using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Utility;
 
 namespace PriceNegotiationApp.Auth.Authorization.Resource_based
 {

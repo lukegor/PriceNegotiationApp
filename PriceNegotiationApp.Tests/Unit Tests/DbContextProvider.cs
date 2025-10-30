@@ -2,23 +2,26 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NSubstitute;
-using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace PriceNegotiationApp.Tests.Unit_Tests
 {
-	public static class DbContextProvider
+    public static class DbContextProvider
 	{
-        public static AppDbContext GetInMemoryDbContext(IWebHostEnvironment environment = null)
+        public static AppDbContext GetInMemoryDbContext()
         {
-            environment ??= CreateDefaultDevelopmentEnvironment();
+            string dbName = $"TestDb_{Guid.NewGuid()}";
+
+            var environment = CreateDefaultDevelopmentEnvironment();
 
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase("Tests");
+                .UseInMemoryDatabase(dbName);
 
             if (environment.IsDevelopment())
             {
@@ -26,7 +29,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests
 				optionsBuilder.EnableDetailedErrors();
 			}
 
-            return new AppDbContext(optionsBuilder.Options, environment);
+            return new AppDbContext(optionsBuilder.Options);
         }
 
 		private static IWebHostEnvironment CreateDefaultDevelopmentEnvironment()

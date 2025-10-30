@@ -2,24 +2,17 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Auth;
-using PriceNegotiationApp.Extensions;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.DTO;
+using PriceNegotiationApp.Domain.Models.Dto.Requests;
 using PriceNegotiationApp.Services;
-using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Utility;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace PriceNegotiationApp.Controllers
 {
-	public class AuthenticationController : ControllerBase
+	public class AuthenticationController(IAuthService authService) : ControllerBase
 	{
-		private readonly IAuthService _authService;
-
-		public AuthenticationController(IAuthService authService)
-		{
-			_authService = authService;
-		}
+		private readonly IAuthService _authService = authService;
 
 		/// <summary>Log into an account</summary>
 		/// <param name="model">username and password</param>
@@ -28,7 +21,7 @@ namespace PriceNegotiationApp.Controllers
 		[AllowAnonymous]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		public async Task<IActionResult> Login([FromBody] LoginModel model)
+		public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
 		{
 			var authResponse = await _authService.AuthenticateAsync(model);
 
@@ -60,24 +53,17 @@ namespace PriceNegotiationApp.Controllers
 		[AllowAnonymous]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDTO userForRegistration)
+		public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequestDto userForRegistration)
 		{
             var inputErrors = ModelStateHelper.GetErrors(ModelState);
-            bool isEmailInUse = await _authService.IsEmailInUse(userForRegistration.Email);
-			bool isUserNameInUse = await _authService.IsUsernameInUse(userForRegistration.UserName);
+
+			await _authService.ValidateEmailUniqueness(userForRegistration.Email);
+			await _authService.ValidateUserNameUniqueness(userForRegistration.UserName);
 
             if (userForRegistration == null || inputErrors.Any())
 			{
 				return BadRequest(inputErrors);
 			}
-            else if (isEmailInUse)
-			{
-				return BadRequest("The email is already in use");
-			}
-			else if (isUserNameInUse)
-			{
-                return BadRequest("The username is already in use");
-            }
 
 			var result = await _authService.RegisterUserAsync(userForRegistration);
 
@@ -86,14 +72,6 @@ namespace PriceNegotiationApp.Controllers
 
             var errors = result.Errors.Select(e => e.Description);
 			return BadRequest(errors);
-		}
-
-        public class LoginModel
-		{
-			[Required]
-			public string Username { get; set; }
-			[Required]
-			public string Password { get; set; }
 		}
 	}
 }

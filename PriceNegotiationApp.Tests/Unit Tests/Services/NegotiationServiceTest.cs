@@ -3,13 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NuGet.Protocol.Core.Types;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Services.Providers;
 using PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures;
 using PriceNegotiationApp.Utility;
-using PriceNegotiationApp.Utility.Custom_Exceptions;
+using PriceNegotiationApp.Utility.Utility.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -112,8 +110,8 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 
 			//ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-			//// Inject the claimsPrincipal into IClaimsProvider
-			//var claimsProviderMock = new Mock<IClaimsProvider>();
+			//// Inject the claimsPrincipal into IExecutionContext
+			//var claimsProviderMock = new Mock<IExecutionContext>();
 			//claimsProviderMock.Setup(cp => cp.UserClaimsPrincipal).Returns(claimsPrincipal);
 
 			var negotiationService = _fixture.NegotiationService;
@@ -121,7 +119,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 
 			var testData = _fixture.DbContext.Negotiations;
 
-			NegotiationInputModel negotiationInputModel = new()
+			CreateNegotiationRequestDto negotiationInputModel = new()
 			{
 				ProductId = productId,
 				ProposedPrice = proposedPrice,

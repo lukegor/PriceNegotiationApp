@@ -9,26 +9,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Extensions;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.Input_Models;
+using PriceNegotiationApp.Domain.Models.Negotiations;
+using PriceNegotiationApp.Domain.Models.Negotiations.Dto.Requests;
 using PriceNegotiationApp.Services;
-using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Services.Providers;
+using PriceNegotiationApp.Utility.Utility;
 using static PriceNegotiationApp.Services.NegotiationService;
 
 namespace PriceNegotiationApp.Controllers
 {
-	[Area("Negotiations")]
-	[Route("api/v1/[area]/[controller]")]
-	[ApiController]
-	public class NegotiationController : ControllerBase
-	{
-		private readonly INegotiationService _service;
-
-		public NegotiationController(INegotiationService service)
-		{
-			_service = service;
-		}
+    [Area("Negotiations")]
+    [Route("api/v1/[area]/[controller]")]
+    [ApiController]
+    public class NegotiationController(INegotiationService service) : ControllerBase
+    {
+        private readonly INegotiationService _service = service;
 
         /// <summary>
         /// Retrieves a list of all negotiations.
@@ -41,18 +36,18 @@ namespace PriceNegotiationApp.Controllers
         /// </returns>
         // GET: api/Negotiations
         [HttpGet]
-		[Route("all")]
-		[ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("all")]
+        [ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[Authorize(Roles = "Admin, Staff")]
-		public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
-		{
-			var negotiations = await _service.GetNegotiationsAsync();
-			return Ok(negotiations);
-		}
+        [Authorize(Roles = "Admin, Staff")]
+        public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
+        {
+            var negotiations = await _service.GetNegotiationsAsync();
+            return Ok(negotiations);
+        }
 
         /// <summary>
         /// Retrieves a specific negotiation by its unique identifier.
@@ -64,26 +59,16 @@ namespace PriceNegotiationApp.Controllers
         /// or a 403 Forbidden if the user is not authorized or does not possess the required role,
         /// or a 404 Not Found response if the resource was not found</returns>
         // GET: api/Negotiations/5
-		//DO POPRAWY
+        // TODO: DO POPRAWY
         [HttpGet("{id}")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[Authorize(Policy = RequirementsNames.IsAdminOrStaffOrOwnerRequirement)]
-		public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] int id)
-		{
-			//if (!IsUserAuthorizedForNegotiation(id))
-			//{
-			//	return Forbid();
-			//}
-
-			var negotiation = await _service.GetNegotiationAsync(id);
-
-            if (negotiation == null)
-            {
-                return NotFound();
-            }
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Policy = RequirementsNames.IsAdminOrStaffOrOwnerRequirement)]
+        public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] string id)
+        {
+            var negotiation = await _service.GetNegotiationAsync(id);
 
             return Ok(negotiation);
         }
@@ -105,106 +90,79 @@ namespace PriceNegotiationApp.Controllers
         // PUT: api/Negotiation/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status409Conflict)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		[Authorize(Roles = "Staff, Admin")]
-		public async Task<IActionResult> PutNegotiation([FromRoute] int id, [FromBody] Negotiation negotiation)
+        [Authorize(Roles = "Staff, Admin")]
+        public async Task<IActionResult> PutNegotiation([FromRoute] string id, [FromBody] UpdateNegotiationRequestDto negotiation)
         {
-			var errors = ModelStateHelper.GetErrors(ModelState);
-			if (errors.Any())
-			{
-				return BadRequest(errors);
-			}
+            var errors = ModelStateHelper.GetErrors(ModelState);
+            if (errors.Any())
+            {
+                return BadRequest(errors);
+            }
 
+            var updateResult = await _service.UpdateNegotiationAsync(id, negotiation);
 
-			var updateResult = await _service.UpdateNegotiationAsync(id, negotiation);
+            return Ok(updateResult);
+        }
 
-			return updateResult switch
-			{
-				UpdateResultType.Success => NoContent(),// 204 No Content
-				UpdateResultType.NotFound => NotFound(),// 404 Not Found
-				UpdateResultType.Conflict => Conflict("Concurrency conflict"),// 409 Conflict
-				_ => StatusCode(500, "Internal Server Error")// Handle other errors as a generic bad request
-			};
-		}
+        /// <summary>
+        /// For owner to remove (close) negotiation he gave up on.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        // PUT: api/Negotiation/5/close
+        [HttpPut("{id}/close")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Authorize(Policy = RequirementsNames.IsOwnerRequirement)]
+        public async Task<IActionResult> CloseNegotiation([FromRoute] string id)
+        {
+            var updateResult = await _service.CloseNegotiationAsync(id);
+            return Ok(updateResult);
+        }
 
-		/// <summary>
-		/// Proposes a new price for a negotiation.
-		/// </summary>
-		/// <param name="negotiationId">The unique identifier of the negotiation to update.</param>
-		/// <param name="proposedPrice">The proposed price for the negotiation.</param>
-		// PATCH: api/Negotiations
-		[HttpPatch]
+        /// <summary>
+        /// Proposes a new price for a negotiation.
+        /// </summary>
+        /// <param name="negotiationId">The unique identifier of the negotiation to update.</param>
+        /// <param name="proposedPrice">The proposed price for the negotiation.</param>
+        // PATCH: api/Negotiations/5/negotiate
+        [HttpPatch("{negotiationId}/negotiate")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = RequirementsNames.IsOwnerRequirement)]
-        public async Task<IActionResult> ProposeNewPrice(int negotiationId, decimal proposedPrice)
+        public async Task<IActionResult> ProposeNewPrice([FromRoute] string negotiationId, decimal proposedPrice)
 		{
 			var response = await _service.ProposeNewPriceAsync(negotiationId, proposedPrice);
 
 			return response.Result switch
 			{
-				ProposePriceResult.Success => Ok("Price proposed successfully."),
-				ProposePriceResult.NotFound => NotFound("Negotiation not found."),
-				ProposePriceResult.Unauthorized => Forbid("You are not authorized to propose a new price for this negotiation."),
-				ProposePriceResult.IncorrectAction => BadRequest("No more retries are left for this negotiation."),
-				ProposePriceResult.InvalidInput => BadRequest($"Invalid proposed price. Please note that the proposed price should be within the range of 0.01 - {response.MaxAllowedPrice}."),
-				_ => StatusCode(500, "An error occurred while processing the proposal."),
-			};
+				ProposePriceResult.Success => Ok("ProductPrice proposed successfully."),
+				ProposePriceResult.Failed => BadRequest($"Proposed price is too high. Max allowed price is {response.MaxAllowedPrice}."),
+            };
 		}
 
-		/// <summary>
-		/// Responds to a negotiation proposal.
-		/// </summary>
-		/// <param name="negotiationId">The unique identifier of the negotiation to update.</param>
-		/// <param name="isApproved">A flag indicating whether the proposal is approved or not.</param>
-		/// <returns>Returns an <see cref="IActionResult"/> status code representing the result of the operation.</returns>
-		[HttpPatch]
-		[Route("response")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = "Staff")]
-        public async Task<IActionResult> RespondToNegotiationProposal(int negotiationId, [FromQuery] bool isApproved)
-		{
-			var result = await _service.RespondToNegotiationProposalAsync(negotiationId, isApproved);
-
-			return result switch
-			{
-				UpdateResultType.Success => isApproved ? Ok("Proposal accepted") : Ok("Proposal rejected"),
-				UpdateResultType.NotFound => NotFound(),
-				UpdateResultType.Conflict => BadRequest(),
-				_ => StatusCode(500, "Internal Server Error")
-			};
-		}
-
-		/// <summary>
-		/// Creates a new negotiation.
-		/// </summary>
-		/// <param name="negotiationDetails">The negotiation data to be processed into negotiation.</param>
-		/// <returns>
-		/// Returns a 201 Created response with the newly created negotiation and a location header pointing to the negotiation,
-		/// </returns>
-		// POST: api/Negotiations
-		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-		[HttpPost]
+        /// <summary>
+        /// Creates a new negotiation.
+        /// </summary>
+        /// <param name="requestDto">The details of the negotiation to create.</param>
+        /// <returns>
+        /// Returns a 201 Created response with the newly created negotiation and a location header pointing to the negotiation,
+        /// </returns>
+        // POST: api/Negotiations
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[Authorize(Roles = "Customer")]
-		public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] NegotiationInputModel negotiationDetails)
+		public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] CreateNegotiationRequestDto requestDto)
         {
 			var errors = ModelStateHelper.GetErrors(ModelState);
 			if (errors.Any())
@@ -212,7 +170,7 @@ namespace PriceNegotiationApp.Controllers
 				return BadRequest(errors);
 			}
 
-			Negotiation negotiation = await _service.CreateNegotiationAsync(negotiationDetails);
+			Negotiation negotiation = await _service.CreateNegotiationAsync(requestDto);
 
             return CreatedAtAction(nameof(GetNegotiation), new { id = negotiation.Id }, negotiation);
         }
@@ -234,50 +192,11 @@ namespace PriceNegotiationApp.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[Authorize(Roles = "Admin")]
-		public async Task<IActionResult> DeleteNegotiation([FromRoute] int id)
+		public async Task<IActionResult> DeleteNegotiation([FromRoute] string id)
         {
-            var result = await _service.DeleteNegotiationAsync(id);
-
-            if (!result)
-            {
-                return NotFound();
-            }
+            await _service.DeleteNegotiationAsync(id);
 
             return NoContent();
         }
-
-		/// <summary>
-		/// Checks if a negotiation with the specified unique identifier exists.
-		/// </summary>
-		/// <param name="id">The unique identifier of the negotiation to check for existence.</param>
-		/// <returns>Returns true if a negotiation with the specified ID exists; otherwise, returns false.</returns>
-		private bool NegotiationExists(int id)
-        {
-            return _service.NegotiationExists(id);
-        }
-
-        [Obsolete("Deprecated: Replaced by custom policies realizing resource-based authorization.")]
-        private bool IsUserAssociatedWithNegotiation(int negotiationId)
-		{
-			return _service.IsUserAssociatedWithNegotiation(negotiationId);
-		}
-
-		/// <summary>
-		/// if the authorized user is Customer, then check if the negotiation belongs to him; if user role is different then just return true
-		/// </summary>
-		/// <param name="negotiationId">The unique identifier of the negotiation</param>
-		/// <returns></returns>
-		[Obsolete("Deprecated: Replaced by custom policies realizing resource-based authorization.")]
-		private bool IsUserAuthorizedForNegotiation(int negotiationId)
-		{
-			var userRole = _service.GetLoggedInUserRole();
-
-			if (userRole == "Customer" && !IsUserAssociatedWithNegotiation(negotiationId))
-			{
-				return false;
-			}
-
-			return true;
-		}
 	}
 }

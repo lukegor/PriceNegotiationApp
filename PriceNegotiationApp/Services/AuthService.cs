@@ -1,21 +1,22 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PriceNegotiationApp.Models.DTO;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Utility;
 using static PriceNegotiationApp.Controllers.AuthenticationController;
 using System.IdentityModel.Tokens.Jwt;
-using PriceNegotiationApp.Extensions.Conversions;
 using PriceNegotiationApp.Auth.Authentication.JWT;
+using PriceNegotiationApp.Domain.Models.Dto.Requests;
+using PriceNegotiationApp.Domain.Models.Dto;
+using PriceNegotiationApp.Utility.Utility;
+using PriceNegotiationApp.Domain.Models.Users;
+using PriceNegotiationApp.Domain.Models.Mappers;
 
 namespace PriceNegotiationApp.Services
 {
 	public interface IAuthService
 	{
-		Task<AuthResponseDTO> AuthenticateAsync(LoginModel model);
+		Task<AuthResponseDTO> AuthenticateAsync(LoginRequestDto dto);
 		Task SignOutAsync();
-		Task<IdentityResult> RegisterUserAsync(RegisterUserDTO userForRegistration);
-		Task<bool> IsEmailInUse(string email);
-		Task<bool> IsUsernameInUse(string username);
+		Task<IdentityResult> RegisterUserAsync(RegisterUserRequestDto userForRegistration);
+		Task ValidateEmailUniqueness(string email);
+		Task ValidateUserNameUniqueness(string username);
     }
 
     public class AuthService : IAuthService
@@ -33,24 +34,19 @@ namespace PriceNegotiationApp.Services
 			_logger = logger;
 		}
 
-		public async Task<AuthResponseDTO> AuthenticateAsync(LoginModel model)
+		public async Task<AuthResponseDTO> AuthenticateAsync(LoginRequestDto dto)
 		{
-			var user = await _userManager.FindByNameAsync(model.Username);
+			var user = await _userManager.FindByNameAsync(dto.Username);
 
-			if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+			if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
 			{
-				_logger.LogWarning("Authentication failed for username: {Username}", model.Username);
+				_logger.LogWarning("Authentication failed for username: {Username}", dto.Username);
 				return new AuthResponseDTO { ErrorMessage = "Invalid Authentication" };
 			}
 
-			var signingCredentials = _jwtHandler.GetSigningCredentials();
-			var claims = await _jwtHandler.GetClaims(user);
+			var token = await _jwtHandler.GenerateToken(user);
 
-			var tokenOptions = _jwtHandler.GenerateTokenOptions(signingCredentials, claims);
-
-			var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-
-			_logger.LogInformation("User {Username} authenticated successfully.", model.Username);
+            _logger.LogInformation("User {Username} authenticated successfully.", dto.Username);
 
 			return new AuthResponseDTO { IsAuthSuccessful = true, Token = token };
 		}
@@ -61,7 +57,7 @@ namespace PriceNegotiationApp.Services
 			_logger.LogInformation("User signed out.");
 		}
 
-		public async Task<IdentityResult> RegisterUserAsync(RegisterUserDTO userForRegistration)
+		public async Task<IdentityResult> RegisterUserAsync(RegisterUserRequestDto userForRegistration)
 		{
 			ApplicationUser user = userForRegistration.ToDb();
 			var result = await _userManager.CreateAsync(user, userForRegistration.Password);
@@ -75,28 +71,24 @@ namespace PriceNegotiationApp.Services
 			return result;
 		}
 
-        public async Task<bool> IsEmailInUse(string email)
+        public async Task ValidateEmailUniqueness(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
-			if (user == null)
+			if (user != null)
 			{
-				return false;
-			}
-
-			return true;
+				throw new InvalidOperationException("Email is not unique.");
+            }
         }
 
-        public async Task<bool> IsUsernameInUse(string username)
+        public async Task ValidateUserNameUniqueness(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
 
-            if (user == null)
+            if (user != null)
             {
-                return false;
+                throw new InvalidOperationException("UserName is not unique.");
             }
-
-            return true;
         }
     }
 }

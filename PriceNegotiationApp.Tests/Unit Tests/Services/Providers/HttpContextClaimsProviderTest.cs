@@ -27,7 +27,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Providers
 			var httpContextAccessorSubstitute = Substitute.For<IHttpContextAccessor>();
 			httpContextAccessorSubstitute.HttpContext.User.Returns(user);
 
-			var claimsProvider = new HttpContextClaimsProvider(httpContextAccessorSubstitute);
+			var claimsProvider = new HttpExecutionContext(httpContextAccessorSubstitute);
 
             // Act
             var result = claimsProvider.UserClaimsPrincipal;

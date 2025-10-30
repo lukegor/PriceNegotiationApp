@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using PriceNegotiationApp.Models;
+using PriceNegotiationApp.Data;
 using PriceNegotiationApp.Services;
 using System;
 using System.Collections.Generic;
@@ -53,26 +53,26 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures
         {
             List<Product> products = new List<Product>
             {
-                new Product{
+                new Product(
 					//Id = "123abc",
-					Name = "Demo1",
-                    Price = 5.36M },
-                new Product{
+					"Demo1",
+                    new ProductPrice(5.36M) ),
+                new Product(
 					//Id = "123abc",
-					Name = "Demo2",
-                    Price = 2.36M },
-                new Product{
+					"Demo2",
+                    new ProductPrice(2.36M) ),
+                new Product(
 					//Id = 3,
-					Name = "Demo3",
-                    Price = 3.36M },
-                new Product{
+					"Demo3",
+                    new ProductPrice(3.36M) ),
+                new Product(
 					//Id = 4,
-					Name = "Demo4",
-                    Price = 4.36M },
-                new Product{
+					"Demo4",
+                    new ProductPrice(4.36M) ),
+                new Product(
 					//Id = 5,
-					Name = "Demo5",
-                    Price = 5.36M }
+					"Demo5",
+                    new ProductPrice(5.36M) )
             };
 
             if (isCustomGuid)

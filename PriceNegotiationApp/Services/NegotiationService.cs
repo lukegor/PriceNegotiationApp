@@ -1,108 +1,105 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.DTO;
-using PriceNegotiationApp.Models.Input_Models;
+using PriceNegotiationApp.Data;
+using PriceNegotiationApp.Domain.Models.Dto;
+using PriceNegotiationApp.Domain.Models.Negotiations;
+using PriceNegotiationApp.Domain.Models.Negotiations.Dto.Requests;
+using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
+using PriceNegotiationApp.Domain.Models.Products;
 using PriceNegotiationApp.Services.Providers;
-using PriceNegotiationApp.Utility;
-using PriceNegotiationApp.Utility.Custom_Exceptions;
+using PriceNegotiationApp.Utility.Utility;
+using PriceNegotiationApp.Utility.Utility.Exceptions;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace PriceNegotiationApp.Services
 {
-	public interface INegotiationService
+    /// <summary>
+    /// <see cref="Negotiation"/> domain service
+    /// </summary>
+    public interface INegotiationService
 	{
 		Task<IEnumerable<Negotiation>> GetNegotiationsAsync();
-		Task<Negotiation> GetNegotiationAsync(int id);
-		Task<UpdateResultType> UpdateNegotiationAsync(int id, Negotiation Negotiation);
-		Task<ProposePriceResponse> ProposeNewPriceAsync(int negotiationId, decimal proposedPrice);
-		Task<UpdateResultType> RespondToNegotiationProposalAsync(int negotiationId, bool isApproved);
-        Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel Negotiation);
-		Task<bool> DeleteNegotiationAsync(int id);
-		bool NegotiationExists(int id);
-		bool IsUserAssociatedWithNegotiation(int negotiationId);
-		string GetLoggedInUserRole();
-
+		Task<Negotiation> GetNegotiationAsync(string id);
+        Task<Negotiation> UpdateNegotiationAsync(string id, UpdateNegotiationRequestDto Negotiation);
+		Task<Negotiation> CloseNegotiationAsync(string id);
+		Task<ProposePriceResponseDto> ProposeNewPriceAsync(string negotiationId, decimal proposedPrice);
+        Task<Negotiation> CreateNegotiationAsync(CreateNegotiationRequestDto Negotiation);
+		Task DeleteNegotiationAsync(string id);
+		Task<bool> IsUserAssociatedWithNegotiation(string negotiationId);
     }
 
-	public class NegotiationService: INegotiationService
+    /// <inheritdoc cref="INegotiationService"/>
+    public class NegotiationService: INegotiationService
 	{
-		//private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly AppDbContext _context;
-        private readonly IClaimsProvider _claimsProvider;
+        private readonly IExecutionContext _executionContext;
 		private readonly ILogger<NegotiationService> _logger;
 
-
-		public NegotiationService(AppDbContext context, IClaimsProvider claimsProvider, ILogger<NegotiationService> logger)
+		public NegotiationService(AppDbContext context, IExecutionContext executionContext, ILogger<NegotiationService> logger)
 		{
 			_context = context;
-			_claimsProvider = claimsProvider;
+			_executionContext = executionContext;
 			_logger = logger;
 		}
 
 		public async Task<IEnumerable<Negotiation>> GetNegotiationsAsync()
 		{
 			var negotiations = await _context.Negotiations.ToListAsync();
-			_logger.LogInformation("List of {Count} negotiations was returned.", negotiations.Count);
 			return negotiations;
 		}
 
-		public async Task<Negotiation> GetNegotiationAsync(int id)
+		public async Task<Negotiation> GetNegotiationAsync(string id)
 		{
 			var negotiation = await _context.Negotiations.FindAsync(id);
 
 			if (negotiation == null)
 			{
-				throw new NotFoundException();
+				throw new NotFoundException($"Failed to find negotiation with ID '{id}'");
 			}
-			_logger.LogInformation("Negotiation with ID '{Id}' was found.", negotiation.Id);
 
 			return negotiation;
 		}
 
-		public async Task<UpdateResultType> UpdateNegotiationAsync(int id, Negotiation Negotiation)
+		[Obsolete("No use case")]
+		public async Task<Negotiation> UpdateNegotiationAsync(string id, UpdateNegotiationRequestDto negotiation)
 		{
-			try
+            var existingNegotiation = await _context.Negotiations.FindAsync(id);
+
+            if (existingNegotiation == null)
 			{
-				var existingNegotiation = await GetNegotiationAsync(id);
-				var idInDb = existingNegotiation.Id;
-				if (id != idInDb)
-				{
-					_logger.LogWarning("Update failed: Provided ID {ProvidedId} does not match the ID {IdInDb} in the database.", id, idInDb);
-					return UpdateResultType.NotFound;
-				}
-			}
-			catch (NotFoundException)
-			{
-				_logger.LogWarning("Update failed: Negotiation with ID {Id} was not found.", id);
-				return UpdateResultType.NotFound;
+				throw new NotFoundException($"Update failed: Negotiation with ID {id} was not found.");
 			}
 
-			_context.Entry(Negotiation).State = EntityState.Modified;
+			//existingNegotiation.Update();
 
-			try
-			{
-				await _context.SaveChangesAsync();
-				_logger.LogInformation("Negotiation with ID {Id} updated successfully.", id);
-			}
-			catch (DbUpdateConcurrencyException)
-			{
-				_logger.LogError("Concurrency exception occurred while updating negotiation with ID '{Id}'", id);
-				return UpdateResultType.Conflict;
-			}
+			await _context.SaveChangesAsync();
+			return existingNegotiation;
+        }
 
-			return UpdateResultType.Success;
-		}
+        public async Task<Negotiation> CloseNegotiationAsync(string id)
+		{
+            var existingNegotiation = await _context.Negotiations.FindAsync(id);
 
-		public async Task<ProposePriceResponse> ProposeNewPriceAsync(int negotiationId, decimal proposedPrice)
+            if (existingNegotiation == null)
+            {
+                throw new NotFoundException($"Update failed: Negotiation with ID {id} was not found.");
+            }
+
+			existingNegotiation.Close();
+			await _context.SaveChangesAsync();
+			return existingNegotiation;
+        }
+
+        public async Task<ProposePriceResponseDto> ProposeNewPriceAsync(string negotiationId, decimal proposedPrice)
 		{
 			var negotiation = await _context.Negotiations.FindAsync(negotiationId);
 
 			if (negotiation == null)
 			{
-				_logger.LogWarning("Negotiation with ID '{Id}' not found.", negotiationId);
-				return new ProposePriceResponse { Result = ProposePriceResult.NotFound };
+				throw new NotFoundException("Negotiation not found");
 			}
 
 			//var isUserAssociated = IsUserAssociatedWithNegotiation(negotiationId);
@@ -112,105 +109,55 @@ namespace PriceNegotiationApp.Services
 			//	return new ProposePriceResponse { Result = ProposePriceResult.Unauthorized };
 			//}
 
-			Product relevantProduct = await FindRelevantProductAsync(negotiation);
+			Product relevantProduct = await _context.Products.FindAsync(negotiation.ProductId);
 
-			const int Multiplier = 2;
-
-			if (negotiation.RetriesLeft <= 0)
+			if (relevantProduct == null)
 			{
-				_logger.LogWarning("ProposeNewPrice failed: Incorrect action for negotiation with ID '{Id}'.", negotiation.Id);
-				return new ProposePriceResponse { Result = ProposePriceResult.IncorrectAction };
-			}
-
-			decimal maxAllowedPriceProposition = CalculateMaxAllowedPrice(Multiplier, relevantProduct.Price);
-			if (proposedPrice <= 0 || proposedPrice > maxAllowedPriceProposition)
-			{
-				_logger.LogWarning("ProposeNewPrice failed: Invalid input for negotiation with ID '{Id}'.", negotiation.Id);
-				return new ProposePriceResponse
-				{
-					Result = ProposePriceResult.InvalidInput,
-					MaxAllowedPrice = maxAllowedPriceProposition
-				};
-			}
-
-			// update negotiation fields values
-			negotiation.ProposeNewPrice(proposedPrice);
-
-			try
-			{
-				await _context.SaveChangesAsync();
-				_logger.LogInformation("ProposeNewPrice succeeded for negotiation with ID '{Id}'.", negotiation.Id);
-				return new ProposePriceResponse { Result = ProposePriceResult.Success };
-			}
-			catch (DbUpdateException)
-			{
-				_logger.LogError("ProposeNewPrice failed: Error occurred while updating negotiation with ID '{Id}'.", negotiation.Id);
-				return new ProposePriceResponse { Result = ProposePriceResult.Error };
-			}
-		}
-
-		public async Task<UpdateResultType> RespondToNegotiationProposalAsync(int negotiationId, bool isApproved)
-		{
-			var negotiation = await _context.Negotiations.FindAsync(negotiationId);
-
-            if (negotiation == null)
-            {
-				_logger.LogWarning("Negotiation with ID '{Id}' not found.", negotiationId);
-				return UpdateResultType.NotFound;
+				throw new NotFoundException("Associated product not found");
             }
 
-            if (isApproved)
-			{
-				negotiation.IsAccepted = true;
-				negotiation.Status = NegotiationStatus.Closed;
-			}
-			else
-			{
-				if (negotiation.RetriesLeft <= 0)
-				{
-					negotiation.IsAccepted = false;
-					negotiation.Status = NegotiationStatus.Closed;
-				}
-			}
+            negotiation.TryNegotiate(proposedPrice, relevantProduct.Price.Value);
 
-			negotiation.UpdatedAt = DateTime.Now;
-
-			return await UpdateNegotiationAsync(negotiation.Id, negotiation);
+			await _context.SaveChangesAsync();
+			return new ProposePriceResponseDto { Result = ProposePriceResult.Success };
 		}
 
-		public async Task<Negotiation> CreateNegotiationAsync(NegotiationInputModel negotiationDetails)
+		public async Task<Negotiation> CreateNegotiationAsync(CreateNegotiationRequestDto negotiationDetails)
 		{
-			string userId = _claimsProvider.UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);//_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			string userId = _executionContext.UserId;
 
-			Negotiation negotiation = new Negotiation(negotiationDetails.ProductId, negotiationDetails.ProposedPrice, userId);
+            var product = await _context.Products.FindAsync(negotiationDetails.ProductId);
+
+            if (product == null)
+            {
+				throw new NotFoundException($"Product with ID '{negotiationDetails.ProductId}' was not found.");
+            }
+
+            Negotiation negotiation = new Negotiation(
+				negotiationDetails.ProductId,
+				product.Price.Value,
+				new ProposedPrice(negotiationDetails.ProposedPrice),
+                userId);
 
 			_context.Negotiations.Add(negotiation);
 			await _context.SaveChangesAsync();
 
-			_logger.LogInformation("Negotiation with ID '{Id}' created successfully.", negotiation.Id);
-
 			return negotiation;
 		}
 
-		public async Task<bool> DeleteNegotiationAsync(int id)
+		public async Task DeleteNegotiationAsync(string id)
 		{
 			var negotiation = await _context.Negotiations.FindAsync(id);
 			if (negotiation == null)
 			{
-				_logger.LogWarning("Negotiation with ID '{Id}' was not found.", id);
-				return false;
+				throw new NotFoundException($"Negotiation with ID '{id}' was not found.");
 			}
 
 			_context.Negotiations.Remove(negotiation);
 			await _context.SaveChangesAsync();
-
-			_logger.LogInformation("Negotiation with ID {Id} was deleted successfully.", id);
-
-
-			return true;
 		}
 
-		public bool NegotiationExists(int id)
+		private bool NegotiationExists(string id)
 		{
 			bool exists = _context.Negotiations.Any(e => e.Id == id);
 
@@ -219,40 +166,19 @@ namespace PriceNegotiationApp.Services
 			return exists;
 		}
 
-		public string GetLoggedInUserRole()
+		public async Task<bool> IsUserAssociatedWithNegotiation(string negotiationId)
 		{
-			var userRole = _claimsProvider.UserClaimsPrincipal.FindFirstValue(ClaimTypes.Role);//_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-            System.Diagnostics.Debug.WriteLine(userRole);
-			return userRole;
-		}
+			var negotiation = await _context.Negotiations.FindAsync(negotiationId);
 
-		public bool IsUserAssociatedWithNegotiation(int negotiationId)
-		{
-			var negotiation = GetNegotiationAsync(negotiationId).Result;
-
-			if (negotiation == null)
+            if (negotiation == null)
 			{
 				return false;
 			}
 
 			var userId = negotiation.UserId; // Retrieve userId associated with certain negotiation
-			var loggedInUserId = _claimsProvider.UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);//_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var loggedInUserId = _executionContext.UserId;
 
             return userId == loggedInUserId;
-		}
-
-		public async Task<Product> FindRelevantProductAsync(Negotiation negotiation)
-		{
-			var dbNegotiation = await _context.Negotiations.FirstOrDefaultAsync(e => e.Id == negotiation.Id);
-			var productId = dbNegotiation.ProductId;
-			Product product = await _context.Products.FindAsync(productId);
-
-			return product;
-		}
-
-		private decimal CalculateMaxAllowedPrice(int multiplier, decimal productPrice)
-		{
-			return multiplier * productPrice;
 		}
 	}
 }

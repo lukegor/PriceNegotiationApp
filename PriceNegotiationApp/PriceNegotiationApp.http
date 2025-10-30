@@ -4,3 +4,45 @@ GET {{PriceNegotiationApp_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+# @name createUser
+POST {{PriceNegotiationApp_HostAddress}}/Registration
+Content-Type: application/json
+
+{
+  "userName": "JanKo",
+  "name": "Jan Kowalski",
+  "email": "Jan.Kowalski@gmail.com",
+  "password": "Admin123!",
+  "confirmPassword": "Admin123!"
+}
+
+###
+
+# @name login
+POST {{PriceNegotiationApp_HostAddress}}/Login
+Content-Type: application/json
+
+{
+  "username": "JanKo",
+  "password": "Admin123!"
+}
+
+###
+
+@token={{Login.response.body.$.Token}}
+
+###
+
+# @name createProduct
+POST {{PriceNegotiationApp_HostAddress}}/api/v1/Products/Product
+Content-Type: application/json
+
+{
+  "name": "Rower",
+  "price": 2000
+}
+
+###
+
+# @name updateProduct

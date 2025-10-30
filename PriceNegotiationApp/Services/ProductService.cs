@@ -1,22 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Extensions.Conversions;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.Input_Models;
+using PriceNegotiationApp.Data;
+using PriceNegotiationApp.Domain.Models.Products;
+using PriceNegotiationApp.Domain.Models.Products.Dto;
+using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
 using PriceNegotiationApp.Utility;
-using PriceNegotiationApp.Utility.Custom_Exceptions;
+using PriceNegotiationApp.Domain.Models.Mappers;
+using PriceNegotiationApp.Utility.Utility.Exceptions;
 
 namespace PriceNegotiationApp.Services
 {
-	public interface IProductService
+    /// <summary>
+    /// <see cref="Product"/> domain service
+    /// </summary>
+    public interface IProductService
 	{
-		Task<IEnumerable<Product>> GetProductsAsync();
+		IQueryable<Product> GetProductsAsync();
 		Task<Product> GetProductAsync(string id);
-		Task<UpdateResultType> UpdateProductAsync(string id, Product product);
-		Task<Product> CreateProductAsync(ProductInputModel product);
-		Task<bool> DeleteProductAsync(string id);
+		Task<Product> UpdateProductAsync(string id, ProductRequestDto product);
+		Task<Product> CreateProductAsync(ProductRequestDto product);
+		Task DeleteProductAsync(string id);
 	}
 
-	public class ProductService: IProductService
+    /// <inheritdoc cref="IProductService"/>
+    public class ProductService: IProductService
 	{
 		private readonly AppDbContext _context;
 		private readonly ILogger<ProductService> _logger;
@@ -27,12 +33,9 @@ namespace PriceNegotiationApp.Services
 			_logger = logger;
 		}
 
-		public async Task<IEnumerable<Product>> GetProductsAsync()
+		public IQueryable<Product> GetProductsAsync()
 		{
-			var products = await _context.Products.ToListAsync();
-			_logger.LogInformation("List of {Count} products was returned", products.Count);
-
-			return products;
+			return _context.Products.AsNoTracking();
 		}
 
 		public async Task<Product> GetProductAsync(string id)
@@ -41,77 +44,48 @@ namespace PriceNegotiationApp.Services
 
             if (product == null)
             {
-                _logger.LogWarning("Product with id = {Id} was not found", id);
-                throw new NotFoundException();
+                throw new NotFoundException($"Products with id = {id} was not found");
             }
-
-            _logger.LogInformation("Product with id = {Id} was found", product.Id);
 
 			return product;
 		}
 
-		public async Task<UpdateResultType> UpdateProductAsync(string id, Product product)
+		public async Task<Product> UpdateProductAsync(string id, ProductRequestDto product)
 		{
-			try
-			{
-				var existingProduct = await GetProductAsync(id);
+			var existingProduct = await _context.Products.FindAsync(id);
 
-                var idInDb = existingProduct.Id.ToString();
-                if (id != idInDb)
-                {
-                    _logger.LogWarning("Update failed: Provided ID {ProvidedId} does not match the ID {IdInDb} in the database.", id, idInDb);
-                    return UpdateResultType.NotFound;
-                }
-            }
-			catch (NotFoundException)
-			{
-                _logger.LogWarning("Update failed: Product with ID {Id} not found.", id);
-                return UpdateResultType.NotFound;
+            if (product == null)
+            {
+                throw new NotFoundException($"Products with id = {id} was not found");
             }
 
-			_context.Entry(product).State = EntityState.Modified;
+            existingProduct.Update(product.Name, new ProductPrice(product.Price));
+            //_context.Entry(product).State = EntityState.Modified;
 
-			try
-			{
-				await _context.SaveChangesAsync();
-                _logger.LogInformation("Product with ID {Id} updated successfully.", id);
-            }
-			catch (DbUpdateConcurrencyException)
-			{
-				_logger.LogWarning("Concurrency exception occurred while updating product with ID '{Id}'", id);
-				return UpdateResultType.Conflict;
-			}
-
-			return UpdateResultType.Success;
+            await _context.SaveChangesAsync();
+			return existingProduct;
 		}
 
-		public async Task<Product> CreateProductAsync(ProductInputModel product)
+		public async Task<Product> CreateProductAsync(ProductRequestDto product)
 		{
-			Product dbProduct = product.ToDb();
+			Product newProduct = product.ToProduct();
 
-			_context.Products.Add(dbProduct);
+			_context.Products.Add(newProduct);
 			await _context.SaveChangesAsync();
 
-			_logger.LogInformation("Product with ID '{Id}' created successfully.", dbProduct.Id);
-
-			return dbProduct;
+			return newProduct;
 		}
 
-		public async Task<bool> DeleteProductAsync(string id)
+		public async Task DeleteProductAsync(string id)
 		{
 			var product = await _context.Products.FindAsync(id);
 			if (product == null)
 			{
-                _logger.LogWarning("Product with ID '{Id}' was not found.", id);
-                return false;
-			}
+                throw new NotFoundException($"Products with id = {id} was not found");
+            }
 
 			_context.Products.Remove(product);
 			await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Product with ID {Id} was deleted successfully.", id);
-
-            return true;
 		}
 
 		/// <summary>
@@ -123,7 +97,7 @@ namespace PriceNegotiationApp.Services
 		{
 			bool exists = _context.Products.Any(e => e.Id.ToString() == id);
 
-			_logger.LogInformation(exists ? $"Product with ID '{id}' exists." : $"Product with ID '{id}' does not exist.");
+			_logger.LogInformation(exists ? $"Products with ID '{id}' exists." : $"Products with ID '{id}' does not exist.");
 
 			return exists;
 		}

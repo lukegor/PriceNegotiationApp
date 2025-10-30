@@ -5,18 +5,17 @@ namespace PriceNegotiationApp.Extensions
 {
 	public static class SwaggerServiceExtensions
 	{
-		public static void ConfigureSwagger(this IServiceCollection services)
+		internal static void ConfigureSwagger(this IServiceCollection services)
 		{
 			services.AddSwaggerGen(options =>
 			{
 				options.SwaggerDoc("v1", new OpenApiInfo
 				{
-					Title = "Price Negotiation App",
+					Title = "ProductPrice Negotiation App",
 					Version = "v1",
 					Contact = new OpenApiContact
 					{
 						Name = "Łukasz Górski",
-						Email = "lukaszgorski02@gmail.com",
 						Url = new Uri("https://www.linkedin.com/in/lukasz-gorski-lukegor/")
 					},
 					License = new OpenApiLicense

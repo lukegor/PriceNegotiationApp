@@ -18,9 +18,25 @@ namespace PriceNegotiationApp.Auth.Authentication.JWT
             _userManager = userManager;
         }
 
+        public async Task<string> GenerateToken(IdentityUser user)
+        {
+            var signingCredentials = GetSigningCredentials();
+            var claims = await GetClaims(user);
+
+            var tokenOptions = new JwtSecurityToken(
+                issuer: _jwtSettings.ValidIssuer,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_jwtSettings.ExpiryInMinutes)),
+                signingCredentials: signingCredentials);
+
+            var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+
+            return token;
+        }
+
         // WARNING: Ensure that _jwtSettings.SecurityKey is a string of at least 32 characters (32 bytes) for HmacSha256
         // Required by new JwtSecurityTokenHandler().WriteToken(tokenOptions); since new version (Nuget package JsonWebToken version 8.0 and transitive ...IdentityModel. token-related packages post 7.0)
-        public SigningCredentials GetSigningCredentials()
+        private SigningCredentials GetSigningCredentials()
         {
 
             var key = Encoding.UTF8.GetBytes(_jwtSettings.SecurityKey);
@@ -29,7 +45,7 @@ namespace PriceNegotiationApp.Auth.Authentication.JWT
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
 
-        public async Task<List<Claim>> GetClaims(IdentityUser user)
+        private async Task<List<Claim>> GetClaims(IdentityUser user)
         {
             var claims = new List<Claim>
             {
@@ -44,18 +60,6 @@ namespace PriceNegotiationApp.Auth.Authentication.JWT
             }
 
             return claims;
-        }
-
-        public JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCredentials, List<Claim> claims)
-        {
-            var tokenOptions = new JwtSecurityToken(
-                issuer: _jwtSettings.ValidIssuer,
-                audience: _jwtSettings.ValidAudience,
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_jwtSettings.ExpiryInMinutes)),
-                signingCredentials: signingCredentials);
-
-            return tokenOptions;
         }
     }
 }

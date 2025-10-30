@@ -2,13 +2,12 @@
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using NSubstitute;
 using PriceNegotiationApp.Controllers;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
-using PriceNegotiationApp.Utility;
+using PriceNegotiationApp.Utility.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
@@ -33,8 +32,8 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
 
             var negotiations = new List<Negotiation>
             {
-                new Negotiation("123", 50, "user1") { RetriesLeft = 2 },
-                new Negotiation("321", 40, "user2") { RetriesLeft = 2 }
+                new Negotiation("123", new ProposedPrice(50), "user1"),
+                new Negotiation("321", new ProposedPrice(40), "user2")
             };
 
             negotiationService.GetNegotiationsAsync().Returns(Task.FromResult<IEnumerable<Negotiation>>(negotiations));
@@ -60,7 +59,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var controller = new NegotiationController(negotiationService);
 
             int negotiationId = 1111;
-            var expectedNegotiation = new Negotiation("123", 50, "user1") { RetriesLeft = 2 };
+            var expectedNegotiation = new Negotiation("123", 50, false, "user1");
 
             negotiationService.GetNegotiationAsync(negotiationId).Returns(Task.FromResult(expectedNegotiation));
 
@@ -109,31 +108,31 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var negotiationInputModel = new NegotiationInputModel
+            var negotiationInputModel = new CreateNegotiationRequestDto
             {
                 ProductId = "123",
                 ProposedPrice = 50
             };
 
-            negotiationService.CreateNegotiationAsync(new NegotiationInputModel { ProductId = "123", ProposedPrice = 50 })
-                .Returns(Task.FromResult(new Negotiation("123", 50, "user1") { RetriesLeft = 2 }));
+            negotiationService.CreateNegotiationAsync(negotiationInputModel)
+                .Returns(new Negotiation("123", 50, false, "user1"));
 
             // Act
             var result = await controller.PostNegotiation(negotiationInputModel);
 
             // Assert
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
-            Assert.Equal(201, createdAtActionResult.StatusCode);
+            Assert.Equal((int)HttpStatusCode.Created, createdAtActionResult.StatusCode);
 
             Assert.Equal(nameof(NegotiationController.GetNegotiation), createdAtActionResult.ActionName);
-            Assert.Equal(1, createdAtActionResult.RouteValues["id"]);
+            Assert.NotNull(createdAtActionResult.RouteValues["id"]);
 
             var returnedNegotiation = Assert.IsType<Negotiation>(createdAtActionResult.Value);
             Assert.Equal("123", returnedNegotiation.ProductId);
             Assert.Equal(50, returnedNegotiation.ProposedPrice);
             Assert.Equal("user1", returnedNegotiation.UserId);
 
-            negotiationService.Received(1).CreateNegotiationAsync(Arg.Any<NegotiationInputModel>());
+            negotiationService.Received(1).CreateNegotiationAsync(Arg.Any<CreateNegotiationRequestDto>());
         }
 
         [Fact]
@@ -144,7 +143,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var controller = new NegotiationController(negotiationService);
             controller.ModelState.AddModelError("PropertyName", "Error Message");
 
-            var negotiationInputModel = new NegotiationInputModel()
+            var negotiationInputModel = new CreateNegotiationRequestDto()
             {
                 ProductId = "322",
                 ProposedPrice = 50
@@ -160,14 +159,14 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var errorMessages = Assert.IsType<List<object>>(badRequestObjectResult.Value);
             Assert.NotEmpty(errorMessages);
 
-            negotiationService.DidNotReceive().CreateNegotiationAsync(Arg.Any<NegotiationInputModel>());
+            negotiationService.DidNotReceive().CreateNegotiationAsync(Arg.Any<CreateNegotiationRequestDto>());
         }
 
         [Fact]
         public async Task DeleteNegotiation_ExistingId_ShouldReturnNoContent()
         {
             // Arrange
-            int negotiationId = 1111;
+            var negotiationId = "1111";
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
@@ -186,7 +185,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         public async Task DeleteNegotiation_NonExistingId_ShouldReturnNotFound()
         {
             // Arrange
-            int negotiationId = 999; // Non-existing ID
+            var negotiationId = "999"; // Non-existing ID
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
@@ -204,11 +203,11 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         public async Task PutNegotiation_ValidInput_ShouldReturnNoContent()
         {
             // Arrange
-            int negotiationId = 1111;
+            var negotiationId = "1111";
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var negotiation = new Negotiation("123", 50, "user1") { RetriesLeft = 2 };
+            var negotiation = new Negotiation("123", 50, false, "user1");
 
             negotiationService.UpdateNegotiationAsync(negotiationId, Arg.Any<Negotiation>())
                 .Returns(Task.FromResult(UpdateResultType.Success));
@@ -225,11 +224,11 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         public async Task PutNegotiation_NotFound_ShouldReturnNotFound()
         {
             // Arrange
-            int negotiationId = 1111;
+            var negotiationId = "1111";
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var negotiation = new Negotiation("123", 50, "user1") { RetriesLeft = 2 };
+            var negotiation = new Negotiation("123", 50, false, "user1");
 
             negotiationService.UpdateNegotiationAsync(negotiationId, Arg.Any<Negotiation>()).Returns(Task.FromResult(UpdateResultType.NotFound));
 
@@ -245,11 +244,11 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         public async Task PutNegotiation_Conflict_ShouldReturnConflict()
         {
             // Arrange
-            int negotiationId = 1111;
+            var negotiationId = "1111";
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var negotiation = new Negotiation("123", 50, "user1") { RetriesLeft = 2 };
+            var negotiation = new Negotiation("123", 50, false, "user1");
 
             negotiationService.UpdateNegotiationAsync(negotiationId, Arg.Any<Negotiation>()).Returns(Task.FromResult(UpdateResultType.Conflict));
 
@@ -270,7 +269,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var negotiation = new Negotiation("123", 50, "user1") { RetriesLeft = 2 };
+            var negotiation = new Negotiation("123", 50, false, "user1");
 
             negotiationService.UpdateNegotiationAsync(negotiationId, Arg.Any<Negotiation>()).Returns(Task.FromResult((UpdateResultType)100)); // Assuming 100 represents an unknown error
 
@@ -293,7 +292,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var response = new ProposePriceResponse
+            var response = new ProposePriceResponseDto
             {
                 Result = ProposePriceResult.Success,
                 MaxAllowedPrice = 70
@@ -306,7 +305,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
-            Assert.Equal("Price proposed successfully.", (result as OkObjectResult)?.Value);
+            Assert.Equal("ProductPrice proposed successfully.", (result as OkObjectResult)?.Value);
             negotiationService.Received(1).ProposeNewPriceAsync(negotiationId, proposedPrice);
         }
 
@@ -319,7 +318,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var response = new ProposePriceResponse
+            var response = new ProposePriceResponseDto
             {
                 Result = ProposePriceResult.NotFound
             };
@@ -344,7 +343,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var response = new ProposePriceResponse
+            var response = new ProposePriceResponseDto
             {
                 Result = ProposePriceResult.Unauthorized
             };
@@ -368,7 +367,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var response = new ProposePriceResponse
+            var response = new ProposePriceResponseDto
             {
                 Result = ProposePriceResult.IncorrectAction
             };
@@ -393,7 +392,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var response = new ProposePriceResponse
+            var response = new ProposePriceResponseDto
             {
                 Result = ProposePriceResult.InvalidInput,
                 MaxAllowedPrice = 2 * proposedPrice
@@ -419,7 +418,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var negotiationService = Substitute.For<INegotiationService>();
             var controller = new NegotiationController(negotiationService);
 
-            var response = new ProposePriceResponse
+            var response = new ProposePriceResponseDto
             {
                 Result = (ProposePriceResult)100 // Assuming 100 represents an unknown error
             };

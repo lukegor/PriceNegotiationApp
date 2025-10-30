@@ -3,11 +3,8 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using PriceNegotiationApp.Controllers;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Utility;
-using PriceNegotiationApp.Utility.Custom_Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,8 +30,14 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var productServiceSubstitute = Substitute.For<IProductService>();
             var products = new List<Product>
             {
-                new Product { Id = "123", Name = "Product1" },
-                new Product { Id = "321", Name = "Product2" }
+                new Product ("Product1", new ProductPrice(5))
+                {
+                    Id = "123"
+                },
+                new Product ("Product2", new ProductPrice(10))
+                {
+                    Id = "321"
+                }
             };
 
             productServiceSubstitute.GetProductsAsync().Returns(Task.FromResult<IEnumerable<Product>>(products));
@@ -42,7 +45,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var productController = new ProductController(productServiceSubstitute);
 
             // Act
-            var result = await productController.GetProducts();
+            var result = productController.GetProducts();
 
             // Assert
             var okObjectResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -64,7 +67,12 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             var controller = new ProductController(productServiceMock);
 
             // Assume you have such a product in your test data
-            var expectedProduct = new Product { Id = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e", Name = "TestProduct", Price = 4.50M };
+            var expectedProduct = new Product(
+                "TestProduct",
+                new ProductPrice(4.50M))
+            {
+                Id = "ba56e8cc-5d4c-475f-8bac-dfb91d780e1e",
+            };
 
             productServiceMock.GetProductAsync(productId)
                 .Returns(Task.FromResult(expectedProduct));
@@ -114,15 +122,15 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
             string productName = "Item";
             decimal price = 50;
 
-            ProductInputModel productInputModel = new ProductInputModel()
+            ProductRequestDto productInputModel = new ProductRequestDto()
             {
                 Name = productName,
                 Price = price
             };
 
             var productServiceMock = Substitute.For<IProductService>();
-            productServiceMock.CreateProductAsync(Arg.Any<ProductInputModel>())
-                .Returns(Task.FromResult(new Product { Name = productName, Price = price }));
+            productServiceMock.CreateProductAsync(Arg.Any<ProductRequestDto>())
+                .Returns(Task.FromResult(new Product( productName, new ProductPrice(price) )));
 
             var controller = new ProductController(productServiceMock);
             controller.ModelState.Clear();
@@ -178,7 +186,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         {
             // Arrange
             string productId = "123";
-            var product = new Product { Name = "Keyboard", Price = 100 };
+            var product = new Product("Keyboard", new ProductPrice(100) );
             var productServiceMock = Substitute.For<IProductService>();
             productServiceMock.UpdateProductAsync(productId, product)
                 .Returns(Task.FromResult(Utility.UpdateResultType.Success));
@@ -199,7 +207,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         {
             // Arrange
             string nonExistingProductId = "nonexistent-id";
-            var invalidProduct = new Product { Name = "Keyboard", Price = 100 };
+            var invalidProduct = new Product("Keyboard", new ProductPrice(100) );
             var productServiceMock = Substitute.For<IProductService>();
             productServiceMock.UpdateProductAsync(nonExistingProductId, invalidProduct)
                 .Returns(Task.FromResult(UpdateResultType.NotFound));
@@ -219,7 +227,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Controllers
         {
             // Arrange
             string productId = "123";
-            var conflictingProduct = new Product { Name = "Keyboard", Price = 100 };
+            var conflictingProduct = new Product ("Keyboard", new ProductPrice(100));
             var productServiceMock = Substitute.For<IProductService>();
             productServiceMock.UpdateProductAsync(productId, conflictingProduct)
                 .Returns(Task.FromResult(UpdateResultType.Conflict));

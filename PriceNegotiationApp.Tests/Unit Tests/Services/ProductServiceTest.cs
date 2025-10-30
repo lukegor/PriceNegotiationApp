@@ -6,12 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using NSubstitute;
 using PriceNegotiationApp.Controllers;
-using PriceNegotiationApp.Models;
-using PriceNegotiationApp.Models.Input_Models;
 using PriceNegotiationApp.Services;
 using PriceNegotiationApp.Tests.Unit_Tests.Services.Fixtures;
 using PriceNegotiationApp.Utility;
-using PriceNegotiationApp.Utility.Custom_Exceptions;
+using PriceNegotiationApp.Utility.Utility.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -36,7 +34,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
         }
 
 		[Fact]
-		public async Task GetProducts_ShouldReturnAllProducts()
+		public void GetProducts_ShouldReturnAllProducts()
 		{
 			// Arrange
 			var productService = _fixture.ProductService;
@@ -45,11 +43,11 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			var testData = _fixture.DbContext.Products.Count();
 
 			// Act
-			var returnedModels = await productService.GetProductsAsync();
+			var returnedModels = productService.GetProductsAsync();
 
 			// Assert
 			Assert.NotNull(returnedModels);
-			//var okResult = Assert.IsType<IEnumerable<Product>>(returnedModels);
+			//var okResult = Assert.IsType<IEnumerable<Products>>(returnedModels);
 			Assert.IsAssignableFrom<IEnumerable<Product>>(returnedModels);
 
 			var resultList = returnedModels.ToList();
@@ -103,12 +101,12 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 
 		[Theory]
 		[InlineData("name", 13.37)]
-		[InlineData("", 0.01)]
+		[InlineData("a", 0.01)]
 		public async Task CreateProductAsync_ShouldCreateProduct(string name, decimal price)
 		{
 			// Arrange
-			var productInputModel = new ProductInputModel
-			{
+			var productInputModel = new ProductRequestDto
+            {
 				Name = name,
 				Price = price
 			};
@@ -136,7 +134,7 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 
             string randomId = "123abc";
 
-			foreach (var prooduct in await productService.GetProductsAsync())
+			foreach (var prooduct in productService.GetProductsAsync())
 			{
 				_output.WriteLine(prooduct.Id);
 			}
@@ -144,12 +142,12 @@ namespace PriceNegotiationApp.Tests.Unit_Tests.Services
 			var product = await productService.GetProductAsync(randomId);
 
 			// Act
-			bool result = await productService.DeleteProductAsync(randomId);
+			await productService.DeleteProductAsync(randomId);
 
-			var products = await productService.GetProductsAsync();
+			var products = productService.GetProductsAsync();
 
 			// Assert
-			Assert.True(result);
+			//Assert.True(result);
 			Assert.DoesNotContain(product, products);
 		}
 

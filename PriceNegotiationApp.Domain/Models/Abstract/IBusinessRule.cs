@@ -10,7 +10,7 @@
         {
             if (!condition)
             {
-                throw new Exception(message);
+                throw new DomainException(message);
             }
         }
     }

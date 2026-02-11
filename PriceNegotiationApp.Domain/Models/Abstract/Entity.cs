@@ -8,7 +8,7 @@
         {
             if (rule.IsBroken())
             {
-                throw new Exception(rule.Message);
+                throw new DomainException(rule.Message);
             }
         }
     }

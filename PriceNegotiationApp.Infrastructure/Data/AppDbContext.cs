@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
-using PriceNegotiationApp.Domain.Models.Users;
 using PriceNegotiationApp.Infrastructure.DbEntityConfigurations;
+using PriceNegotiationApp.Infrastructure.Identities;
 
-namespace PriceNegotiationApp.Data
+namespace PriceNegotiationApp.Infrastructure.Data
 {
-    public class AppDbContext : IdentityDbContext<IdentityUser>
+    public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IAppDbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -16,19 +17,17 @@ namespace PriceNegotiationApp.Data
 
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<Negotiation> Negotiations { get; set; } = null!;
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         /// <summary>
         ///
         /// </summary>
-        /// <param name="modelBuilder"></param>
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        /// <param name="builder"></param>
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            modelBuilder.ApplyConfiguration(new ProductConfiguration());
-            modelBuilder.ApplyConfiguration(new NegotiationConfiguration());
+            builder.ApplyConfiguration(new ProductConfiguration());
+            builder.ApplyConfiguration(new NegotiationConfiguration());
         }
-
     }
 }

@@ -7,8 +7,6 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations.Rules
         public string Message => "Proposed price cannot be negative or zero.";
 
         public bool IsBroken()
-        {
-            return price <= 0;
-        }
+            => price <= 0;
     }
 }

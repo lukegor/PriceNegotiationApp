@@ -2,11 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PriceNegotiationApp.Infrastructure.Identities;
 
 namespace PriceNegotiationApp.Infrastructure.DbEntityConfigurations
 {
@@ -20,6 +16,9 @@ namespace PriceNegotiationApp.Infrastructure.DbEntityConfigurations
             builder.HasOne<Product>()
                 .WithMany()
                 .HasForeignKey(n => n.ProductId);
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(n => n.UserId);
 
             builder.Property(n => n.ProductId).IsRequired();
             builder.Property(n => n.UserId).IsRequired();

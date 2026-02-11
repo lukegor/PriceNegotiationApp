@@ -1,0 +1,188 @@
+using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.OData;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using PriceNegotiationApp.Api.Authorization;
+using PriceNegotiationApp.Api.Extensions;
+using PriceNegotiationApp.Api.Providers;
+using PriceNegotiationApp.Application;
+using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.Application.Common.Identities;
+using PriceNegotiationApp.Application.Security;
+using PriceNegotiationApp.Application.Services;
+using PriceNegotiationApp.Domain;
+using PriceNegotiationApp.Domain.Models.Negotiations;
+using PriceNegotiationApp.Domain.Models.Products;
+using PriceNegotiationApp.Infrastructure;
+using PriceNegotiationApp.Infrastructure.Auth.Authentication.Jwt;
+using PriceNegotiationApp.Infrastructure.Data;
+using PriceNegotiationApp.Infrastructure.Data.Initializers;
+using PriceNegotiationApp.Infrastructure.Identities;
+using Scalar.AspNetCore;
+using Serilog;
+using System.Configuration;
+using System.Text;
+
+namespace PriceNegotiationApp.Api
+{
+#pragma warning disable S1118 // Utility classes should not have public constructors
+    public class Program
+#pragma warning restore S1118 // Utility classes should not have public constructors
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // configure Serilog
+            var logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .CreateLogger();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
+
+            builder.Services.AddControllers().AddOData(opt =>
+            {
+                opt.Select().Filter().OrderBy().Expand().SetMaxTop(100).Count();
+                opt.AddRouteComponents("odata", ODataExtensions.GetEdmModel());
+            });
+            builder.Services.AddResponseCaching();
+
+            // add database connection
+            // for simplicity, using InMemory db
+            builder.Services.AddDbContext<IAppDbContext, AppDbContext>(opt =>
+            {
+                opt.UseInMemoryDatabase(databaseName: "DbContext");
+
+                if (builder.Environment.IsDevelopment())
+                {
+                    opt.EnableSensitiveDataLogging();
+                    opt.EnableDetailedErrors();
+                }
+            });
+
+            // add Microsoft.Identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+
+            var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
+
+            builder.Services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings.ValidIssuer,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+                        .GetBytes(jwtSettings.SecurityKey))
+                };
+            });
+
+            builder.Services.AddAuthorizationWithPolicies();
+            builder.Services.AddSingleton<IAuthorizationHandler, NegotiationOperationsAuthorizationHandler>();
+
+            // add handling JWT
+            builder.Services.AddOptions<JwtSettings>()
+                .Bind(builder.Configuration.GetSection(nameof(JwtSettings)))
+                .ValidateOnStart();
+            builder.Services.AddSingleton<IValidateOptions<JwtSettings>, JwtSettingsValidator>();
+
+            builder.Services.AddScoped<JwtManager>();
+
+            // add data initializer
+            builder.Services.AddScoped<MainInitializer>();
+
+            // add services
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<INegotiationService, NegotiationService>();
+
+            builder.Services.AddScoped<IIdentityService, IdentityService>();
+
+            builder.Services.AddScoped<ProductFactory>();
+            builder.Services.AddScoped<NegotiationFactory>();
+
+            builder.Services.AddScoped<IJwtTokenGenerator, JwtManager>();
+            builder.Services.AddScoped<IIdGenerator, SystemIdGenerator>();
+
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();
+
+            builder.Services.AddValidatorsFromAssembly(typeof(AssemblyReference).Assembly);
+
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.ConfigureOpenApi();
+
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+            var app = builder.Build();
+
+            AddInitialData(app.Services);
+
+            // Middlewares - HTTP request pipeline
+
+            // <see cref="app.Environment"/> checks ASPNETCORE_ENVIRONMENT variable
+			/// (locally configured in launchSettings.json)
+            if (app.Environment.IsDevelopment())
+            {
+                // OpenAPI/Swagger
+                app.MapOpenApi();
+                app.MapScalarApiReference(opt =>
+                {
+                    opt.EnablePersistentAuthentication();
+                });
+
+                // display detailed error information in the browser when an unhandled exception occurs
+                //app.UseDeveloperExceptionPage();
+            }
+
+            app.UseExceptionHandler();
+
+            // Redirects HTTP requests to HTTPS
+            app.UseHttpsRedirection();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                // appliable only to https
+                app.UseHsts();
+            }
+
+            // Auth
+            app.UseAuthentication();
+            app.UseAuthorization(); // relies on UseAuthentication()
+
+            // after Auth, may require Auth info
+            app.UseResponseCaching();
+
+            // last middleware, uses UseEndpoints internally
+            app.MapControllers();
+
+            app.Run();
+        }
+
+        private static void AddInitialData(IServiceProvider services)
+        {
+            using (var scope = services.CreateScope())
+            {
+                var dbInitializer = scope.ServiceProvider.GetRequiredService<MainInitializer>();
+                dbInitializer.InitializeRolesAsync().GetAwaiter().GetResult();
+                dbInitializer.InitializeAdminUserAsync().GetAwaiter().GetResult();
+                dbInitializer.InitializeStaffUserAsync().GetAwaiter().GetResult();
+            }
+        }
+    }
+}

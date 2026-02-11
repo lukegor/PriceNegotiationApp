@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/PriceNegotiationApp.Tests/">
+    <Project Path="PriceNegotiationApp.IntegrationTests/PriceNegotiationApp.IntegrationTests.csproj" />
+    <Project Path="PriceNegotiationApp.UnitTests/PriceNegotiationApp.UnitTests.csproj" />
+  </Folder>
+  <Project Path="PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
+  <Project Path="PriceNegotiationApp.Application/PriceNegotiationApp.Application.csproj" />
+  <Project Path="PriceNegotiationApp.Domain/PriceNegotiationApp.Domain.csproj" />
+  <Project Path="PriceNegotiationApp.Infrastructure/PriceNegotiationApp.Infrastructure.csproj" />
+</Solution>

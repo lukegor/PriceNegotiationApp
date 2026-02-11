@@ -1,5 +1,4 @@
 ﻿using PriceNegotiationApp.Domain.Models.Abstract;
-using PriceNegotiationApp.Domain.Models.Negotiations;
 
 namespace PriceNegotiationApp.Domain.Models.Negotiations.Rules
 {

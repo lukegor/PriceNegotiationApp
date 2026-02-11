@@ -22,12 +22,12 @@ Customers may register, log in, request data about products, open up price negot
 
 ## API Endpoints
 
-![PriceNegotiationApp_Swagger-UI_Endpoints](https://github.com/lukegor/PriceNegotiationApp/assets/105490868/2ec1841b-2ed2-45d5-9283-f0acbf8c5aba)
+<img width="978" height="851" alt="obraz" src="https://github.com/user-attachments/assets/96507199-65a9-40f5-8169-29986f269cf7" />
 
 ## API Documentation
 
-The documentation in .yaml format is located in the <b>openapi-docs.yaml</b> file.<br/>
-To visualize and interact with the documentation using Swagger UI, upload the <b>openapi-docs.yaml</b> file on the <b>https://editor-next.swagger.io/</b> or <b>https://redocly.github.io/redoc/</b>.
+The documentation in .json format is located in the <b>PriceNegotiationApp.Api.json</b> file.<br/>
+To visualize and interact with the documentation using Swagger UI launch the API project or upload the <b>PriceNegotiationApp.Api.json</b> file on the <b>https://docs.scalar.com/swagger-editor</b> or <b>https://editor-next.swagger.io/</b> or <b>https://redocly.github.io/redoc/</b>.
 
 ## Default accounts
 | Login                 | Password   | Role  |

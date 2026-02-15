@@ -1,6 +1,6 @@
 ﻿using PriceNegotiationApp.Application.Products.Dtos;
-using PriceNegotiationApp.Application.Products.Dtos.Responses;
 using PriceNegotiationApp.Domain.Models.Products;
+using System.Linq.Expressions;
 
 namespace PriceNegotiationApp.Application.Products.Mappers
 {
@@ -8,22 +8,20 @@ namespace PriceNegotiationApp.Application.Products.Mappers
     {
         extension(Product product)
         {
-            public ProductResponseDto ToResponseDto()
+            public ProductResultDto ToResultDto()
             {
-                return new ProductResponseDto(
+                return new ProductResultDto(
                     product.Id.Value,
                     product.Name,
                     product.Price.Value);
             }
 
-            public ProductDto ToODataResponseDto()
+            public static Expression<Func<Product, ProductViewModel>> ToViewModel()
             {
-                return new ProductDto
-                {
-                    Id = product.Id.Value,
-                    Name = product.Name,
-                    Price = product.Price.Value
-                };
+                return product => new ProductViewModel(
+                    product.Id.Value,
+                    product.Name,
+                    product.Price.Value);
             }
         }
     }

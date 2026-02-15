@@ -1,55 +1,56 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using PriceNegotiationApp.Application.Common.Identities.Dtos.Requests.Login;
-using PriceNegotiationApp.Application.Common.Identities.Dtos.Requests.RegisterUser;
 using PriceNegotiationApp.Application.Services;
+using PriceNegotiationApp.Contracts.Identities.Dtos.Requests;
+using PriceNegotiationApp.Contracts.Identities.Dtos.Responses;
+using PriceNegotiationApp.Presentation.Identities.Mappers;
 
 namespace PriceNegotiationApp.Api.Controllers
 {
     [ApiController]
-    public class AuthenticationController(IAuthService authService) : ControllerBase
+    public class AuthenticationController(
+        IAuthService authService, IValidator<LoginRequestDto> validator1) : ControllerBase
     {
         private readonly IAuthService _authService = authService;
 
         /// <summary>Log into an account</summary>
-        /// <param name="model">username and password</param>
         /// <returns>Returns true if login is successful, false otherwise.</returns>
         [HttpPost("Login")]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
+        public async Task<Results<Ok<AuthResponseDto>, BadRequest<AuthResponseDto>>> Login(
+            [FromBody] LoginRequestDto request)
         {
-            var authResponse = await _authService.AuthenticateAsync(model);
+            var authResult = await _authService.AuthenticateAsync(request.ToCommand());
 
-            if (!authResponse.IsAuthSuccessful)
-                return Unauthorized(authResponse);
+            if (!authResult.IsAuthSuccessful)
+            {
+                return TypedResults.BadRequest(authResult.ToResponseDto());
+            }
 
-            return Ok(authResponse);
+            return TypedResults.Ok(authResult.ToResponseDto());
         }
 
         /// <summary>
         /// Registers a new user.
         /// </summary>
-        /// <param name="userForRegistration">The data required for user registration.</param>
-        /// <returns>
-        /// Returns a 201 Created response if successful,
-        /// or a a 400 Bad Request response with details of the validation errors or registration failure.
-        /// </returns>
+        /// <returns>Returns a 201 Created response if successful.</returns>
         [HttpPost("Registration")]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequestDto userForRegistration)
+        public async Task<Results<CreatedAtRoute<object>, BadRequest<IEnumerable<string>>>> RegisterUser(
+            [FromBody] RegisterUserRequestDto request)
         {
-            var result = await _authService.RegisterUserAsync(userForRegistration);
+            var result = await _authService.RegisterUserAsync(request.ToCommand());
 
             if (result.Succeeded)
-                return CreatedAtAction(nameof(RegisterUser), new { userName = userForRegistration.UserName }, new { Message = "User registration successful" });
+            {
+                object responseBody = new { Message = "User registration successful" };
+                return TypedResults.CreatedAtRoute(responseBody, nameof(RegisterUser), new { userName = request.UserName });
+            }
 
             var errors = result.Errors.Select(e => e.Description);
-            return BadRequest(errors);
+            return TypedResults.BadRequest(errors);
         }
     }
 }

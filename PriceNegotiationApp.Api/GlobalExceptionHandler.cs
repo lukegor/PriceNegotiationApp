@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Application.Common.Exceptions;
+using PriceNegotiationApp.Domain;
 using System.Security.Authentication;
 
 namespace PriceNegotiationApp.Api
@@ -11,7 +13,8 @@ namespace PriceNegotiationApp.Api
         {
             var statusCode = exception switch
             {
-                ArgumentException or InvalidOperationException => StatusCodes.Status400BadRequest,
+                ArgumentException or InvalidOperationException or DomainException or ValidationException
+                    => StatusCodes.Status400BadRequest,
                 AuthenticationException => StatusCodes.Status401Unauthorized,
                 NotFoundException => StatusCodes.Status404NotFound,
                 _ => StatusCodes.Status500InternalServerError

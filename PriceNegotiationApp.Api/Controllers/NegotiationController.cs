@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using PriceNegotiationApp.Application.Negotiations.Dto.Requests.CreateNegotiation;
-using PriceNegotiationApp.Application.Negotiations.Dto.Requests.UpdateNegotiation;
-using PriceNegotiationApp.Application.Negotiations.Dto.Response;
-using PriceNegotiationApp.Application.Services;
+using PriceNegotiationApp.Application.Negotiations;
+using PriceNegotiationApp.Application.Negotiations.Requests.Commands;
+using PriceNegotiationApp.Application.Negotiations.Requests.Queries;
+using PriceNegotiationApp.Contracts.Negotiations.Dto.Requests;
+using PriceNegotiationApp.Contracts.Negotiations.Dto.Response;
 using PriceNegotiationApp.Domain.Models.Negotiations;
+using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
+using PriceNegotiationApp.Presentation.Negotiations.Mappers;
 
 namespace PriceNegotiationApp.Api.Controllers
 {
@@ -18,151 +22,110 @@ namespace PriceNegotiationApp.Api.Controllers
         /// <summary>
         /// Retrieves a list of all negotiations.
         /// </summary>
-        /// <returns>
-        /// Returns a 200 Ok response with a collection of negotiations
-        /// </returns>
+        /// <returns>Returns a 200 Ok response with a collection of negotiations</returns>
         // GET: api/Negotiations
         [HttpGet]
         [Route("all")]
         [ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [Authorize(Roles = "Admin, Staff")]
-        public async Task<ActionResult<IEnumerable<Negotiation>>> GetNegotiations()
+        public async Task<ActionResult<IEnumerable<NegotiationResponseDto>>> GetNegotiations()
         {
             var negotiations = await _service.GetNegotiationsAsync();
-            return Ok(negotiations);
+            return Ok(negotiations.Select(x => x.ToResponseDto()));
         }
 
         /// <summary>
         /// Retrieves a specific negotiation by its unique identifier.
         /// </summary>
-        /// <param name="id">The unique identifier of the negotiation to retrieve.</param>
-        /// <returns>
-        /// Returns a negotiation with the specified ID if found
-        /// </returns>
+        /// <returns>Returns a negotiation with the specified ID if found</returns>
         // GET: api/Negotiations/5
         [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Negotiation>> GetNegotiation([FromRoute] NegotiationId id)
+        public async Task<Results<Ok<NegotiationResponseDto>, NotFound, ForbidHttpResult>> GetNegotiation(
+            [FromRoute] NegotiationId id)
         {
-            var negotiation = await _service.GetNegotiationAsync(id);
+            var negotiation = await _service.GetNegotiationAsync(new GetNegotiationByIdQuery(id));
 
-            return Ok(negotiation);
+            return TypedResults.Ok(negotiation.ToResponseDto());
         }
 
         /// <summary>
         /// Updates a specific negotiation by its unique identifier.
         /// </summary>
-        /// <param name="id">The unique identifier of the negotiation to update.</param>
-        /// <param name="negotiation">The updated negotiation data.</param>
-        /// <returns>
-        /// Returns a 204 No Content response if the update is successful,
-        /// </returns>
+        /// <returns>Returns a 204 No Content response if the update is successful,</returns>
         // PUT: api/Negotiation/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Roles = "Staff, Admin")]
-        public async Task<IActionResult> PutNegotiation([FromRoute] NegotiationId id, [FromBody] UpdateNegotiationRequestDto negotiation)
+        public async Task<Results<Ok<NegotiationResponseDto>, BadRequest, NotFound>> PutNegotiation(
+            [FromRoute] NegotiationId id, [FromBody] UpdateNegotiationRequestDto request)
         {
-            var updateResult = await _service.UpdateNegotiationAsync(id, negotiation);
+            var updateResult = await _service.UpdateNegotiationAsync(request.ToCommand(id));
 
-            return Ok(updateResult);
+            return TypedResults.Ok(updateResult.ToResponseDto());
         }
 
         /// <summary>
-        /// Closes negotiation if requested by owner
+        /// Closes negotiation if requested by owner.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>Returns a 200 Ok response if the update is successful.</returns>
         // PUT: api/Negotiation/5/close
         [HttpPut("{id}/close")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CloseNegotiation([FromRoute] NegotiationId id)
+        public async Task<Results<Ok<NegotiationResponseDto>, NotFound, ForbidHttpResult>> CloseNegotiation(
+            [FromRoute] NegotiationId id)
         {
             var updateResult = await _service.CloseNegotiationAsync(id);
-            return Ok(updateResult);
+            return TypedResults.Ok(updateResult.ToResponseDto());
         }
 
         /// <summary>
         /// Proposes a new price for a negotiation.
         /// </summary>
-        /// <param name="negotiationId">The unique identifier of the negotiation to update.</param>
-        /// <param name="proposedPrice">The proposed price for the negotiation.</param>
+        /// <returns></returns>
         // PATCH: api/Negotiations/5/negotiate
         [HttpPatch("{negotiationId}/negotiate")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ProposeNewPrice([FromRoute] NegotiationId negotiationId, decimal proposedPrice)
+        public async Task<Results<Ok<string>, BadRequest<string>, NotFound, ForbidHttpResult>> ProposeNewPrice(
+            [FromRoute] NegotiationId negotiationId, decimal proposedPrice)
         {
 
-            var response = await _service.ProposeNewPriceAsync(negotiationId, proposedPrice);
+            var response = await _service.ProposeNewPriceAsync(new ProposeNewPriceCommand(negotiationId, new ProposedPrice(proposedPrice)));
 
             return response.Result switch
             {
-                ProposePriceResultResponseDto.Success => Ok("ProductPrice proposed successfully."),
-                ProposePriceResultResponseDto.Failed => BadRequest($"Proposed price is too high. Max allowed price is {response.MaxAllowedPrice}."),
+                ProposePriceResult.Success => TypedResults.Ok("ProductPrice proposed successfully."),
+                ProposePriceResult.Failed => TypedResults.BadRequest($"Proposed price is too high. Max allowed price is {response.MaxAllowedPrice}."),
             };
         }
 
         /// <summary>
         /// Creates a new negotiation.
         /// </summary>
-        /// <param name="requestDto">The details of the negotiation to create.</param>
-        /// <returns>
-        /// Returns a 201 Created response with the newly created negotiation and a location header pointing to the negotiation,
-        /// </returns>
+        /// <returns>Returns a 201 Created response with the newly created negotiation</returns>
         // POST: api/Negotiations
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [Authorize(Roles = "Customer")]
-        public async Task<ActionResult<Negotiation>> PostNegotiation([FromBody] CreateNegotiationRequestDto requestDto)
+        public async Task<Results<CreatedAtRoute<NegotiationResponseDto>, BadRequest>> PostNegotiation(
+            [FromBody] CreateNegotiationRequestDto requestDto)
         {
-            var negotiation = await _service.CreateNegotiationAsync(requestDto);
+            var negotiation = await _service.CreateNegotiationAsync(requestDto.ToCommand());
 
-            return CreatedAtAction(nameof(GetNegotiation), new { id = negotiation.NegotiationId }, negotiation);
+            return TypedResults.CreatedAtRoute(negotiation.ToResponseDto(), nameof(GetNegotiation), new { id = negotiation.NegotiationId });
         }
 
         /// <summary>
         /// Deletes a specific negotiation by its unique identifier.
         /// </summary>
-        /// <param name="id">The unique identifier of the negotiation to delete.</param>
-        /// <returns>
-        /// a 204 No Content response if the deletion is successful.
-        /// </returns>
+        /// <returns>a 204 No Content response if the deletion is successful.</returns>
         // DELETE: api/Negotiation/5
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteNegotiation([FromRoute] NegotiationId id)
+        public async Task<Results<NoContent, NotFound>> DeleteNegotiation([FromRoute] NegotiationId id)
         {
             await _service.DeleteNegotiationAsync(id);
 
-            return NoContent();
+            return TypedResults.NoContent();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
-using PriceNegotiationApp.Application.Products.Dtos;
+using PriceNegotiationApp.Contracts.Products.Dtos;
 
 namespace PriceNegotiationApp.Api.Extensions
 {

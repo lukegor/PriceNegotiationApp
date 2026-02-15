@@ -1,4 +1,5 @@
 ﻿using PriceNegotiationApp.Domain.Models.Abstract;
+using PriceNegotiationApp.Domain.Models.Customer;
 using PriceNegotiationApp.Domain.Models.Negotiations.Rules;
 using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
 using PriceNegotiationApp.Domain.Models.Products;
@@ -8,16 +9,29 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
 {
     public class Negotiation : Entity<NegotiationId>
     {
+        /// <summary>
+        /// Id of <see cref="Product" associated with the negotiation/>
+        /// </summary>
         public ProductId ProductId { get; private set; }
+
+        /// <summary>
+        /// Last price proposed by the user in the negotiation process
+        /// </summary>
         public ProposedPrice ProposedPrice { get; private set; }
+
         public bool? IsAccepted { get; private set; }
+
         [Range(0, 2)]
         public int RetriesLeft { get; private set; }
+
         public DateTime CreatedAt { get; private set; }
+
         public DateTime UpdatedAt { get; private set; }
+
         public NegotiationStatus Status { get; private set; }
-        public Guid UserId { get; set; }
-        //public ApplicationUser User { get; set; }
+
+        public CustomerId UserId { get; set; }
+
 
         private const int StartingRetries = 3;
         public const int MaxPriceMultiplier = 2;
@@ -34,32 +48,19 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             ProductId productId,
             decimal productPrice,
             ProposedPrice proposedPrice,
-            Guid userId)
+            CustomerId userId)
         {
-            CheckRule(new ProposedPriceCannotBeNegativeOrZeroRule(proposedPrice.Value));
-
             Id = id;
             ProductId = productId;
             ProposedPrice = proposedPrice;
             UserId = userId;
 
             InitializeDefaults();
-            TryNegotiate(proposedPrice.Value, productPrice);
+            TryNegotiate(proposedPrice, productPrice);
         }
 
-        private void InitializeDefaults()
+        public NegotiationResult TryNegotiate(ProposedPrice proposedPrice, decimal productPrice)
         {
-            RetriesLeft = StartingRetries;
-            IsAccepted = false;
-            var timeNow = DateTime.UtcNow;
-            CreatedAt = timeNow;
-            UpdatedAt = timeNow;
-            Status = NegotiationStatus.Open;
-        }
-
-        public NegotiationResult TryNegotiate(decimal proposedPrice, decimal productPrice)
-        {
-            CheckRule(new ProposedPriceCannotBeNegativeOrZeroRule(proposedPrice));
             CheckRule(new RetriesLeftMustBePositiveRule(RetriesLeft));
 
             --RetriesLeft;
@@ -67,7 +68,7 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
 
             decimal maxAllowedPriceProposition = CalculateMaxAllowedPrice(MaxPriceMultiplier, productPrice);
 
-            if (proposedPrice > maxAllowedPriceProposition)
+            if (proposedPrice.Value > maxAllowedPriceProposition)
             {
                 return NegotiationResult.Failure(maxAllowedPriceProposition);
             }
@@ -97,12 +98,22 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
         {
             return multiplier * productPrice;
         }
+
+        private void InitializeDefaults()
+        {
+            RetriesLeft = StartingRetries;
+            IsAccepted = false;
+            var timeNow = DateTime.UtcNow;
+            CreatedAt = timeNow;
+            UpdatedAt = timeNow;
+            Status = NegotiationStatus.Open;
+        }
     }
 
-    public enum NegotiationStatus
+    public record NegotiationStatus(string Value)
     {
-        Open,
-        Closed,
-        Archived
+        public static readonly NegotiationStatus Open = new("Open");
+        public static readonly NegotiationStatus Closed = new("Closed");
+        public static readonly NegotiationStatus Archived = new("Archived");
     }
 }

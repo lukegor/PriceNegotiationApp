@@ -1,4 +1,5 @@
-﻿using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
+﻿using PriceNegotiationApp.Domain.Models.Customer;
+using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
 using PriceNegotiationApp.Domain.Models.Products;
 
 namespace PriceNegotiationApp.Domain.Models.Negotiations
@@ -12,7 +13,7 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             _idGenerator = idGenerator;
         }
 
-        public Negotiation Create(ProductId productId, decimal productPrice, ProposedPrice proposedPrice, Guid customerId)
+        public Negotiation Create(ProductId productId, decimal productPrice, ProposedPrice proposedPrice, CustomerId customerId)
         {
             var id = _idGenerator.NewId();
             return new Negotiation(NegotiationId.From(id), productId, productPrice, proposedPrice, customerId);

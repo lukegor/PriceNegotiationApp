@@ -17,7 +17,6 @@ namespace PriceNegotiationApp.Infrastructure.Data.Initializers
 
         public async Task InitializeRolesAsync()
         {
-            // Create roles if they don't exist
             if (!await _roleManager.RoleExistsAsync(Roles.Role_Customer))
                 await _roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Role_Customer));
 
@@ -30,7 +29,6 @@ namespace PriceNegotiationApp.Infrastructure.Data.Initializers
 
         public async Task InitializeAdminUserAsync()
         {
-            // Create admin user if it doesn't exist
             const string AdminMail = @"admin@app.com";
             var userWithMail = await _userManager.FindByEmailAsync(AdminMail);
             if (userWithMail == null)
@@ -55,7 +53,6 @@ namespace PriceNegotiationApp.Infrastructure.Data.Initializers
 
         public async Task InitializeStaffUserAsync()
         {
-            // Create admin user if it doesn't exist
             const string StaffMail = @"Staff1@app.com";
             if (_userManager.FindByEmailAsync(StaffMail).GetAwaiter().GetResult() == null)
             {

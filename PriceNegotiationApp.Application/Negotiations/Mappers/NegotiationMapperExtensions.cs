@@ -1,8 +1,5 @@
-﻿using PriceNegotiationApp.Application.Negotiations.Dto.Response;
+﻿using PriceNegotiationApp.Application.Negotiations.Dtos;
 using PriceNegotiationApp.Domain.Models.Negotiations;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PriceNegotiationApp.Application.Negotiations.Mappers
 {
@@ -10,16 +7,16 @@ namespace PriceNegotiationApp.Application.Negotiations.Mappers
     {
         extension(Negotiation negotiation)
         {
-            public NegotiationResponseDto ToResponseDto()
+            public NegotiationResultDto ToResultDto()
             {
-                return new NegotiationResponseDto(
+                return new NegotiationResultDto(
                     negotiation.Id.Value,
                     negotiation.ProductId.Value,
                     negotiation.ProposedPrice.Value,
-                    negotiation.IsAccepted != true ? false : true,
+                    negotiation.IsAccepted != true ? false : true, // like this for null
                     negotiation.RetriesLeft,
                     negotiation.Status,
-                    negotiation.UserId);
+                    negotiation.UserId.Value);
             }
         }
     }

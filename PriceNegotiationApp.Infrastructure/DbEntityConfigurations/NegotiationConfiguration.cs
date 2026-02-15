@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PriceNegotiationApp.Domain.Models.Customer;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
-using PriceNegotiationApp.Infrastructure.Identities;
 
 namespace PriceNegotiationApp.Infrastructure.DbEntityConfigurations
 {
@@ -16,14 +16,23 @@ namespace PriceNegotiationApp.Infrastructure.DbEntityConfigurations
             builder.HasOne<Product>()
                 .WithMany()
                 .HasForeignKey(n => n.ProductId);
-            builder.HasOne<ApplicationUser>()
+            builder.HasOne<Customer>()
                 .WithMany()
                 .HasForeignKey(n => n.UserId);
 
+            builder.HasIndex(n => n.ProductId).IsUnique();
             builder.Property(n => n.ProductId).IsRequired();
+
+            builder.HasIndex(n => n.UserId)
+                .IsUnique();
             builder.Property(n => n.UserId).IsRequired();
+
             builder.Property(n => n.RetriesLeft).IsRequired().HasPrecision(1);
-            builder.Property(n => n.Status).IsRequired();
+            builder.Property(n => n.Status)
+                .IsRequired()
+                .HasConversion(
+                    status => status.Value,
+                    value => new NegotiationStatus(value));
             builder.Property(n => n.CreatedAt).IsRequired();
             builder.Property(n => n.UpdatedAt).IsRequired();
             builder.Property(n => n.IsAccepted).IsRequired();

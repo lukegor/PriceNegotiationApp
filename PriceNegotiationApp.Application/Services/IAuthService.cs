@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PriceNegotiationApp.Application.Common.Identities.Dtos.Requests.Login;
-using PriceNegotiationApp.Application.Common.Identities.Dtos.Requests.RegisterUser;
-using PriceNegotiationApp.Application.Common.Identities.Dtos.Responses;
+using PriceNegotiationApp.Application.Common.Identities.Dtos;
+using PriceNegotiationApp.Application.Common.Identities.Requests.Commands;
 
 namespace PriceNegotiationApp.Application.Services
 {
     public interface IAuthService
     {
-        Task<AuthResponseDto> AuthenticateAsync(LoginRequestDto dto);
-        Task<IdentityResult> RegisterUserAsync(RegisterUserRequestDto userForRegistration);
+        Task<AuthResultDto> AuthenticateAsync(LoginCommand command);
+        Task<IdentityResult> RegisterUserAsync(RegisterUserCommand command);
     }
 }

@@ -1,7 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PriceNegotiationApp.Infrastructure.Auth.Authentication.Jwt
 {
@@ -16,7 +13,7 @@ namespace PriceNegotiationApp.Infrastructure.Auth.Authentication.Jwt
 
             var errors = new List<string>();
 
-            // TODO: Add more validation rules whem settings are actually needed
+            // TODO: Add more validation rules when settings are actually needed
 
             return errors.Count == 0
                 ? ValidateOptionsResult.Success

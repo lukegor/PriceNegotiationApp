@@ -6,7 +6,14 @@ namespace PriceNegotiationApp.Domain.Models.Products
 {
     public class Product : Entity<ProductId>
     {
+        /// <summary>
+        /// Product name
+        /// </summary>
         public string Name { get; private set; }
+
+        /// <summary>
+        /// Product price
+        /// </summary>
         public ProductPrice Price { get; private set; }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -33,7 +40,6 @@ namespace PriceNegotiationApp.Domain.Models.Products
             }
 
             CheckRule(new ProductNameCannotBeNullOrEmptyRule(name));
-            CheckRule(new ProductPriceCannotBeNegativeOrZeroRule(price.Value));
 
             Name = name;
             Price = price;

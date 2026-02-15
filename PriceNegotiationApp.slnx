@@ -1,10 +1,16 @@
 <Solution>
-  <Folder Name="/PriceNegotiationApp.Tests/">
-    <Project Path="PriceNegotiationApp.IntegrationTests/PriceNegotiationApp.IntegrationTests.csproj" />
-    <Project Path="PriceNegotiationApp.UnitTests/PriceNegotiationApp.UnitTests.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PriceNegotiationApp.IntegrationTests/PriceNegotiationApp.IntegrationTests.csproj" />
+    <Project Path="tests/PriceNegotiationApp.UnitTests/PriceNegotiationApp.UnitTests.csproj" />
   </Folder>
   <Project Path="PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
   <Project Path="PriceNegotiationApp.Application/PriceNegotiationApp.Application.csproj" />
+  <Project Path="PriceNegotiationApp.Contracts/PriceNegotiationApp.Contracts.csproj" Id="7f0c4402-ef36-4fd7-9947-7367c1bec601" />
   <Project Path="PriceNegotiationApp.Domain/PriceNegotiationApp.Domain.csproj" />
   <Project Path="PriceNegotiationApp.Infrastructure/PriceNegotiationApp.Infrastructure.csproj" />
+  <Project Path="PriceNegotiationApp.Presentation/PriceNegotiationApp.Presentation.csproj" />
 </Solution>

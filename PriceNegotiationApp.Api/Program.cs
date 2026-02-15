@@ -9,12 +9,14 @@ using Microsoft.IdentityModel.Tokens;
 using PriceNegotiationApp.Api.Authorization;
 using PriceNegotiationApp.Api.Extensions;
 using PriceNegotiationApp.Api.Providers;
-using PriceNegotiationApp.Application;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Common.Identities;
+using PriceNegotiationApp.Application.Negotiations;
+using PriceNegotiationApp.Application.Products;
 using PriceNegotiationApp.Application.Security;
 using PriceNegotiationApp.Application.Services;
 using PriceNegotiationApp.Domain;
+using PriceNegotiationApp.Domain.Models.Customer;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
 using PriceNegotiationApp.Infrastructure;
@@ -22,9 +24,9 @@ using PriceNegotiationApp.Infrastructure.Auth.Authentication.Jwt;
 using PriceNegotiationApp.Infrastructure.Data;
 using PriceNegotiationApp.Infrastructure.Data.Initializers;
 using PriceNegotiationApp.Infrastructure.Identities;
+using PriceNegotiationApp.Presentation;
 using Scalar.AspNetCore;
 using Serilog;
-using System.Configuration;
 using System.Text;
 
 namespace PriceNegotiationApp.Api
@@ -45,7 +47,10 @@ namespace PriceNegotiationApp.Api
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
 
-            builder.Services.AddControllers().AddOData(opt =>
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<AutoValidationFilter>();
+            }).AddOData(opt =>
             {
                 opt.Select().Filter().OrderBy().Expand().SetMaxTop(100).Count();
                 opt.AddRouteComponents("odata", ODataExtensions.GetEdmModel());
@@ -70,7 +75,12 @@ namespace PriceNegotiationApp.Api
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 
-            var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
+            // register JWT settings to be taken from AppSettings
+            var jwtSection = builder.Configuration.GetSection(nameof(JwtSettings));
+            builder.Services.AddOptions<JwtSettings>()
+                .Bind(jwtSection)
+                .ValidateOnStart();
+            builder.Services.AddSingleton<IValidateOptions<JwtSettings>, JwtSettingsValidator>();
 
             builder.Services.AddAuthentication(opt =>
             {
@@ -78,6 +88,8 @@ namespace PriceNegotiationApp.Api
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
+                var jwtSettings = jwtSection.Get<JwtSettings>();
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -93,11 +105,6 @@ namespace PriceNegotiationApp.Api
             builder.Services.AddAuthorizationWithPolicies();
             builder.Services.AddSingleton<IAuthorizationHandler, NegotiationOperationsAuthorizationHandler>();
 
-            // add handling JWT
-            builder.Services.AddOptions<JwtSettings>()
-                .Bind(builder.Configuration.GetSection(nameof(JwtSettings)))
-                .ValidateOnStart();
-            builder.Services.AddSingleton<IValidateOptions<JwtSettings>, JwtSettingsValidator>();
 
             builder.Services.AddScoped<JwtManager>();
 
@@ -113,6 +120,7 @@ namespace PriceNegotiationApp.Api
 
             builder.Services.AddScoped<ProductFactory>();
             builder.Services.AddScoped<NegotiationFactory>();
+            builder.Services.AddScoped<CustomerFactory>();
 
             builder.Services.AddScoped<IJwtTokenGenerator, JwtManager>();
             builder.Services.AddScoped<IIdGenerator, SystemIdGenerator>();
@@ -120,7 +128,8 @@ namespace PriceNegotiationApp.Api
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();
 
-            builder.Services.AddValidatorsFromAssembly(typeof(AssemblyReference).Assembly);
+            // Adds automatic registration of FluentValidation validators from the specified assembly
+            builder.Services.AddValidatorsFromAssembly(typeof(RequestValidatorsAssemblyReference).Assembly);
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -136,7 +145,7 @@ namespace PriceNegotiationApp.Api
             // Middlewares - HTTP request pipeline
 
             // <see cref="app.Environment"/> checks ASPNETCORE_ENVIRONMENT variable
-			/// (locally configured in launchSettings.json)
+            /// (locally configured in launchSettings.json)
             if (app.Environment.IsDevelopment())
             {
                 // OpenAPI/Swagger
@@ -150,6 +159,7 @@ namespace PriceNegotiationApp.Api
                 //app.UseDeveloperExceptionPage();
             }
 
+            app.UseStatusCodePages();
             app.UseExceptionHandler();
 
             // Redirects HTTP requests to HTTPS

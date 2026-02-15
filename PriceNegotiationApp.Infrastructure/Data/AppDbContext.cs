@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.Domain.Models.Customer;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
 using PriceNegotiationApp.Infrastructure.DbEntityConfigurations;
@@ -15,8 +17,14 @@ namespace PriceNegotiationApp.Infrastructure.Data
         {
         }
 
+        public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            return Database.BeginTransactionAsync(cancellationToken);
+        }
+
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<Negotiation> Negotiations { get; set; } = null!;
+        public DbSet<Customer> Customers { get; set; } = null!;
 
         /// <summary>
         ///
@@ -28,6 +36,7 @@ namespace PriceNegotiationApp.Infrastructure.Data
 
             builder.ApplyConfiguration(new ProductConfiguration());
             builder.ApplyConfiguration(new NegotiationConfiguration());
+            builder.ApplyConfiguration(new CustomerConfiguration());
         }
     }
 }

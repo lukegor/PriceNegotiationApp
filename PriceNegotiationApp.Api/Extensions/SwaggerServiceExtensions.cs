@@ -1,4 +1,7 @@
-﻿using Microsoft.OpenApi;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
 
 namespace PriceNegotiationApp.Api.Extensions
 {
@@ -8,7 +11,21 @@ namespace PriceNegotiationApp.Api.Extensions
         {
             services.AddOpenApi("v1", options =>
             {
-                // 1. INFO & CONTACT
+                options.AddDocumentInfo();
+
+                options.AddJwtBearerAuthenticationRequirement();
+
+                options.AddGlobalResponsesFromExceptionHandler();
+            });
+        }
+
+        extension(OpenApiOptions options)
+        {
+            /// <summary>
+            /// Adds general project info, specifies license and adds author's personal contact info
+            /// </summary>
+            private OpenApiOptions AddDocumentInfo()
+            {
                 options.AddDocumentTransformer((document, context, cancellationToken) =>
                 {
                     document.Info = new OpenApiInfo
@@ -30,54 +47,127 @@ namespace PriceNegotiationApp.Api.Extensions
                     return Task.CompletedTask;
                 });
 
-                // 2. AUTHENTICATION (JWT Bearer) - Poprawka dla Microsoft.OpenApi v2.0
+                return options;
+            }
+
+            /// <summary>
+            /// Adds Bearer Authentication using JWT format.
+            /// </summary>
+            private OpenApiOptions AddJwtBearerAuthenticationRequirement()
+            {
                 options.AddDocumentTransformer((document, context, cancellationToken) =>
                 {
                     document.Components ??= new OpenApiComponents();
 
-                    // A. Definicja Schematu w Components (To jest "Co to jest")
-                    // Używamy pełnego obiektu OpenApiSecurityScheme
-                    document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>();
-                    document.Components.SecuritySchemes.Add("Bearer", new OpenApiSecurityScheme
+                    var scheme = new OpenApiSecurityScheme
                     {
                         Type = SecuritySchemeType.Http,
                         Scheme = "bearer",
                         BearerFormat = "JWT",
                         In = ParameterLocation.Header,
                         Description = "Wpisz poniżej TYLKO swój token (bez prefiksu 'Bearer')."
-                    });
+                    };
 
-                    // B. Wymaganie Globalne (To jest "Użyj tego")
-                    // W wersji 2.0 kluczem słownika musi być OpenApiSecuritySchemeReference
-                    document.Security ??= new List<OpenApiSecurityRequirement>();
+                    document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                    document.Components.SecuritySchemes.Add("Bearer", scheme);
 
-                    var requirement = new OpenApiSecurityRequirement
+                    return Task.CompletedTask;
+                });
+
+                return options;
+            }
+
+            private OpenApiOptions AddGlobalResponsesFromExceptionHandler()
+            {
+                options.AddOperationTransformer((operation, context, cancellationToken) =>
+                {
+                    var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+                    var authorizeAttributes = metadata.OfType<AuthorizeAttribute>().ToList();
+                    var allowAnonymous = metadata.OfType<AllowAnonymousAttribute>().Any();
+                    bool isSecured = !allowAnonymous && authorizeAttributes.Any();
+
+                    var hasRouteParameters = ContainsRouteParameters(context.Description);
+
+                    var inlineProblemDetailsSchema = new OpenApiSchema
                     {
+                        Type = JsonSchemaType.Object,
+                        Title = "ProblemDetails",
+                        Properties = new Dictionary<string, IOpenApiSchema>
                         {
-                            // POPRAWKA TUTAJ: Używamy konstruktora, a nie inicjalizatora właściwości
-                            // Argument 1: "Bearer" (ID schematu)
-                            // Argument 2: document (Instancja dokumentu do rozwiązania referencji)
-                            new OpenApiSecuritySchemeReference("Bearer", document),
-
-                            new List<string>()
+                            ["type"] = new OpenApiSchema { Type = JsonSchemaType.String },
+                            ["title"] = new OpenApiSchema { Type = JsonSchemaType.String },
+                            ["status"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Format = "int32" },
+                            ["detail"] = new OpenApiSchema { Type = JsonSchemaType.String },
+                            ["instance"] = new OpenApiSchema { Type = JsonSchemaType.String }
                         }
                     };
 
-                    document.Security.Add(requirement);
+                    var errorResponses = new Dictionary<string, string>();
 
-                    return Task.CompletedTask;
-                });
+                    errorResponses.Add("500", "Internal Server Error");
+                    errorResponses.Add("400", "Bad Request");
 
-                // 3. CLEAN SCHEMA NAMES - Czyści nazwy klas z namespace'ów
-                options.AddSchemaTransformer((schema, context, cancellationToken) =>
-                {
-                    if (context.JsonTypeInfo.Type.IsClass && !context.JsonTypeInfo.Type.IsAbstract)
+                    if (isSecured)
                     {
-                        schema.Title = context.JsonTypeInfo.Type.Name;
+                        errorResponses.TryAdd("401", "Unauthorized");
+
+                        var hasSpecificRequirements = authorizeAttributes.Any(a =>
+                            !string.IsNullOrEmpty(a.Roles) ||
+                            !string.IsNullOrEmpty(a.Policy));
+
+                        // 'true' due to resource-based auth
+                        // in this project, if authentication is required, it must be fully secure
+                        if (hasSpecificRequirements || true)
+                        {
+                            errorResponses.TryAdd("403", "Forbidden");
+                        }
+
+                        operation.Security = new List<OpenApiSecurityRequirement>
+                        {
+                            new OpenApiSecurityRequirement
+                            {
+                                [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = new List<string>()
+                            }
+                        };
                     }
+
+                    if (hasRouteParameters)
+                    {
+                        errorResponses.Add("404", "Not Found");
+                    }
+
+                    foreach (var (code, description) in errorResponses)
+                    {
+                        if (!operation.Responses.ContainsKey(code))
+                        {
+                            operation.Responses.Add(code, new OpenApiResponse
+                            {
+                                Description = description,
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/problem+json"] = new OpenApiMediaType
+                                    {
+                                        Schema = inlineProblemDetailsSchema
+                                    }
+                                }
+                            });
+                        }
+                    }
+
                     return Task.CompletedTask;
                 });
-            });
+
+                return options;
+            }
+        }
+
+        /// <summary>
+        /// Determines if endpoint has route parameters (e.g. "api/negotiations/{id}").
+        /// </summary>
+        private static bool ContainsRouteParameters(ApiDescription endpointMetadata)
+        {
+            var routeTemplate = endpointMetadata.RelativePath;
+            return routeTemplate?.Contains('{') ?? false;
         }
     }
 }

@@ -40,8 +40,6 @@ namespace PriceNegotiationApp.Infrastructure.Auth.Authentication.Jwt
             return token;
         }
 
-        // WARNING: Ensure that _jwtSettings.SecurityKey is a string of at least 32 characters (32 bytes) for HmacSha256
-        // Required by new JwtSecurityTokenHandler().WriteToken(tokenOptions); since new version (Nuget package JsonWebToken version 8.0 and transitive ...IdentityModel. token-related packages post 7.0)
         private SigningCredentials GetSigningCredentials()
         {
 

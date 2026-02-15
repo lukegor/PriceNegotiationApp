@@ -1,0 +1,55 @@
+﻿using NSubstitute;
+using PriceNegotiationApp.Domain;
+using PriceNegotiationApp.Domain.Models.Products;
+using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
+
+namespace PriceNegotiationApp.UnitTests.Domain.Products
+{
+    public class UpdateShould
+    {
+        private readonly ProductFactory _productFactory;
+        private readonly IIdGenerator _idGenerator;
+
+        public UpdateShould()
+        {
+            _idGenerator = Substitute.For<IIdGenerator>();
+            _productFactory = new ProductFactory(_idGenerator);
+        }
+
+        [Fact]
+        public void UpdateProduct_WithValidData_ShouldUpdateSuccessfully()
+        {
+            // Arrange
+            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+
+            var expectedProductId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            _idGenerator.NewId().Returns(expectedProductId);
+
+            var name = "Laptop Lenovo";
+            var price = new ProductPrice(200);
+
+            // Act
+            product.Update(name, price);
+
+            // Assert
+            Assert.Equal(name, product.Name);
+            Assert.Equal(price, product.Price);
+        }
+
+        [Fact]
+        public void UpdateProduct_ShouldThrowDomainException_WhenNameIsEmpty()
+        {
+            // Arrange
+            var product = _productFactory.Create("Test Product", new ProductPrice(100));
+            var name = "";
+            var price = new ProductPrice(100);
+
+            // Act
+            var exception = Record.Exception(() => product.Update(name, price));
+
+            // Assert
+            Assert.IsType<DomainException>(exception);
+            Assert.Equal("Product name cannot be null or empty.", exception.Message);
+        }
+    }
+}

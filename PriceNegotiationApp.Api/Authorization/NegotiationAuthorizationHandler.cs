@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
-using PriceNegotiationApp.Api.Authorization;
+using PriceNegotiationApp.Application;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using System.Security.Claims;
 
-namespace PriceNegotiationApp.Api
+namespace PriceNegotiationApp.Api.Authorization
 {
     public class NegotiationAuthorizationHandler
         : AuthorizationHandler<OperationAuthorizationRequirement, Negotiation>
@@ -16,14 +16,22 @@ namespace PriceNegotiationApp.Api
         {
             // Pobieramy rolę i ID użytkownika raz
             var user = context.User;
-            var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var isAdminOrStaff = user.IsInRole("Admin") || user.IsInRole("Staff");
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Task.CompletedTask; // Nie udało się zidentyfikować użytkownika -> brak sukcesu
+            }
+
+            var isAdmin = user.IsInRole(Roles.Role_Admin);
+            var isStaff = user.IsInRole(Roles.Role_Staff);
+            var isAdminOrStaff = isAdmin || isStaff;
 
             // Sprawdzamy, czy użytkownik jest właścicielem tego konkretnego zasobu
-            var isResourceOwner = (resource.UserId == userId);
+            var isResourceOwner = resource.UserId == userId;
 
             // Przypadek 1: READ (Czytanie)
-            if (requirement.Name == Operations.Read.Name)
+            if (requirement == Operations.Read)
             {
                 // Czytać może Właściciel LUB Admin LUB Staff
                 if (isResourceOwner || isAdminOrStaff)
@@ -31,19 +39,17 @@ namespace PriceNegotiationApp.Api
                     context.Succeed(requirement);
                 }
             }
-
-            // Przypadek 2: UPDATE / DELETE (Modyfikacja)
-            else if (requirement.Name == Operations.Update.Name ||
-                     requirement.Name == Operations.Delete.Name)
+            else if (requirement == Operations.Delete)
             {
-                // Edytować/Usuwać może Właściciel LUB Admin (Staff zazwyczaj nie usuwa, ale jak chcesz to dodaj)
-                if (isResourceOwner || user.IsInRole("Admin"))
+                // Usuwać może Właściciel LUB Admin
+                if (isResourceOwner || isAdmin)
                 {
                     context.Succeed(requirement);
                 }
             }
-
-            else if (requirement.Name == Operations.ModifyNegotiationAsOwner.Name)
+            // Procesy biznesowe - tylko Owner
+            else if (requirement == Operations.ProposePrice
+                || requirement == Operations.Close)
             {
                 if (isResourceOwner)
                 {

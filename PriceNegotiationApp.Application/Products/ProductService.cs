@@ -16,10 +16,10 @@ namespace PriceNegotiationApp.Application.Products
     public interface IProductService
     {
         IQueryable<ProductViewModel> GetProducts();
-        Task<ProductResultDto> GetProductAsync(GetProductByIdQuery query);
-        Task<ProductResultDto> UpdateProductAsync(UpdateProductCommand command);
-        Task<ProductResultDto> CreateProductAsync(CreateProductCommand command);
-        Task DeleteProductAsync(ProductId id);
+        Task<ProductResultDto> GetProductAsync(GetProductByIdQuery query, CancellationToken cancellationToken);
+        Task<ProductResultDto> UpdateProductAsync(UpdateProductCommand command, CancellationToken cancellationToken);
+        Task<ProductResultDto> CreateProductAsync(CreateProductCommand command, CancellationToken cancellationToken);
+        Task DeleteProductAsync(ProductId id, CancellationToken cancellationToken);
     }
 
     /// <inheritdoc cref="IProductService"/>
@@ -42,43 +42,43 @@ namespace PriceNegotiationApp.Application.Products
                 .Select(ProductMappersExtensions.ToViewModel());
         }
 
-        public async Task<ProductResultDto> GetProductAsync(GetProductByIdQuery query)
+        public async Task<ProductResultDto> GetProductAsync(GetProductByIdQuery query, CancellationToken cancellationToken)
         {
-            var product = await _context.Products.FindAsync(query.Id) ??
+            var product = await _context.Products.FindAsync(query.Id, cancellationToken) ??
                 throw new NotFoundException($"Products with id = {query.Id} was not found");
 
             return product.ToResultDto();
         }
 
-        public async Task<ProductResultDto> UpdateProductAsync(UpdateProductCommand command)
+        public async Task<ProductResultDto> UpdateProductAsync(UpdateProductCommand command, CancellationToken cancellationToken)
         {
-            var existingProduct = await _context.Products.FindAsync(command.Id) ??
+            var existingProduct = await _context.Products.FindAsync(command.Id, cancellationToken) ??
                 throw new NotFoundException($"Products with id = {command.Id} was not found");
 
             existingProduct!.Update(command.Name, command.Price);
             //_context.Entry(command).State = EntityState.Modified;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return existingProduct.ToResultDto();
         }
 
-        public async Task<ProductResultDto> CreateProductAsync(CreateProductCommand command)
+        public async Task<ProductResultDto> CreateProductAsync(CreateProductCommand command, CancellationToken cancellationToken)
         {
             Product newProduct = _productFactory.Create(command.Name, command.Price);
 
             _context.Products.Add(newProduct);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return newProduct.ToResultDto();
         }
 
-        public async Task DeleteProductAsync(ProductId id)
+        public async Task DeleteProductAsync(ProductId id, CancellationToken cancellationToken)
         {
             var product = await _context.Products.FindAsync(id) ??
                 throw new NotFoundException($"Products with id = {id} was not found");
 
             _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

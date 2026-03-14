@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Api.Authorization;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Common.Exceptions;
 using PriceNegotiationApp.Application.Negotiations.Dtos;
@@ -9,6 +10,8 @@ using PriceNegotiationApp.Application.Negotiations.Requests.Queries;
 using PriceNegotiationApp.Application.Security;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
+using System.ComponentModel.Design;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace PriceNegotiationApp.Application.Negotiations
 {
@@ -18,28 +21,29 @@ namespace PriceNegotiationApp.Application.Negotiations
     public interface INegotiationService
     {
         Task<IEnumerable<NegotiationResultDto>> GetNegotiationsAsync();
-        Task<NegotiationResultDto> GetNegotiationAsync(GetNegotiationByIdQuery query);
-        Task<NegotiationResultDto> UpdateNegotiationAsync(UpdateNegotiationCommand command);
-        Task<NegotiationResultDto> CloseNegotiationAsync(NegotiationId id);
-        Task<ProposePriceResultDto> ProposeNewPriceAsync(ProposeNewPriceCommand command);
-        Task<NegotiationResultDto> CreateNegotiationAsync(CreateNegotiationCommand command);
-        Task DeleteNegotiationAsync(NegotiationId id);
+        Task<NegotiationResultDto> GetNegotiationAsync(GetNegotiationByIdQuery query, CancellationToken cancellationToken);
+        Task<NegotiationResultDto> UpdateNegotiationAsync(UpdateNegotiationCommand command, CancellationToken cancellationToken);
+        Task<NegotiationResultDto> ResetRetriesAsync(NegotiationId id, CancellationToken cancellationToken);
+        Task<NegotiationResultDto> CloseNegotiationAsync(NegotiationId id, CancellationToken cancellationToken);
+        Task<ProposePriceResultDto> ProposeNewPriceAsync(ProposeNewPriceCommand command, CancellationToken cancellationToken);
+        Task<NegotiationResultDto> CreateNegotiationAsync(CreateNegotiationCommand command, CancellationToken cancellationToken);
+        Task DeleteNegotiationAsync(NegotiationId id, CancellationToken cancellationToken);
     }
 
     /// <inheritdoc cref="INegotiationService"/>
     public class NegotiationService : INegotiationService
     {
+        private readonly INegotiationDomainService _service;
         private readonly IAppDbContext _context;
         private readonly IExecutionContext _executionContext;
-        private readonly NegotiationFactory _negotiationFactory;
         private readonly IAuthorizationService _authorizationService;
 
-        public NegotiationService(IAppDbContext context, IExecutionContext executionContext, NegotiationFactory negotiationFactory,
+        public NegotiationService(INegotiationDomainService service, IAppDbContext context, IExecutionContext executionContext,
             IAuthorizationService authorizationService)
         {
+            _service = service;
             _context = context;
             _executionContext = executionContext;
-            _negotiationFactory = negotiationFactory;
             _authorizationService = authorizationService;
         }
 
@@ -49,85 +53,113 @@ namespace PriceNegotiationApp.Application.Negotiations
             return negotiations.Select(x => x.ToResultDto());
         }
 
-        public async Task<NegotiationResultDto> GetNegotiationAsync(GetNegotiationByIdQuery query)
+        public async Task<NegotiationResultDto> GetNegotiationAsync(GetNegotiationByIdQuery query, CancellationToken cancellationToken)
         {
-            var negotiation = await _context.Negotiations.FindAsync(query)
+            var negotiation = await _context.Negotiations.FindAsync(query, cancellationToken)
                 ?? throw new NotFoundException($"Failed to find negotiation with ID '{query.Id}'");
 
-            await _authorizationService.AuthorizeAsync(_executionContext.User, negotiation, PolicyNames.Read);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(
+                _executionContext.User, negotiation, Operations.Read);
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to view this negotiation.");
+            }
 
             return negotiation.ToResultDto();
         }
 
         [Obsolete("No use case")]
-        public async Task<NegotiationResultDto> UpdateNegotiationAsync(UpdateNegotiationCommand command)
+        public async Task<NegotiationResultDto> UpdateNegotiationAsync(UpdateNegotiationCommand command, CancellationToken cancellationToken)
         {
-            var existingNegotiation = await _context.Negotiations.FindAsync(command.Id)
-                ?? throw new NotFoundException($"Update failed: Negotiation with ID {command.Id} was not found.");
+            var existingNegotiation = await _context.Negotiations.FindAsync(command.Id, cancellationToken)
+                ?? throw new NotFoundException($"Failed to find negotiation with ID '{command.Id}'");
 
             //existingNegotiation.Update();
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return existingNegotiation.ToResultDto();
         }
 
-        public async Task<NegotiationResultDto> CloseNegotiationAsync(NegotiationId id)
+        public async Task<NegotiationResultDto> ResetRetriesAsync(NegotiationId id, CancellationToken cancellationToken)
         {
-            var existingNegotiation = await _context.Negotiations.FindAsync(id)
-                ?? throw new NotFoundException($"Update failed: Negotiation with ID {id} was not found.");
+            var negotiation = await _context.Negotiations.FindAsync(id, cancellationToken)
+                ?? throw new NotFoundException();
 
-            await _authorizationService.AuthorizeAsync(_executionContext.User, existingNegotiation, PolicyNames.ModifyNegotiationAsOwner);
+            _service.ResetRetries(negotiation);
+            await _context.SaveChangesAsync(cancellationToken);
+            return negotiation.ToResultDto();
+        }
+
+        public async Task<NegotiationResultDto> CloseNegotiationAsync(NegotiationId id, CancellationToken cancellationToken)
+        {
+            var existingNegotiation = await _context.Negotiations.FindAsync(id, cancellationToken)
+                ?? throw new NotFoundException($"Failed to find negotiation with ID '{id}'");
+
+            var authorizationResult =
+                await _authorizationService.AuthorizeAsync(_executionContext.User, existingNegotiation, Operations.Close);
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to close this negotiation.");
+            }
 
             existingNegotiation.Close();
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return existingNegotiation.ToResultDto();
         }
 
-        public async Task<ProposePriceResultDto> ProposeNewPriceAsync(ProposeNewPriceCommand command)
+        public async Task<ProposePriceResultDto> ProposeNewPriceAsync(ProposeNewPriceCommand command, CancellationToken cancellationToken)
         {
-            var negotiation = await _context.Negotiations.FindAsync(command.NegotiationId) ??
-                throw new NotFoundException("Negotiation not found");
+            var negotiation = await _context.Negotiations.FindAsync(command.NegotiationId, cancellationToken)
+                ?? throw new NotFoundException($"Failed to find negotiation with ID '{command.NegotiationId}'");
 
-            await _authorizationService.AuthorizeAsync(_executionContext.User, negotiation, PolicyNames.ModifyNegotiationAsOwner);
+            var authorizationResult =
+                await _authorizationService.AuthorizeAsync(_executionContext.User, negotiation, Operations.ProposePrice);
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to propose a new price for this negotiation.");
+            }
 
             Product relevantProduct = await _context.Products.FindAsync(negotiation.ProductId)
-                ?? throw new NotFoundException($"Product associated with negotiation '{command.NegotiationId}' not found");
+                ?? throw new NotFoundException($"Product associated with negotiation with Id = '{command.NegotiationId}' not found");
 
-            negotiation.TryNegotiate(command.ProposedPrice, relevantProduct.Price.Value);
+            _service.TryNegotiate(negotiation, command.ProposedPrice, relevantProduct.Price.Value);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return new ProposePriceResultDto { Result = ProposePriceResult.Success };
         }
 
-        public async Task<NegotiationResultDto> CreateNegotiationAsync(CreateNegotiationCommand negotiationDto)
+        public async Task<NegotiationResultDto> CreateNegotiationAsync(CreateNegotiationCommand negotiationDto, CancellationToken cancellationToken)
         {
             var userId = _executionContext.UserId;
 
-            var product = await _context.Products.FindAsync(negotiationDto.ProductId)
+            var product = await _context.Products.FindAsync(negotiationDto.ProductId, cancellationToken)
                 ?? throw new NotFoundException($"Product with ID '{negotiationDto.ProductId}' was not found.");
 
             var customer = await _context.Customers.FirstOrDefaultAsync(x => x.IdentityId == userId)
                 ?? throw new NotFoundException($"Customer with Identity ID = '{userId}' was not found.");
 
-            Negotiation negotiation = _negotiationFactory.Create(
+            Negotiation negotiation = _service.CreateNegotiation(
                 negotiationDto.ProductId,
                 product.Price.Value,
                 negotiationDto.ProposedPrice,
                 customer.Id);
 
             _context.Negotiations.Add(negotiation);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return negotiation.ToResultDto();
         }
 
-        public async Task DeleteNegotiationAsync(NegotiationId id)
+        public async Task DeleteNegotiationAsync(NegotiationId id, CancellationToken cancellationToken)
         {
-            var negotiation = await _context.Negotiations.FindAsync(id)
+            var negotiation = await _context.Negotiations.FindAsync(id, cancellationToken)
                 ?? throw new NotFoundException($"Negotiation with ID '{id}' was not found.");
 
             _context.Negotiations.Remove(negotiation);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

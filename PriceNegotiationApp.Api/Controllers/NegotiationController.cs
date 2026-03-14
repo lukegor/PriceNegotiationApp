@@ -15,81 +15,83 @@ namespace PriceNegotiationApp.Api.Controllers
     [Area("Negotiations")]
     [Route("api/v1/[area]/[controller]")]
     [ApiController]
-    public class NegotiationController(INegotiationService service) : ControllerBase
+    public class NegotiationController : ControllerBase
     {
-        private readonly INegotiationService _service = service;
+        private readonly INegotiationService _service;
 
-        /// <summary>
-        /// Retrieves a list of all negotiations.
-        /// </summary>
-        /// <returns>Returns a 200 Ok response with a collection of negotiations</returns>
-        // GET: api/Negotiations
+        public NegotiationController(INegotiationService service)
+        {
+            _service = service;
+        }
+
+        // GET: api/v1/Negotiations
         [HttpGet]
         [Route("all")]
         [ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Authorize(Roles = "Admin, Staff")]
+        [EndpointDescription("Retrieves a list of all negotiations.")]
         public async Task<ActionResult<IEnumerable<NegotiationResponseDto>>> GetNegotiations()
         {
             var negotiations = await _service.GetNegotiationsAsync();
             return Ok(negotiations.Select(x => x.ToResponseDto()));
         }
 
-        /// <summary>
-        /// Retrieves a specific negotiation by its unique identifier.
-        /// </summary>
-        /// <returns>Returns a negotiation with the specified ID if found</returns>
-        // GET: api/Negotiations/5
+        // GET: api/v1/Negotiations/5
         [HttpGet("{id}")]
+        [EndpointDescription("Retrieves a specific negotiation by its unique identifier.")]
         public async Task<Results<Ok<NegotiationResponseDto>, NotFound, ForbidHttpResult>> GetNegotiation(
-            [FromRoute] NegotiationId id)
+            [FromRoute] NegotiationId id, CancellationToken cancellationToken)
         {
-            var negotiation = await _service.GetNegotiationAsync(new GetNegotiationByIdQuery(id));
+            var negotiation = await _service.GetNegotiationAsync(new GetNegotiationByIdQuery(id), cancellationToken);
 
             return TypedResults.Ok(negotiation.ToResponseDto());
         }
 
-        /// <summary>
-        /// Updates a specific negotiation by its unique identifier.
-        /// </summary>
-        /// <returns>Returns a 204 No Content response if the update is successful,</returns>
-        // PUT: api/Negotiation/5
+        // PUT: api/v1/Negotiation/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [NonAction]
         [HttpPut("{id}")]
-        [Authorize(Roles = "Staff, Admin")]
-        public async Task<Results<Ok<NegotiationResponseDto>, BadRequest, NotFound>> PutNegotiation(
-            [FromRoute] NegotiationId id, [FromBody] UpdateNegotiationRequestDto request)
+        [Authorize(Roles = "Admin")]
+        [EndpointDescription("Updates a specific negotiation by its unique identifier.")]
+        public async Task<Results<Ok<NegotiationResponseDto>, BadRequest, NotFound>> UpdateNegotiation(
+            [FromRoute] NegotiationId id, [FromBody] UpdateNegotiationRequestDto request, CancellationToken cancellationToken)
         {
-            var updateResult = await _service.UpdateNegotiationAsync(request.ToCommand(id));
+            var updateResult = await _service.UpdateNegotiationAsync(request.ToCommand(id), cancellationToken);
 
             return TypedResults.Ok(updateResult.ToResponseDto());
         }
 
-        /// <summary>
-        /// Closes negotiation if requested by owner.
-        /// </summary>
-        /// <returns>Returns a 200 Ok response if the update is successful.</returns>
-        // PUT: api/Negotiation/5/close
+        // POST: api/v1/Negotiation/5/reset-retries
+        [HttpPost("{id}/reset-retries")]
+        [Authorize(Roles = "Admin")]
+        [EndpointDescription("Resets the retry count for the specified negotiation.")]
+        public async Task<Results<Ok<NegotiationResponseDto>, BadRequest, NotFound>> AdminResetRetry(
+            [FromRoute] NegotiationId id, CancellationToken cancellationToken)
+        {
+            var updateResult = await _service.ResetRetriesAsync(id, cancellationToken);
+            return TypedResults.Ok(updateResult.ToResponseDto());
+        }
+
+        // PUT: api/v1/Negotiation/5/close
         [HttpPut("{id}/close")]
+        [EndpointDescription("Closes negotiation if requested by the owner.")]
         public async Task<Results<Ok<NegotiationResponseDto>, NotFound, ForbidHttpResult>> CloseNegotiation(
-            [FromRoute] NegotiationId id)
+            [FromRoute] NegotiationId id, CancellationToken cancellationToken)
         {
-            var updateResult = await _service.CloseNegotiationAsync(id);
+            var updateResult = await _service.CloseNegotiationAsync(id, cancellationToken);
             return TypedResults.Ok(updateResult.ToResponseDto());
         }
 
-        /// <summary>
-        /// Proposes a new price for a negotiation.
-        /// </summary>
-        /// <returns></returns>
-        // PATCH: api/Negotiations/5/negotiate
+        // PATCH: api/v1/Negotiations/5/negotiate
         [HttpPatch("{negotiationId}/negotiate")]
+        [EndpointDescription("Proposes a new price for a negotiation.")]
         public async Task<Results<Ok<string>, BadRequest<string>, NotFound, ForbidHttpResult>> ProposeNewPrice(
-            [FromRoute] NegotiationId negotiationId, decimal proposedPrice)
+            [FromRoute] NegotiationId negotiationId, decimal proposedPrice, CancellationToken cancellationToken)
         {
 
-            var response = await _service.ProposeNewPriceAsync(new ProposeNewPriceCommand(negotiationId, new ProposedPrice(proposedPrice)));
+            var response = await _service.ProposeNewPriceAsync(new ProposeNewPriceCommand(negotiationId, new ProposedPrice(proposedPrice)), cancellationToken);
 
             return response.Result switch
             {
@@ -98,32 +100,27 @@ namespace PriceNegotiationApp.Api.Controllers
             };
         }
 
-        /// <summary>
-        /// Creates a new negotiation.
-        /// </summary>
-        /// <returns>Returns a 201 Created response with the newly created negotiation</returns>
-        // POST: api/Negotiations
+        // POST: api/v1/Negotiations
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Roles = "Customer")]
-        public async Task<Results<CreatedAtRoute<NegotiationResponseDto>, BadRequest>> PostNegotiation(
-            [FromBody] CreateNegotiationRequestDto requestDto)
+        [EndpointDescription("Creates a new negotiation.")]
+        public async Task<Results<CreatedAtRoute<NegotiationResponseDto>, BadRequest>> CreateNegotiation(
+            [FromBody] CreateNegotiationRequestDto requestDto, CancellationToken cancellationToken)
         {
-            var negotiation = await _service.CreateNegotiationAsync(requestDto.ToCommand());
+            var negotiation = await _service.CreateNegotiationAsync(requestDto.ToCommand(), cancellationToken);
 
             return TypedResults.CreatedAtRoute(negotiation.ToResponseDto(), nameof(GetNegotiation), new { id = negotiation.NegotiationId });
         }
 
-        /// <summary>
-        /// Deletes a specific negotiation by its unique identifier.
-        /// </summary>
-        /// <returns>a 204 No Content response if the deletion is successful.</returns>
-        // DELETE: api/Negotiation/5
+        // DELETE: api/v1/Negotiations/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<Results<NoContent, NotFound>> DeleteNegotiation([FromRoute] NegotiationId id)
+        [EndpointDescription("Deletes a specific negotiation by its unique identifier.")]
+        public async Task<Results<NoContent, NotFound>> DeleteNegotiation(
+            [FromRoute] NegotiationId id, CancellationToken cancellationToken)
         {
-            await _service.DeleteNegotiationAsync(id);
+            await _service.DeleteNegotiationAsync(id, cancellationToken);
 
             return TypedResults.NoContent();
         }

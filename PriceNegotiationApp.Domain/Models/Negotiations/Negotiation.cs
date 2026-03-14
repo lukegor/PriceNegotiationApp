@@ -33,8 +33,6 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
         public CustomerId UserId { get; set; }
 
 
-        private const int StartingRetries = 3;
-        public const int MaxPriceMultiplier = 2;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         /// <summary>
@@ -48,32 +46,28 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             ProductId productId,
             decimal productPrice,
             ProposedPrice proposedPrice,
-            CustomerId userId)
+            CustomerId userId,
+            DateTimeOffset timeNow,
+            int startingRetries,
+            double maxPriceMultiplier)
         {
             Id = id;
             ProductId = productId;
             ProposedPrice = proposedPrice;
             UserId = userId;
+            RetriesLeft = startingRetries;
 
-            InitializeDefaults();
-            TryNegotiate(proposedPrice, productPrice);
+            InitializeDefaults(timeNow);
+            TryNegotiate(maxPriceMultiplier, proposedPrice, productPrice, timeNow);
         }
 
-        public NegotiationResult TryNegotiate(ProposedPrice proposedPrice, decimal productPrice)
+        public void TryNegotiate(double maxPriceMultiplier, ProposedPrice proposedPrice, decimal productPrice,
+            DateTimeOffset timeNow)
         {
             CheckRule(new RetriesLeftMustBePositiveRule(RetriesLeft));
 
             --RetriesLeft;
-            UpdatedAt = DateTime.UtcNow;
-
-            decimal maxAllowedPriceProposition = CalculateMaxAllowedPrice(MaxPriceMultiplier, productPrice);
-
-            if (proposedPrice.Value > maxAllowedPriceProposition)
-            {
-                return NegotiationResult.Failure(maxAllowedPriceProposition);
-            }
-
-            return NegotiationResult.Success(maxAllowedPriceProposition);
+            UpdatedAt = timeNow.UtcDateTime;
         }
 
         public void Close()
@@ -85,7 +79,7 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void Archive(bool isApproved)
+        public void Archive(bool isApproved, DateTimeOffset updatedAt)
         {
             CheckRule(new NegotiationMustBeOpenRule(Status));
 
@@ -94,18 +88,18 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public static decimal CalculateMaxAllowedPrice(int multiplier, decimal productPrice)
+        public void ResetRetries(int startingRetries, DateTimeOffset updatedAt)
         {
-            return multiplier * productPrice;
+            CheckRule(new NegotiationMustBeOpenRule(Status));
+            RetriesLeft = startingRetries;
+            UpdatedAt = updatedAt.UtcDateTime;
         }
 
-        private void InitializeDefaults()
+        private void InitializeDefaults(DateTimeOffset timeNow)
         {
-            RetriesLeft = StartingRetries;
             IsAccepted = false;
-            var timeNow = DateTime.UtcNow;
-            CreatedAt = timeNow;
-            UpdatedAt = timeNow;
+            CreatedAt = timeNow.UtcDateTime;
+            UpdatedAt = timeNow.UtcDateTime;
             Status = NegotiationStatus.Open;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using PriceNegotiationApp.Api.Authorization;
 
 namespace PriceNegotiationApp.Api.Extensions
 {

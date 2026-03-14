@@ -103,8 +103,6 @@ namespace PriceNegotiationApp.Api
             });
 
             builder.Services.AddAuthorizationWithPolicies();
-            builder.Services.AddSingleton<IAuthorizationHandler, NegotiationOperationsAuthorizationHandler>();
-
 
             builder.Services.AddScoped<JwtManager>();
 
@@ -115,6 +113,8 @@ namespace PriceNegotiationApp.Api
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<INegotiationService, NegotiationService>();
+
+            builder.Services.AddScoped<INegotiationDomainService, NegotiationDomainService>();
 
             builder.Services.AddScoped<IIdentityService, IdentityService>();
 

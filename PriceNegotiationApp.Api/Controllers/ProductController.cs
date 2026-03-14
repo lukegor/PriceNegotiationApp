@@ -17,14 +17,8 @@ namespace PriceNegotiationApp.Api.Controllers
     [Route("api/v1/[area]")]
     //[Produces]
     [ApiController]
-    public class ProductController(IProductService productService) : ControllerBase
+    public class ProductController(IProductService _productService) : ControllerBase
     {
-        private readonly IProductService _productService = productService;
-
-        /// <summary>
-        /// Retrieves a list of all products.
-        /// </summary>
-        /// <returns>Returns a collection of products.</returns>
         // GET: api/Products
         [HttpGet]
         [Route("all")]
@@ -34,6 +28,7 @@ namespace PriceNegotiationApp.Api.Controllers
         [ResponseCache(Duration = 5)] //Caches the HTTP response for 5 seconds
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [EndpointDescription("Retrieves a list of all products.")]
         public ActionResult<IQueryable<ProductDto>> GetProducts()
         {
             var products = _productService.GetProducts();
@@ -41,48 +36,40 @@ namespace PriceNegotiationApp.Api.Controllers
             return Ok(products.Select(x => x.ToDto()));
         }
 
-        /// <summary>
-        /// Retrieves a specific product by its unique identifier.
-        /// </summary>
-        /// <returns>Returns a product with the specified ID if found.</returns>
         // GET: api/Products/5
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<Results<Ok<ProductResponseDto>, NotFound>> GetProduct([FromRoute] ProductId id)
+        [EndpointDescription("Retrieves a specific product by its unique identifier.")]
+        public async Task<Results<Ok<ProductResponseDto>, NotFound>> GetProduct(
+            [FromRoute] ProductId id, CancellationToken cancellationToken)
         {
-            var product = await _productService.GetProductAsync(new GetProductByIdQuery(id));
+            var product = await _productService.GetProductAsync(new GetProductByIdQuery(id), cancellationToken);
 
             return TypedResults.Ok(product.ToResponseDto());
         }
 
-        /// <summary>
-        /// Updates a specific product by its unique identifier.
-        /// </summary>
-        /// <returns>Returns a 204 No Content response if the update is successful.</returns>
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin, Staff")]
-        public async Task<Results<Ok<ProductResponseDto>, NotFound, BadRequest>> PutProduct(
-            [FromRoute] ProductId id, [FromBody] ProductRequestDto request)
+        [EndpointDescription("Updates a specific product by its unique identifier.")]
+        public async Task<Results<Ok<ProductResponseDto>, NotFound, BadRequest>> UpdateProduct(
+            [FromRoute] ProductId id, [FromBody] ProductRequestDto request, CancellationToken cancellationToken)
         {
-            var updated = await _productService.UpdateProductAsync(request.ToUpdateProductCommand(id));
+            var updated = await _productService.UpdateProductAsync(request.ToUpdateProductCommand(id), cancellationToken);
 
             return TypedResults.Ok(updated.ToResponseDto());
         }
 
-        /// <summary>
-        /// Creates a new product.
-        /// </summary>
-        /// <returns>Returns a 201 Created response with the newly created product and a location header pointing to the product,/// </returns>
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Roles = "Admin, Staff")]
-        public async Task<Results<CreatedAtRoute<ProductResponseDto>, BadRequest>> PostProduct(
-            [FromBody] ProductRequestDto request)
+        [EndpointDescription("Creates a new product.")]
+        public async Task<Results<CreatedAtRoute<ProductResponseDto>, BadRequest>> CreateProduct(
+            [FromBody] ProductRequestDto request, CancellationToken cancellationToken)
         {
-            var dbProduct = await _productService.CreateProductAsync(request.ToCreateProductCommand());
+            var dbProduct = await _productService.CreateProductAsync(request.ToCreateProductCommand(), cancellationToken);
 
             return TypedResults.CreatedAtRoute(dbProduct.ToResponseDto(), nameof(GetProduct), new { id = dbProduct.Id });
         }
@@ -94,9 +81,10 @@ namespace PriceNegotiationApp.Api.Controllers
         // DELETE: api/Products/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin, Staff")]
-        public async Task<Results<NoContent, NotFound>> DeleteProduct([FromRoute] ProductId id)
+        [EndpointDescription("Deletes a specific product by its unique identifier.")]
+        public async Task<Results<NoContent, NotFound>> DeleteProduct([FromRoute] ProductId id, CancellationToken cancellationToken)
         {
-            await _productService.DeleteProductAsync(id);
+            await _productService.DeleteProductAsync(id, cancellationToken);
 
             return TypedResults.NoContent();
         }

@@ -11,10 +11,8 @@ namespace PriceNegotiationApp.Api.Controllers
 {
     [ApiController]
     public class AuthenticationController(
-        IAuthService authService, IValidator<LoginRequestDto> validator1) : ControllerBase
+        IAuthService authService) : ControllerBase
     {
-        private readonly IAuthService _authService = authService;
-
         /// <summary>Log into an account</summary>
         /// <returns>Returns true if login is successful, false otherwise.</returns>
         [HttpPost("Login")]
@@ -22,7 +20,7 @@ namespace PriceNegotiationApp.Api.Controllers
         public async Task<Results<Ok<AuthResponseDto>, BadRequest<AuthResponseDto>>> Login(
             [FromBody] LoginRequestDto request)
         {
-            var authResult = await _authService.AuthenticateAsync(request.ToCommand());
+            var authResult = await authService.AuthenticateAsync(request.ToCommand());
 
             if (!authResult.IsAuthSuccessful)
             {
@@ -41,7 +39,7 @@ namespace PriceNegotiationApp.Api.Controllers
         public async Task<Results<CreatedAtRoute<object>, BadRequest<IEnumerable<string>>>> RegisterUser(
             [FromBody] RegisterUserRequestDto request)
         {
-            var result = await _authService.RegisterUserAsync(request.ToCommand());
+            var result = await authService.RegisterUserAsync(request.ToCommand());
 
             if (result.Succeeded)
             {

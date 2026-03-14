@@ -7,15 +7,24 @@ using System.Security.Authentication;
 
 namespace PriceNegotiationApp.Api
 {
-    public class GlobalExceptionHandler : IExceptionHandler
+    public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> _logger) : IExceptionHandler
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
+            _logger.LogError(exception, "Wyjątek podczas przetwarzania żądania: {Message}", exception.Message);
+
+            if (exception is OperationCanceledException)
+            {
+                httpContext.Response.StatusCode = 499; // Client Closed Request
+                return true;
+            }
+
             var statusCode = exception switch
             {
                 ArgumentException or InvalidOperationException or DomainException or ValidationException
                     => StatusCodes.Status400BadRequest,
                 AuthenticationException => StatusCodes.Status401Unauthorized,
+                UnauthorizedAccessException => StatusCodes.Status403Forbidden,
                 NotFoundException => StatusCodes.Status404NotFound,
                 _ => StatusCodes.Status500InternalServerError
             };

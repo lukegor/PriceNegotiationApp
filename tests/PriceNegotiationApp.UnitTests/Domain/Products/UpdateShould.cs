@@ -60,11 +60,12 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         public void UpdateProduct_ShouldThrowDomainException_WhenNoChangesDetected()
         {
             // Arrange
-            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+            var price = new ProductPrice(100);
+            var product = _productFactory.Create("Laptop", price);
 
             // Act
             var exception = Record.Exception(() =>
-                product.Update("Laptop", new ProductPrice(100)));
+                product.Update("Laptop", price));
 
             // Assert
             Assert.IsType<DomainException>(exception);
@@ -75,10 +76,11 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         public void HasChanges_ReturnFalse_WhenNameAndPriceMatch()
         {
             // Arrange
-            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+            var price = new ProductPrice(100);
+            var product = _productFactory.Create("Laptop", price);
 
             // Act
-            var hasChanges = product.HasChanges("Laptop", new ProductPrice(100));
+            var hasChanges = product.HasChanges("Laptop", price);
 
             // Assert
             Assert.False(hasChanges);

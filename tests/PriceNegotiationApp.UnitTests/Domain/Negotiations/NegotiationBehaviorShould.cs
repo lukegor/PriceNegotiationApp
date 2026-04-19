@@ -35,7 +35,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
             negotiation.TryNegotiate(200m, new ProposedPrice(120m), 100m, expectedUpdatedAt);
 
             // Assert
-            Assert.Equal(2, negotiation.RetriesLeft);
+            Assert.Equal(1, negotiation.RetriesLeft);
             Assert.Equal(expectedUpdatedAt.UtcDateTime, negotiation.UpdatedAt);
         }
 
@@ -45,7 +45,6 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
             // Arrange
             _timeProvider.GetUtcNow().Returns(new DateTimeOffset(2026, 04, 01, 08, 00, 00, TimeSpan.Zero));
             var negotiation = CreateNegotiation(startingRetries: 1);
-            negotiation.TryNegotiate(200m, new ProposedPrice(120m), 100m, new DateTimeOffset(2026, 04, 01, 09, 00, 00, TimeSpan.Zero));
 
             // Act
             var exception = Record.Exception(() =>

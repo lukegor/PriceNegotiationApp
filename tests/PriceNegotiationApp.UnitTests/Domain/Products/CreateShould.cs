@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using FluentAssertions;
+using NSubstitute;
 using PriceNegotiationApp.Domain;
 using PriceNegotiationApp.Domain.Models.Products;
 using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
@@ -17,23 +18,28 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         }
 
         [Theory]
-        [InlineData("Laptop", 100)]
-        [InlineData("Mąka Poznańska", 5.99)]
-        public void CreateProduct_WithValidData(string name, decimal priceValue)
+        [InlineData("Laptop", 100, "11111111-1111-1111-1111-111111111111")]
+        [InlineData("Mąka Poznańska", 5.99, "22222222-2222-2222-2222-222222222222")]
+        public void CreateProduct_WithValidData(string name, decimal priceValue, string guid)
         {
             // Arrange
-            var expectedProductId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var expectedProductId = Guid.Parse(guid);
             _idGenerator.NewId().Returns(expectedProductId);
 
             var price = new ProductPrice(priceValue);
+
+            var expected = new
+            {
+                Id = ProductId.From(expectedProductId),
+                Name = name,
+                Price = price
+            };
 
             // Act
             var product = _productFactory.Create(name, price);
 
             // Assert
-            Assert.Equal(expectedProductId, product.Id.Value);
-            Assert.Equal(name, product.Name);
-            Assert.Equal(price, product.Price);
+            product.Should().BeEquivalentTo(expected);
         }
 
         [Fact]

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Api.Authorization;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Common.Exceptions;
 using PriceNegotiationApp.Application.Negotiations.Dtos;
@@ -10,8 +9,6 @@ using PriceNegotiationApp.Application.Negotiations.Requests.Queries;
 using PriceNegotiationApp.Application.Security;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Products;
-using System.ComponentModel.Design;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace PriceNegotiationApp.Application.Negotiations
 {

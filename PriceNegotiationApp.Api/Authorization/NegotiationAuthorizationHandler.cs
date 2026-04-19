@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using PriceNegotiationApp.Application;
+using PriceNegotiationApp.Application.Security;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using System.Security.Claims;
 

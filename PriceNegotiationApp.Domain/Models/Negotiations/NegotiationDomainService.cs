@@ -1,10 +1,8 @@
-﻿using PriceNegotiationApp.Domain;
-using PriceNegotiationApp.Domain.Models.Customer;
-using PriceNegotiationApp.Domain.Models.Negotiations;
+﻿using PriceNegotiationApp.Domain.Models.Customer;
 using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
 using PriceNegotiationApp.Domain.Models.Products;
 
-namespace PriceNegotiationApp.Application.Negotiations
+namespace PriceNegotiationApp.Domain.Models.Negotiations
 {
     /// <summary>
     /// <see cref="Negotiation"/> domain service
@@ -35,7 +33,7 @@ namespace PriceNegotiationApp.Application.Negotiations
                     $"Proposed price cannot exceed {maxAllowedPrice:C}.");
             }
 
-            return negotiationFactory.Create(productId, productPrice, proposedPrice, userId, StartingRetries, MaxPriceMultiplier);
+            return negotiationFactory.Create(productId, productPrice, proposedPrice, userId, StartingRetries, maxAllowedPrice);
         }
 
         public void TryNegotiate(Negotiation negotiation, ProposedPrice proposedPrice, decimal productPrice)
@@ -55,9 +53,9 @@ namespace PriceNegotiationApp.Application.Negotiations
             negotiation.ResetRetries(StartingRetries, timeProvider.GetUtcNow());
         }
 
-        private static decimal CalculateMaxAllowedPrice(int multiplier, decimal productPrice)
+        private static decimal CalculateMaxAllowedPrice(double multiplier, decimal productPrice)
         {
-            return multiplier * productPrice;
+            return (decimal)multiplier * productPrice;
         }
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -11,6 +11,7 @@
 	  <Authors>Łukasz Górski</Authors>
 	  <Copyright>Copyright © 2023-2026 Łukasz Górski</Copyright>
 	  <RepositoryUrl>https://github.com/lukegor/PriceNegotiationApp</RepositoryUrl>
+    <UserSecretsId>a7c8f8d2-d976-4770-98a2-caf4c493d0e8</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -42,6 +43,7 @@
     <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Enrichers.CorrelationId" />
+    <PackageReference Include="Serilog.Sinks.Grafana.Loki" />
     <PackageReference Include="SonarAnalyzer.CSharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

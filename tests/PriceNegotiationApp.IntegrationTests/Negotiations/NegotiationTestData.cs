@@ -13,6 +13,8 @@ namespace PriceNegotiationApp.IntegrationTests.Negotiations
         private readonly ProductFactory _productFactory;
         private readonly NegotiationFactory _negotiationFactory;
 
+        private const int StartingRetries = 3;
+
         public NegotiationTestData(IAppDbContext context, ProductFactory productFactory, NegotiationFactory negotiationFactory)
         {
             _context = context;
@@ -37,11 +39,13 @@ namespace PriceNegotiationApp.IntegrationTests.Negotiations
 
         private ICollection<Negotiation> GetSampleNegotiations(List<Product> products)
         {
+            const double maxPriceMultiplier = 2;
+
             return new List<Negotiation>
             {
-                _negotiationFactory.Create(products[0].Id, products[0].Price.Value, new ProposedPrice(4.50M), CustomerId.From(Guid.Parse("00000000-0000-0000-0000-000000000001"))),
-                _negotiationFactory.Create(products[1].Id, products[1].Price.Value, new ProposedPrice(2.00M), CustomerId.From(Guid.Parse("00000000-0000-0000-0000-000000000002"))),
-                _negotiationFactory.Create(products[2].Id, products[2].Price.Value, new ProposedPrice(3.00M), CustomerId.From(Guid.Parse("00000000-0000-0000-0000-000000000003"))),
+                _negotiationFactory.Create(products[0].Id, products[0].Price.Value, new ProposedPrice(4.50M), CustomerId.From(Guid.Parse("00000000-0000-0000-0000-000000000001")), StartingRetries, products[0].Price.Value * (decimal)maxPriceMultiplier),
+                _negotiationFactory.Create(products[1].Id, products[1].Price.Value, new ProposedPrice(2.00M), CustomerId.From(Guid.Parse("00000000-0000-0000-0000-000000000002")), StartingRetries, products[1].Price.Value * (decimal)maxPriceMultiplier),
+                _negotiationFactory.Create(products[2].Id, products[2].Price.Value, new ProposedPrice(3.00M), CustomerId.From(Guid.Parse("00000000-0000-0000-0000-000000000003")), StartingRetries, products[2].Price.Value * (decimal)maxPriceMultiplier),
             };
         }
 

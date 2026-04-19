@@ -1,12 +1,11 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using PriceNegotiationApp.Api.Authorization;
 using PriceNegotiationApp.Api.Extensions;
 using PriceNegotiationApp.Api.Providers;
 using PriceNegotiationApp.Application.Common;
@@ -40,12 +39,12 @@ namespace PriceNegotiationApp.Api
             var builder = WebApplication.CreateBuilder(args);
 
             // configure Serilog
-            var logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(builder.Configuration)
-                .CreateLogger();
-
-            builder.Logging.ClearProviders();
-            builder.Logging.AddSerilog(logger);
+            Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"SERILOG ERROR: {msg}"));
+            builder.Host.UseSerilog((context, services, configuration) =>
+            {
+                configuration.ReadFrom.Configuration(context.Configuration);
+                configuration.ReadFrom.Services(services);
+            });
 
             builder.Services.AddControllers(options =>
             {
@@ -65,6 +64,7 @@ namespace PriceNegotiationApp.Api
 
                 if (builder.Environment.IsDevelopment())
                 {
+                    opt.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
                     opt.EnableSensitiveDataLogging();
                     opt.EnableDetailedErrors();
                 }
@@ -139,6 +139,8 @@ namespace PriceNegotiationApp.Api
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
             var app = builder.Build();
+
+            app.UseSerilogRequestLogging();
 
             AddInitialData(app.Services);
 

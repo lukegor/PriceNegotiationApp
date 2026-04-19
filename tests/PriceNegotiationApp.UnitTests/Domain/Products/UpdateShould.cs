@@ -55,5 +55,48 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
             Assert.IsType<DomainException>(exception);
             Assert.Equal("Product name cannot be null or empty.", exception.Message);
         }
+
+        [Fact]
+        public void UpdateProduct_ShouldThrowDomainException_WhenNoChangesDetected()
+        {
+            // Arrange
+            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+
+            // Act
+            var exception = Record.Exception(() =>
+                product.Update("Laptop", new ProductPrice(100)));
+
+            // Assert
+            Assert.IsType<DomainException>(exception);
+            Assert.Equal("No changes detected", exception.Message);
+        }
+
+        [Fact]
+        public void HasChanges_ReturnFalse_WhenNameAndPriceMatch()
+        {
+            // Arrange
+            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+
+            // Act
+            var hasChanges = product.HasChanges("Laptop", new ProductPrice(100));
+
+            // Assert
+            Assert.False(hasChanges);
+        }
+
+        [Fact]
+        public void HasChanges_ReturnTrue_WhenNameOrPriceDiffers()
+        {
+            // Arrange
+            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+
+            // Act
+            var changedName = product.HasChanges("Laptop Pro", new ProductPrice(100));
+            var changedPrice = product.HasChanges("Laptop", new ProductPrice(120));
+
+            // Assert
+            Assert.True(changedName);
+            Assert.True(changedPrice);
+        }
     }
 }

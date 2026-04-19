@@ -8,6 +8,7 @@ namespace PriceNegotiationApp.UnitTests
         [ModuleInitializer]
         public static void Initialize()
         {
+            License.Accepted = true;
             AssertionConfiguration.Current.Equivalency.Modify(options =>
                 options.ThrowingOnMissingMembers());
         }

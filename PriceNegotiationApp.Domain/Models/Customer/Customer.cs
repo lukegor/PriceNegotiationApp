@@ -16,11 +16,11 @@
 
         private Customer() { }
 
-        internal Customer(CustomerId customerId, Guid identityId, string Name)
+        internal Customer(CustomerId customerId, Guid identityId, string name)
         {
             Id = customerId;
             IdentityId = identityId;
-            Name = Name;
+            Name = name;
         }
     }
 }

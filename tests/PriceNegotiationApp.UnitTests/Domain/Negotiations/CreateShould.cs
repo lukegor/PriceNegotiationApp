@@ -12,11 +12,16 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
     {
         private readonly NegotiationFactory _negotiationFactory;
         private readonly IIdGenerator _idGenerator;
+        private readonly TimeProvider _timeProvider;
+
+        private const int StartingRetries = 3;
+        private const double Multiplier = 2;
 
         public CreateShould()
         {
             _idGenerator = Substitute.For<IIdGenerator>();
-            _negotiationFactory = new NegotiationFactory(_idGenerator);
+            _timeProvider = Substitute.For<TimeProvider>();
+            _negotiationFactory = new NegotiationFactory(_idGenerator, _timeProvider);
         }
 
         [Fact]
@@ -34,7 +39,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
             var proposedPrice = new ProposedPrice(200);
 
             // Act
-            var negotiation = _negotiationFactory.Create(productId, initialPrice.Value, proposedPrice, customerId);
+            var negotiation = _negotiationFactory.Create(productId, initialPrice.Value, proposedPrice, customerId, StartingRetries, (decimal)Multiplier * initialPrice.Value);
 
             // Assert
             Assert.NotNull(negotiation);

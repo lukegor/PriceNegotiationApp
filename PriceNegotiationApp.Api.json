@@ -840,8 +840,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json;odata.metadata=minimal;odata.streaming=true": {
                 "schema": { }

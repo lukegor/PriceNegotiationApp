@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Application.Services;
@@ -36,7 +35,7 @@ namespace PriceNegotiationApp.Api.Controllers
         /// <returns>Returns a 201 Created response if successful.</returns>
         [HttpPost("Registration")]
         [AllowAnonymous]
-        public async Task<Results<CreatedAtRoute<object>, BadRequest<IEnumerable<string>>>> RegisterUser(
+        public async Task<Results<Ok<object>, BadRequest<IEnumerable<string>>>> RegisterUser(
             [FromBody] RegisterUserRequestDto request)
         {
             var result = await authService.RegisterUserAsync(request.ToCommand());
@@ -44,7 +43,7 @@ namespace PriceNegotiationApp.Api.Controllers
             if (result.Succeeded)
             {
                 object responseBody = new { Message = "User registration successful" };
-                return TypedResults.CreatedAtRoute(responseBody, nameof(RegisterUser), new { userName = request.UserName });
+                return TypedResults.Ok(responseBody);
             }
 
             var errors = result.Errors.Select(e => e.Description);

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization.Infrastructure;
 
-namespace PriceNegotiationApp.Api.Authorization
+namespace PriceNegotiationApp.Application.Security
 {
     public static class Operations
     {

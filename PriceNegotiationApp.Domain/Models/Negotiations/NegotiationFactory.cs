@@ -7,7 +7,7 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
     public class NegotiationFactory(IIdGenerator _idGenerator, TimeProvider timeProvider)
     {
         public Negotiation Create(ProductId productId, decimal productPrice, ProposedPrice proposedPrice, CustomerId customerId,
-            int startingRetries, double maxPriceAllowed)
+            int startingRetries, decimal maxPriceAllowed)
         {
             var id = _idGenerator.NewId();
             return new Negotiation(NegotiationId.From(id), productId, productPrice, proposedPrice, customerId,

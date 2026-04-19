@@ -49,7 +49,7 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             CustomerId userId,
             DateTimeOffset timeNow,
             int startingRetries,
-            double maxPriceMultiplier)
+            decimal maxPriceAllowed)
         {
             Id = id;
             ProductId = productId;
@@ -58,10 +58,10 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
             RetriesLeft = startingRetries;
 
             InitializeDefaults(timeNow);
-            TryNegotiate(maxPriceMultiplier, proposedPrice, productPrice, timeNow);
+            TryNegotiate(maxPriceAllowed, proposedPrice, productPrice, timeNow);
         }
 
-        public void TryNegotiate(double maxPriceMultiplier, ProposedPrice proposedPrice, decimal productPrice,
+        public void TryNegotiate(decimal maxPriceAllowed, ProposedPrice proposedPrice, decimal productPrice,
             DateTimeOffset timeNow)
         {
             CheckRule(new RetriesLeftMustBePositiveRule(RetriesLeft));

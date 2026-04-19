@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using FluentAssertions;
+using NSubstitute;
 using PriceNegotiationApp.Domain;
 using PriceNegotiationApp.Domain.Models.Products;
 using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
@@ -20,20 +21,23 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         public void UpdateProduct_WithValidData_ShouldUpdateSuccessfully()
         {
             // Arrange
-            var product = _productFactory.Create("Laptop", new ProductPrice(100));
-
             var expectedProductId = Guid.Parse("11111111-1111-1111-1111-111111111111");
             _idGenerator.NewId().Returns(expectedProductId);
 
-            var name = "Laptop Lenovo";
-            var price = new ProductPrice(200);
+            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+
+            var expected = new
+            {
+                Id = ProductId.From(expectedProductId),
+                Name = "Laptop Lenovo",
+                Price = new ProductPrice(200)
+            };
 
             // Act
-            product.Update(name, price);
+            product.Update(expected.Name, expected.Price);
 
             // Assert
-            Assert.Equal(name, product.Name);
-            Assert.Equal(price, product.Price);
+            product.Should().BeEquivalentTo(expected);
         }
 
         [Fact]

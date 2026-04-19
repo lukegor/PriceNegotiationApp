@@ -109,7 +109,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
         }
 
         [Fact]
-        public void ResetRetries_SetRetryCountBackToThree()
+        public void ResetRetries_SetsRetryCountToConfiguredStartValue()
         {
             // Arrange
             _idGenerator.NewId().Returns(Guid.Parse("50000000-0000-0000-0000-000000000041"));

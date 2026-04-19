@@ -73,7 +73,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         }
 
         [Fact]
-        public void HasChanges_ReturnFalse_WhenNameAndPriceMatch()
+        public void HasChanges_ReturnsFalse_WhenNameAndPriceMatch()
         {
             // Arrange
             var price = new ProductPrice(100);
@@ -87,7 +87,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         }
 
         [Fact]
-        public void HasChanges_ReturnTrue_WhenNameOrPriceDiffers()
+        public void HasChanges_ReturnsTrue_WhenNameOrPriceDiffers()
         {
             // Arrange
             var product = _productFactory.Create("Laptop", new ProductPrice(100));

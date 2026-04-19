@@ -28,6 +28,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
             var initialTime = new DateTimeOffset(2026, 04, 01, 08, 00, 00, TimeSpan.Zero);
             _timeProvider.GetUtcNow().Returns(initialTime);
             var negotiation = CreateNegotiation(startingRetries: 3);
+            Assert.Equal(2, negotiation.RetriesLeft);
 
             var expectedUpdatedAt = new DateTimeOffset(2026, 04, 01, 09, 00, 00, TimeSpan.Zero);
 
@@ -144,7 +145,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
 
             return _factory.Create(
                 ProductId.From(Guid.Parse("20000000-0000-0000-0000-000000000001")),
-                new ProductPrice(100m).Value,
+                100m,
                 new ProposedPrice(120m),
                 CustomerId.From(Guid.Parse("30000000-0000-0000-0000-000000000001")),
                 startingRetries,

@@ -19,7 +19,7 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "Log into an account",
+        "description": "Log into an account",
         "requestBody": {
           "content": {
             "application/json;odata.metadata=minimal;odata.streaming=true": {
@@ -633,7 +633,7 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "Registers a new user.",
+        "description": "Registers a new user account",
         "requestBody": {
           "content": {
             "application/json;odata.metadata=minimal;odata.streaming=true": {
@@ -840,118 +840,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json;odata.metadata=minimal;odata.streaming=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;odata.streaming=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;odata.streaming=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;odata.streaming=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;odata.streaming=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;odata.streaming=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none": {
-                "schema": { }
-              },
-              "application/json;odata.streaming=true": {
-                "schema": { }
-              },
-              "application/json;odata.streaming=false": {
-                "schema": { }
-              },
-              "application/json": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;odata.streaming=false;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;odata.streaming=false;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=minimal;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;odata.streaming=true;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;odata.streaming=true;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;odata.streaming=false;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;odata.streaming=false;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=full;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;odata.streaming=true;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;odata.streaming=true;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;odata.streaming=false;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;odata.streaming=false;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.metadata=none;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.streaming=true;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.streaming=true;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;odata.streaming=false;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;odata.streaming=false;IEEE754Compatible=true": {
-                "schema": { }
-              },
-              "application/json;IEEE754Compatible=false": {
-                "schema": { }
-              },
-              "application/json;IEEE754Compatible=true": {
-                "schema": { }
-              }
-            }
+          "201": {
+            "description": "Created"
           },
           "400": {
             "description": "Bad Request",
@@ -1278,7 +1168,7 @@
         }
       }
     },
-    "/api/v1/Negotiations/Negotiation/all": {
+    "/api/v1/Negotiations/all": {
       "get": {
         "tags": [
           "Negotiation"
@@ -1910,7 +1800,7 @@
         ]
       }
     },
-    "/api/v1/Negotiations/Negotiation/{id}": {
+    "/api/v1/Negotiations/{id}": {
       "get": {
         "tags": [
           "Negotiation"
@@ -2321,7 +2211,7 @@
         ]
       }
     },
-    "/api/v1/Negotiations/Negotiation/{id}/reset-retries": {
+    "/api/v1/Negotiations/{id}/reset-retries": {
       "post": {
         "tags": [
           "Negotiation"
@@ -2624,7 +2514,7 @@
         ]
       }
     },
-    "/api/v1/Negotiations/Negotiation/{id}/close": {
+    "/api/v1/Negotiations/{id}/close": {
       "put": {
         "tags": [
           "Negotiation"
@@ -2890,7 +2780,7 @@
         }
       }
     },
-    "/api/v1/Negotiations/Negotiation/{negotiationId}/negotiate": {
+    "/api/v1/Negotiations/{negotiationId}/negotiate": {
       "patch": {
         "tags": [
           "Negotiation"
@@ -3324,7 +3214,7 @@
         }
       }
     },
-    "/api/v1/Negotiations/Negotiation": {
+    "/api/v1/Negotiations": {
       "post": {
         "tags": [
           "Negotiation"
@@ -3833,7 +3723,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3841,7 +3731,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3849,7 +3739,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3857,7 +3747,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3865,7 +3755,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3873,7 +3763,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3881,7 +3771,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3889,7 +3779,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3897,7 +3787,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3905,7 +3795,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3913,7 +3803,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3921,7 +3811,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3929,7 +3819,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3937,7 +3827,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3945,7 +3835,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3953,7 +3843,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3961,7 +3851,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3969,7 +3859,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3977,7 +3867,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3985,7 +3875,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -3993,7 +3883,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4001,7 +3891,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4009,7 +3899,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4017,7 +3907,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4025,7 +3915,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4033,7 +3923,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4041,7 +3931,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4049,7 +3939,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4057,7 +3947,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4065,7 +3955,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4073,7 +3963,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4081,7 +3971,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4089,7 +3979,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4097,7 +3987,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4105,7 +3995,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4113,7 +4003,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4121,7 +4011,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4129,7 +4019,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4137,7 +4027,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               },
@@ -4145,7 +4035,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductDto"
+                    "$ref": "#/components/schemas/ProductViewModel"
                   }
                 }
               }
@@ -4394,6 +4284,7 @@
           "Product"
         ],
         "description": "Retrieves a specific product by its unique identifier.",
+        "operationId": "GetProduct",
         "parameters": [
           {
             "name": "id",
@@ -5947,29 +5838,6 @@
           }
         }
       },
-      "ProductDto": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "price": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
-            "format": "double"
-          }
-        }
-      },
       "ProductRequestDto": {
         "required": [
           "name"
@@ -5990,6 +5858,31 @@
         }
       },
       "ProductResponseDto": {
+        "required": [
+          "id",
+          "name",
+          "price"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ProductViewModel": {
         "required": [
           "id",
           "name",

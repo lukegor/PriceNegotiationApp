@@ -1,29 +1,39 @@
-﻿namespace PriceNegotiationApp.IntegrationTests.Negotiations
+﻿using Bogus;
+using PriceNegotiationApp.Domain.Models.Negotiations;
+using System.Net;
+
+namespace PriceNegotiationApp.IntegrationTests.Negotiations
 {
-    public class NegotiationServiceTest : IClassFixture<IntegrationTestFactory>
+    public class NegotiationServiceTest : BaseIntegrationTest, IClassFixture<IntegrationTestFactory>
     {
-        //private readonly ITestOutputHelper _output;
-        //private readonly NegotiationServiceTestFixture _fixture;
+        private readonly NegotiationFactory _negotiationFactory;
+        private readonly ITestOutputHelper _output;
 
-        //public NegotiationServiceTest(ITestOutputHelper output, NegotiationServiceTestFixture fixture)
-        //{
-        //    _output = output;
-        //    _fixture = fixture;
-        //}
+        private readonly Faker _faker = new("pl");
 
-        //[Fact]
-        //public async Task GetNegotiations_ShouldReturnAllNegotiations()
-        //{
+        public NegotiationServiceTest(IntegrationTestFactory testFactory,
+            ITestOutputHelper output) : base(testFactory)
+        {
+            _output = output;
+            _negotiationFactory = GetService<NegotiationFactory>();
+        }
 
-        //    // Ensure that the number of returned products matches the number of test data items
-        //    Assert.Equal(testData.Count(), resultList.Count);
+        // TODO: Differentiate not only test but also the OData DTO structure between admin and customer
+        [Fact]
+        public async Task GetNegotiations_ShouldReturnAllNegotiations()
+        {
+            // Arrange
+            var product = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount(1000, 10000));
+            var customer = SeedCustomer(Guid.NewGuid(), _faker.Name.FullName());
+            var negotiation = SeedNegotiation(product.Id, product.Price.Value, _faker.Finance.Amount(1, 999), customer.Id.Value);
 
-        //    // Check if each test data item is present in the returned products
-        //    foreach (var product in returnedModels)
-        //    {
-        //        Assert.Contains(product, testData);
-        //    }
-        //}
+            // Act
+            var result = await AsAdmin<INegotiationsApi>().GetNegotiationsAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            Assert.Equal(1, result.Content.Count());
+        }
 
         //[Fact]
         //public async Task GetNegotiation_ShouldReturnSpecifiedNegotiation()

@@ -9,12 +9,10 @@ namespace PriceNegotiationApp.Presentation.Products.Mappers
         {
             public ProductDto ToDto()
             {
-                return new ProductDto
-                {
-                    Id = productViewModel.Id,
-                    Name = productViewModel.Name,
-                    Price = productViewModel.Price
-                };
+                return new ProductDto(
+                    productViewModel.Id,
+                    productViewModel.Name,
+                    productViewModel.Price);
             }
         }
     }

@@ -1,6 +1,4 @@
-﻿using PriceNegotiationApp.Domain.Models.Customer;
-using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
-using PriceNegotiationApp.Domain.Models.Products;
+﻿using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
 
 namespace PriceNegotiationApp.Domain.Models.Negotiations
 {
@@ -9,53 +7,24 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
     /// </summary>
     public interface INegotiationDomainService
     {
-        Negotiation CreateNegotiation(ProductId productId, decimal productPrice, ProposedPrice proposedPrice,
-            CustomerId userId);
         void ResetRetries(Negotiation negotiation);
-        void TryNegotiate(Negotiation negotiation, ProposedPrice proposedPrice, decimal productPrice);
+        void TryNegotiate(Negotiation negotiation, ProposedPrice proposedPrice);
     }
 
     /// <inheritdoc cref="INegotiationDomainService"/>
-    public class NegotiationDomainService(NegotiationFactory negotiationFactory,
-        TimeProvider timeProvider) : INegotiationDomainService
+    public class NegotiationDomainService(
+        TimeProvider timeProvider,
+        INegotiationPolicy negotiationPolicy) : INegotiationDomainService
     {
-        private const int MaxPriceMultiplier = 2;
-        private const int StartingRetries = 3;
-
-        public Negotiation CreateNegotiation(ProductId productId, decimal productPrice, ProposedPrice proposedPrice,
-            CustomerId userId)
+        public void TryNegotiate(Negotiation negotiation, ProposedPrice proposedPrice)
         {
-            var maxAllowedPrice = CalculateMaxAllowedPrice(MaxPriceMultiplier, productPrice);
-
-            if (proposedPrice.Value > maxAllowedPrice)
-            {
-                throw new DomainException(
-                    $"Proposed price cannot exceed {maxAllowedPrice:C}.");
-            }
-
-            return negotiationFactory.Create(productId, productPrice, proposedPrice, userId, StartingRetries, maxAllowedPrice);
-        }
-
-        public void TryNegotiate(Negotiation negotiation, ProposedPrice proposedPrice, decimal productPrice)
-        {
-            var maxAllowedPrice = CalculateMaxAllowedPrice(MaxPriceMultiplier, productPrice);
-            if (proposedPrice.Value > maxAllowedPrice)
-            {
-                throw new DomainException(
-                    $"Proposed price cannot exceed {maxAllowedPrice:C}.");
-            }
-
-            negotiation.TryNegotiate(MaxPriceMultiplier, proposedPrice, productPrice, timeProvider.GetUtcNow());
+            negotiation.TryNegotiate(proposedPrice, timeProvider.GetUtcNow());
         }
 
         public void ResetRetries(Negotiation negotiation)
         {
-            negotiation.ResetRetries(StartingRetries, timeProvider.GetUtcNow());
-        }
-
-        private static decimal CalculateMaxAllowedPrice(double multiplier, decimal productPrice)
-        {
-            return (decimal)multiplier * productPrice;
+            var retries = negotiationPolicy.CalculateRetries(negotiation.UserId, negotiation.ProductId);
+            negotiation.ResetRetries(retries, timeProvider.GetUtcNow());
         }
     }
 }

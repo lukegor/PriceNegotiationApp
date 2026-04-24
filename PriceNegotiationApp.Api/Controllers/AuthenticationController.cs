@@ -12,9 +12,8 @@ namespace PriceNegotiationApp.Api.Controllers
     public class AuthenticationController(
         IAuthService authService) : ControllerBase
     {
-        /// <summary>Log into an account</summary>
-        /// <returns>Returns true if login is successful, false otherwise.</returns>
         [HttpPost("Login")]
+        [EndpointDescription("Log into an account")]
         [AllowAnonymous]
         public async Task<Results<Ok<AuthResponseDto>, BadRequest<AuthResponseDto>>> Login(
             [FromBody] LoginRequestDto request)
@@ -29,25 +28,21 @@ namespace PriceNegotiationApp.Api.Controllers
             return TypedResults.Ok(authResult.ToResponseDto());
         }
 
-        /// <summary>
-        /// Registers a new user.
-        /// </summary>
-        /// <returns>Returns a 201 Created response if successful.</returns>
         [HttpPost("Registration")]
+        [EndpointDescription("Registers a new user account")]
         [AllowAnonymous]
-        public async Task<Results<Ok<object>, BadRequest<IEnumerable<string>>>> RegisterUser(
+        public async Task<Results<Created, BadRequest<IEnumerable<string>>>> RegisterUser(
             [FromBody] RegisterUserRequestDto request)
         {
             var result = await authService.RegisterUserAsync(request.ToCommand());
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                object responseBody = new { Message = "User registration successful" };
-                return TypedResults.Ok(responseBody);
+                var errors = result.Errors.Select(e => e.Description);
+                return TypedResults.BadRequest(errors);
             }
 
-            var errors = result.Errors.Select(e => e.Description);
-            return TypedResults.BadRequest(errors);
+            return TypedResults.Created();
         }
     }
 }

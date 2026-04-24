@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Bogus;
+using FluentAssertions;
 using NSubstitute;
 using PriceNegotiationApp.Domain;
 using PriceNegotiationApp.Domain.Models.Products;
@@ -10,6 +11,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
     {
         private readonly ProductFactory _productFactory;
         private readonly IIdGenerator _idGenerator;
+        private readonly Faker _faker = new("pl");
 
         public UpdateShould()
         {
@@ -21,16 +23,18 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
         public void UpdateProduct_WithValidData_ShouldUpdateSuccessfully()
         {
             // Arrange
-            var expectedProductId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var expectedProductId = _faker.Random.Guid();
+            var productName = _faker.Commerce.ProductName();
+            var amount = _faker.Finance.Amount(1, 1000000);
             _idGenerator.NewId().Returns(expectedProductId);
 
-            var product = _productFactory.Create("Laptop", new ProductPrice(100));
+            var product = _productFactory.Create(productName, new ProductPrice(amount));
 
             var expected = new
             {
                 Id = ProductId.From(expectedProductId),
-                Name = "Laptop Lenovo",
-                Price = new ProductPrice(200)
+                Name = _faker.Commerce.ProductName(),
+                Price = new ProductPrice(_faker.Finance.Amount(1, 1000000))
             };
 
             // Act

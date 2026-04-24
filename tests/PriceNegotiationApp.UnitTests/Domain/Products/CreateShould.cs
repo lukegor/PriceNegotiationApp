@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Bogus;
+using FluentAssertions;
 using NSubstitute;
 using PriceNegotiationApp.Domain;
 using PriceNegotiationApp.Domain.Models.Products;
@@ -10,6 +11,7 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
     {
         private readonly ProductFactory _productFactory;
         private readonly IIdGenerator _idGenerator;
+        private readonly Faker _faker = new("pl");
 
         public CreateShould()
         {
@@ -17,37 +19,30 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
             _productFactory = new ProductFactory(_idGenerator);
         }
 
-        [Theory]
-        [InlineData("Laptop", 100, "11111111-1111-1111-1111-111111111111")]
-        [InlineData("Mąka Poznańska", 5.99, "22222222-2222-2222-2222-222222222222")]
-        public void CreateProduct_WithValidData(string name, decimal priceValue, string guid)
+        [Fact]
+        public void CreateProduct_WithValidData()
         {
             // Arrange
-            var expectedProductId = Guid.Parse(guid);
-            _idGenerator.NewId().Returns(expectedProductId);
+            var product = ProductBuilder.Default();
 
-            var price = new ProductPrice(priceValue);
+            _idGenerator.NewId().Returns(product.Id.Value);
 
-            var expected = new
-            {
-                Id = ProductId.From(expectedProductId),
-                Name = name,
-                Price = price
-            };
+            var expected = new Product(ProductId.From(product.Id.Value), product.Name, product.Price);
 
             // Act
-            var product = _productFactory.Create(name, price);
+            var result = _productFactory.Create(product.Name, product.Price);
 
             // Assert
-            product.Should().BeEquivalentTo(expected);
+            result.Should().BeEquivalentTo(expected);
         }
 
-        [Fact]
-        public void CreateProduct_ShouldThrowDomainException_WhenNameIsEmpty()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("   ")]
+        public void CreateProduct_ShouldThrowDomainException_WhenNameIsEmpty(string? name)
         {
             // Arrange
-            var name = "";
-            var price = new ProductPrice(100);
+            var price = new ProductPrice(_faker.Finance.Amount(1, 10000));
 
             // Act
             var exception = Record.Exception(() => _productFactory.Create(name, price));

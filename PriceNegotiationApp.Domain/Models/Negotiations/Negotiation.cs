@@ -32,6 +32,7 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
 
         public CustomerId UserId { get; set; }
 
+        public decimal MaxAllowedPrice { get; private set; }
 
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -41,31 +42,43 @@ namespace PriceNegotiationApp.Domain.Models.Negotiations
 		private Negotiation() { }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
-        internal Negotiation(
+        public Negotiation(
             NegotiationId id,
             ProductId productId,
-            decimal productPrice,
             ProposedPrice proposedPrice,
             CustomerId userId,
             DateTimeOffset timeNow,
             int startingRetries,
-            decimal maxPriceAllowed)
+            decimal maxAllowedPrice)
         {
+            if (proposedPrice.Value > maxAllowedPrice)
+            {
+                throw new DomainException(
+                    $"Proposed price cannot exceed {maxAllowedPrice:C}.");
+            }
+
             Id = id;
             ProductId = productId;
             ProposedPrice = proposedPrice;
             UserId = userId;
             RetriesLeft = startingRetries;
+            MaxAllowedPrice = maxAllowedPrice;
 
             InitializeDefaults(timeNow);
-            TryNegotiate(maxPriceAllowed, proposedPrice, productPrice, timeNow);
         }
 
-        public void TryNegotiate(decimal maxPriceAllowed, ProposedPrice proposedPrice, decimal productPrice,
+        public void TryNegotiate(ProposedPrice proposedPrice,
             DateTimeOffset timeNow)
         {
             CheckRule(new RetriesLeftMustBePositiveRule(RetriesLeft));
 
+            if (proposedPrice.Value > MaxAllowedPrice)
+            {
+                throw new DomainException(
+                    $"Proposed price cannot exceed {MaxAllowedPrice:C}.");
+            }
+
+            ProposedPrice = proposedPrice;
             --RetriesLeft;
             UpdatedAt = timeNow.UtcDateTime;
         }

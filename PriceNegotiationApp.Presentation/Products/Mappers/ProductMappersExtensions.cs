@@ -18,12 +18,10 @@ namespace PriceNegotiationApp.Presentation.Products.Mappers
 
             public ProductDto ToODataResponseDto()
             {
-                return new ProductDto
-                {
-                    Id = product.Id.Value,
-                    Name = product.Name,
-                    Price = product.Price.Value
-                };
+                return new ProductDto(
+                    product.Id.Value,
+                    product.Name,
+                    product.Price.Value);
             }
         }
     }

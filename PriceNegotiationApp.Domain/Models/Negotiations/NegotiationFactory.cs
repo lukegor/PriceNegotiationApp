@@ -4,14 +4,23 @@ using PriceNegotiationApp.Domain.Models.Products;
 
 namespace PriceNegotiationApp.Domain.Models.Negotiations
 {
-    public class NegotiationFactory(IIdGenerator _idGenerator, TimeProvider timeProvider)
+    public class NegotiationFactory(IIdGenerator _idGenerator, TimeProvider timeProvider, INegotiationPolicy negotiationPolicy)
     {
-        public Negotiation Create(ProductId productId, decimal productPrice, ProposedPrice proposedPrice, CustomerId customerId,
-            int startingRetries, decimal maxPriceAllowed)
+        public Negotiation Create(ProductId productId, decimal productPrice, ProposedPrice proposedPrice, CustomerId customerId)
         {
             var id = _idGenerator.NewId();
-            return new Negotiation(NegotiationId.From(id), productId, productPrice, proposedPrice, customerId,
-                timeProvider.GetUtcNow(), startingRetries, maxPriceAllowed);
+
+            var retries = negotiationPolicy.CalculateRetries(customerId, productId);
+            var maxAllowedPrice = negotiationPolicy.CalculateMaxAllowedPrice(productPrice, productId);
+
+            var now = timeProvider.GetUtcNow();
+
+            var negotiation = new Negotiation(NegotiationId.From(id), productId, proposedPrice, customerId,
+                now, retries, maxAllowedPrice);
+
+            negotiation.TryNegotiate(proposedPrice, now);
+
+            return negotiation;
         }
     }
 }

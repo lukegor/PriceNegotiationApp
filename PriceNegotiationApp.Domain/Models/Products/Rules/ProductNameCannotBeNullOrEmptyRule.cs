@@ -7,6 +7,6 @@ namespace PriceNegotiationApp.Domain.Models.Products.Rules
         public string Message => "Product name cannot be null or empty.";
 
         public bool IsBroken()
-            => string.IsNullOrEmpty(name);
+            => string.IsNullOrWhiteSpace(name);
     }
 }

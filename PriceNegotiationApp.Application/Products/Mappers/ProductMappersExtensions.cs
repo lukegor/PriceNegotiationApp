@@ -1,6 +1,5 @@
 ﻿using PriceNegotiationApp.Application.Products.Dtos;
 using PriceNegotiationApp.Domain.Models.Products;
-using System.Linq.Expressions;
 
 namespace PriceNegotiationApp.Application.Products.Mappers
 {
@@ -16,9 +15,9 @@ namespace PriceNegotiationApp.Application.Products.Mappers
                     product.Price.Value);
             }
 
-            public static Expression<Func<Product, ProductViewModel>> ToViewModel()
+            public ProductViewModel ToViewModel()
             {
-                return product => new ProductViewModel(
+                return new ProductViewModel(
                     product.Id.Value,
                     product.Name,
                     product.Price.Value);

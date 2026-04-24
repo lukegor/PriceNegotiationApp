@@ -13,7 +13,7 @@ using PriceNegotiationApp.Presentation.Negotiations.Mappers;
 namespace PriceNegotiationApp.Api.Controllers
 {
     [Area("Negotiations")]
-    [Route("api/v1/[area]/[controller]")]
+    [Route("api/v1/[area]")]
     [ApiController]
     public class NegotiationController : ControllerBase
     {

@@ -39,7 +39,10 @@ namespace PriceNegotiationApp.Application.Products
         public IQueryable<ProductViewModel> GetProducts()
         {
             return _context.Products.AsNoTracking()
-                .Select(ProductMappersExtensions.ToViewModel());
+                .Select(x => new ProductViewModel(
+                    x.Id.Value,
+                    x.Name,
+                    x.Price.Value));
         }
 
         public async Task<ProductResultDto> GetProductAsync(GetProductByIdQuery query, CancellationToken cancellationToken)

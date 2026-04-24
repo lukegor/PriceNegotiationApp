@@ -3,6 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace PriceNegotiationApp.UnitTests
 {
+    /// <summary>
+    /// Global configuration for FluentAssertions.
+    /// </summary>
     internal static class TestConfig
     {
         [ModuleInitializer]

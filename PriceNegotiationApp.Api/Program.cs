@@ -104,6 +104,8 @@ namespace PriceNegotiationApp.Api
 
             builder.Services.AddAuthorizationWithPolicies();
 
+            builder.Services.AddSingleton(TimeProvider.System);
+
             builder.Services.AddScoped<JwtManager>();
 
             // add data initializer
@@ -124,6 +126,8 @@ namespace PriceNegotiationApp.Api
 
             builder.Services.AddScoped<IJwtTokenGenerator, JwtManager>();
             builder.Services.AddScoped<IIdGenerator, SystemIdGenerator>();
+
+            builder.Services.AddSingleton<INegotiationPolicy, DefaultNegotiationPolicy>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();

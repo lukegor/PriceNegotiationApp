@@ -8,7 +8,6 @@ using PriceNegotiationApp.Application.Negotiations.Requests.Commands;
 using PriceNegotiationApp.Application.Negotiations.Requests.Queries;
 using PriceNegotiationApp.Application.Security;
 using PriceNegotiationApp.Domain.Models.Negotiations;
-using PriceNegotiationApp.Domain.Models.Products;
 
 namespace PriceNegotiationApp.Application.Negotiations
 {
@@ -31,14 +30,16 @@ namespace PriceNegotiationApp.Application.Negotiations
     public class NegotiationService : INegotiationService
     {
         private readonly INegotiationDomainService _service;
+        private readonly NegotiationFactory _negotiationFactory;
         private readonly IAppDbContext _context;
         private readonly IExecutionContext _executionContext;
         private readonly IAuthorizationService _authorizationService;
 
-        public NegotiationService(INegotiationDomainService service, IAppDbContext context, IExecutionContext executionContext,
-            IAuthorizationService authorizationService)
+        public NegotiationService(INegotiationDomainService service, NegotiationFactory negotiationFactory, IAppDbContext context,
+            IExecutionContext executionContext, IAuthorizationService authorizationService)
         {
             _service = service;
+            _negotiationFactory = negotiationFactory;
             _context = context;
             _executionContext = executionContext;
             _authorizationService = authorizationService;
@@ -119,10 +120,7 @@ namespace PriceNegotiationApp.Application.Negotiations
                 throw new UnauthorizedAccessException("You are not authorized to propose a new price for this negotiation.");
             }
 
-            Product relevantProduct = await _context.Products.FindAsync(negotiation.ProductId)
-                ?? throw new NotFoundException($"Product associated with negotiation with Id = '{command.NegotiationId}' not found");
-
-            _service.TryNegotiate(negotiation, command.ProposedPrice, relevantProduct.Price.Value);
+            _service.TryNegotiate(negotiation, command.ProposedPrice);
 
             await _context.SaveChangesAsync(cancellationToken);
             return new ProposePriceResultDto { Result = ProposePriceResult.Success };
@@ -138,7 +136,7 @@ namespace PriceNegotiationApp.Application.Negotiations
             var customer = await _context.Customers.FirstOrDefaultAsync(x => x.IdentityId == userId)
                 ?? throw new NotFoundException($"Customer with Identity ID = '{userId}' was not found.");
 
-            Negotiation negotiation = _service.CreateNegotiation(
+            Negotiation negotiation = _negotiationFactory.Create(
                 negotiationDto.ProductId,
                 product.Price.Value,
                 negotiationDto.ProposedPrice,

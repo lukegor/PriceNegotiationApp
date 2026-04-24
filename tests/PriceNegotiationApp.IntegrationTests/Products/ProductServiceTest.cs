@@ -1,126 +1,203 @@
-﻿using PriceNegotiationApp.Domain;
+﻿using Bogus;
+using FluentAssertions;
+using PriceNegotiationApp.Contracts.Products.Dtos.Requests;
 using PriceNegotiationApp.Domain.Models.Products;
-using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
+using System.Net;
 
 namespace PriceNegotiationApp.IntegrationTests.Products
 {
     public class ProductServiceTest : BaseIntegrationTest
     {
         private readonly ProductFactory _productFactory;
-        private readonly IIdGenerator _idGenMock;
         private readonly ITestOutputHelper _output;
+
+        private readonly Faker _faker = new("pl");
 
         public ProductServiceTest(
             IntegrationTestFactory testFactory,
             ITestOutputHelper output) : base(testFactory)
         {
             _productFactory = GetService<ProductFactory>();
-            _idGenMock = GetService<IIdGenerator>();
             _output = output;
         }
 
-        //[Theory]
-        //[InlineData(null, 3)]
-        //public async Task GetProducts_WhenProductsExist_ShouldReturnAllRelevantProducts(string? filter, int expectedProductCount)
-        //{
-        //    // Arrange
-        //    var p1 = await SeedProduct("Product A", 9.99m);
-        //    var p2 = await SeedProduct("Product B", 12.50m);
-        //    var p3 = await SeedProduct("Product C", 100.00m);
-
-        //    // Act
-        //    var response = await ProductsClient.GetProductsAsync(filter);
-        //    Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-
-        //    var result = response.Content.ToList();
-
-        //    Assert.Equal(expectedProductCount, result.Count);
-        //    Assert.Contains(result, r => r.Name == p1.Name && r.Price == p1.Price.Value);
-        //    Assert.Contains(result, r => r.Name == p2.Name && r.Price == p2.Price.Value);
-        //}
-
         [Theory]
-        [InlineData("price lt 20", 2)]
-        public async Task GetProducts_WhenProductsExist_ShouldReturnAllRelevantProducts2(string? filter, int expectedProductCount)
+        [InlineData(null, 3)]
+        [InlineData("price gt 20", 2)]
+        public async Task GetProducts_ShouldReturnAllRelevantProducts_WhenProductsExist(string? filter, int expectedProductCount)
         {
             // Arrange
-            var p1 = await SeedProduct("Product A", 9.99m);
-            var p2 = await SeedProduct("Product B", 12.50m);
-            var p3 = await SeedProduct("Product C", 100.00m);
+            var pBelow = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount(1, 19));
+            var pAbove1 = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount(21));
+            var pAbove2 = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount(21));
+
+            var allProducts = new[] { pBelow, pAbove1, pAbove2 };
+            var expected = allProducts
+                .TakeLast(expectedProductCount)
+                .Select(p => p.ToExpectedDto());
 
             // Act
-            var response = await ProductsClient.GetProductsAsync(filter);
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            var response = await AsGuest<IProductsApi>().GetProductsAsync(filter);
 
+            // Assert
             var result = response.Content.ToList();
-
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedProductCount, result.Count);
-            Assert.Contains(result, r => r.Name == p1.Name && r.Price == p1.Price.Value);
-            Assert.Contains(result, r => r.Name == p2.Name && r.Price == p2.Price.Value);
+            result.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
-        public async Task GetProduct_ShouldReturnSpecifiedProduct()
+        public async Task GetProduct_ShouldReturnSpecifiedProduct_WhenProductExists()
         {
             // Arrange
-            var p1 = await SeedProduct("Product A", 9.99m);
+            var p1 = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount());
 
             // Act
-            var response = await ProductsClient.GetProductByIdAsync(p1.Id.Value);
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            var response = await AsGuest<IProductsApi>().GetProductByIdAsync(p1.Id.Value);
 
+            // Assert
+            var result = response.Content;
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            result.Should().BeEquivalentTo(p1.ToExpectedDto());
+        }
+
+        [Fact]
+        public async Task GetProduct_WhenNonExistingProduct_ShouldReturnNotFound()
+        {
+            // Arrange
+            var nonExistingId = _faker.Random.Guid();
+
+            // Act
+            var response = await AsAdmin<IProductsApi>().GetProductByIdAsync(nonExistingId);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_ShouldCreateProduct_AsAdmin()
+        {
+            // Arrange
+            var request = new ProductRequestDto
+            {
+                Name = _faker.Commerce.ProductName(),
+                Price = _faker.Finance.Amount()
+            };
+
+            // Act
+            var response = await AsAdmin<IProductsApi>().CreateProductAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            request.ToExpectedDto().Should().BeEquivalentTo(response.Content, options => options
+                .Excluding(ctx => ctx.Path == nameof(Product.Id)));
+        }
+
+        [Theory]
+        [InlineData("User", HttpStatusCode.Forbidden)]
+        [InlineData("Guest", HttpStatusCode.Unauthorized)]
+        public async Task CreateProduct_ShouldReturnCorrectErrorCode_ForConcernedRolesWhenAccessIsRestricted(string role, HttpStatusCode expected)
+        {
+            // Arrange
+            var request = new ProductRequestDto
+            {
+                Name = _faker.Commerce.ProductName(),
+                Price = _faker.Finance.Amount()
+            };
+
+            var client = GetClientForRole<IProductsApi>(role);
+
+            // Act
+            var response = await client.CreateProductAsync(request);
+
+            // Assert
+            Assert.Equal(expected, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdateProduct_ShouldUpdate_AsAdmin()
+        {
+            // Arrange
+            var product = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount(1, 10000000));
+            var request = new ProductRequestDto { Name = _faker.Commerce.ProductName(), Price = _faker.Finance.Amount(1, 10000000) };
+
+            // Act
+            var response = await AsAdmin<IProductsApi>().UpdateProductAsync(product.Id.Value, request);
             var result = response.Content;
 
             // Assert
-            Assert.True(result.Id == p1.Id && result.Name == p1.Name && result.Price == p1.Price.Value); // Check if each test data item is present in the returned products
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            request.ToExpectedDto().Should().BeEquivalentTo(result, options =>
+                options.Excluding(p => p.Path == nameof(Product.Id)));
         }
 
-        //[Fact]
-        //public async Task GetProduct_ShouldThrowNotFoundExceptionForNonExistingProduct()
-        //{
-
-        //    // Act and Assert
-        //    await Assert.ThrowsAsync<NotFoundException>(async () =>
-        //    {
-        //        await productService.GetProductAsync(nonExistingProductId);
-        //    });
-        //}
-
-        //[Theory]
-        //[InlineData("name", 13.37)]
-        //[InlineData("a", 0.01)]
-        //public async Task CreateProductAsync_ShouldCreateProduct(string name, decimal price)
-        //{
-
-        //    // Assert
-        //    Assert.NotNull(createdProduct);
-        //    Assert.Equal(productInputModel.Name, createdProduct.Name);
-        //    Assert.Equal(productInputModel.Price, createdProduct.Price);
-        //}
-
-        //[Fact]
-        //public async Task DeleteProductAsync_ExistingProduct_ShouldRemoveProduct()
-        //{
-
-        //    // Assert
-        //    //Assert.True(result);
-        //    Assert.DoesNotContain(product, products);
-        //}
-
-        //[Fact]
-        //public async Task DeleteProductAsync_NonExistingProduct_ShouldNotRemoveProduct()
-        //{
-
-        //    // Assert
-        //    Assert.False(result);
-        //}
-
-        private async Task<Product> SeedProduct(string name, decimal price)
+        [Fact]
+        public async Task UpdateProduct_ShouldReturnNotFound_WhenProductDoesNotExist()
         {
-            var product = _productFactory.Create(name, new ProductPrice(price));
-            DbContext.Products.Add(product);
-            await DbContext.SaveChangesAsync();
-            return product;
+            // Arrange
+            var nonExistingId = _faker.Random.Guid();
+            var request = new ProductRequestDto { Name = _faker.Commerce.ProductName(), Price = _faker.Finance.Amount(1, 10000000) };
+
+            // Act
+            var response = await AsAdmin<IProductsApi>().UpdateProductAsync(nonExistingId, request);
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Theory]
+        [InlineData("User", HttpStatusCode.Forbidden)]
+        [InlineData("Guest", HttpStatusCode.Unauthorized)]
+        public async Task UpdateProduct_ShouldReturnCorrectErrorCode_ForConcernedRolesWhenAccessIsRestricted(string role, HttpStatusCode expected)
+        {
+            // Arrange
+            var client = GetClientForRole<IProductsApi>(role);
+            var request = new ProductRequestDto { Name = _faker.Commerce.ProductName(), Price = _faker.Finance.Amount(1, 10000000) };
+
+            // Act
+            var response = await client.UpdateProductAsync(Guid.NewGuid(), request);
+
+            // Assert
+            response.StatusCode.Should().Be(expected);
+        }
+
+        [Fact]
+        public async Task DeleteProductAsync_ShouldRemoveProduct_WhenValidConditions()
+        {
+            // Arrange
+            var product = SeedProduct(_faker.Commerce.ProductName(), _faker.Finance.Amount());
+
+            // Act
+            var response = await AsAdmin<IProductsApi>().DeleteProductAsync(product.Id.Value);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.DoesNotContain(product, DbContext.Products);
+        }
+
+        [Fact]
+        public async Task DeleteProductAsync_ShouldNotRemoveProduct_WhenNonExistingProduct()
+        {
+            // Arrange
+            var nonExistingId = _faker.Random.Guid();
+
+            // Act
+            var response = await AsAdmin<IProductsApi>().DeleteProductAsync(nonExistingId);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("User", HttpStatusCode.Forbidden)]
+        [InlineData("Guest", HttpStatusCode.Unauthorized)]
+        public async Task DeleteProduct_ReturnsExpectedStatus_ForConcernedRolesWhenAccessIsRestricted(string role, HttpStatusCode expected)
+        {
+            // Act
+            var response = await GetClientForRole<IProductsApi>(role).DeleteProductAsync(Guid.NewGuid());
+
+            // Assert
+            response.StatusCode.Should().Be(expected);
         }
     }
 }

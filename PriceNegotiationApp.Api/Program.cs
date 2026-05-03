@@ -1,9 +1,12 @@
 using FluentValidation;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PriceNegotiationApp.Api.Extensions;
@@ -54,6 +57,16 @@ namespace PriceNegotiationApp.Api
                 opt.Select().Filter().OrderBy().Expand().SetMaxTop(100).Count();
                 opt.AddRouteComponents("odata", ODataExtensions.GetEdmModel());
             });
+
+            builder.Services.AddHealthChecks()
+                .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "live" })
+                .AddCheck("in-memory-db", () => HealthCheckResult.Healthy(), tags: new[] { "ready" });
+
+            builder.Services.AddHealthChecksUI(setup =>
+            {
+                setup.AddHealthCheckEndpoint("API Health Checks", "/health/all");
+            }).AddInMemoryStorage();
+
             builder.Services.AddResponseCaching();
 
             // add database connection
@@ -186,6 +199,25 @@ namespace PriceNegotiationApp.Api
 
             // last middleware, uses UseEndpoints internally
             app.MapControllers();
+
+            app.MapHealthChecks("/health/live", new HealthCheckOptions
+            {
+                Predicate = (check) => check.Tags.Contains("live"),
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            app.MapHealthChecks("/health/ready", new HealthCheckOptions
+            {
+                Predicate = (check) => check.Tags.Contains("ready"),
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            app.MapHealthChecks("/health/all", new HealthCheckOptions
+            {
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            app.MapHealthChecksUI(options => options.UIPath = "/dashboard");
 
             app.Run();
         }

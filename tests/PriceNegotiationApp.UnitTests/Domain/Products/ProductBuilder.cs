@@ -8,12 +8,15 @@ namespace PriceNegotiationApp.UnitTests.Domain.Products
     {
         private readonly Faker _faker = new("pl");
 
-        private ProductId _id = ProductId.From(_faker.Random.Guid());
-        private string _name = _faker.Commerce.ProductName();
-        private ProductPrice _price = new(_faker.Finance.Amount(1, 10000000));
+        private ProductId _id;
+        private string _name;
+        private ProductPrice _price;
 
         public ProductBuilder()
         {
+            _id = ProductId.From(_faker.Random.Guid());
+            _name = _faker.Commerce.ProductName();
+            _price = new ProductPrice(_faker.Finance.Amount(1, 10000000));
         }
 
         public Product Build()

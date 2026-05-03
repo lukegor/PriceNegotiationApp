@@ -10,17 +10,20 @@ namespace PriceNegotiationApp.UnitTests.Domain.Negotiations
     {
         private readonly Faker _faker = new("pl");
 
-        private NegotiationId _id = NegotiationId.From(_faker.Random.Guid());
-        private ProductId _productId = ProductId.From(_faker.Random.Guid());
-        private ProposedPrice _proposedPrice;
-        private CustomerId _customerId = CustomerId.From(_faker.Random.Guid());
-        private DateTimeOffset _createdAt = _faker.Date.RecentOffset();
+        private NegotiationId _id;
+        private ProductId _productId;
+        private ProposedPrice _proposedPrice = new ProposedPrice(0.9m);
+        private CustomerId _customerId;
+        private DateTimeOffset _createdAt;
         private decimal _maxAllowedPrice = 100000000;
         private int _remainingRetries = 3;
 
         public NegotiationBuilder()
         {
-            _proposedPrice = new ProposedPrice(0.9m);
+            _id = NegotiationId.From(_faker.Random.Guid());
+            _productId = ProductId.From(_faker.Random.Guid());
+            _customerId = CustomerId.From(_faker.Random.Guid());
+            _createdAt = _faker.Date.RecentOffset();
         }
 
         public Negotiation Build()

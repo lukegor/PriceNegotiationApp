@@ -7,11 +7,20 @@ using PriceNegotiationApp.Domain.Exceptions;
 
 namespace PriceNegotiationApp.Api;
 
-public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService, IHostEnvironment environment)
+public sealed class GlobalExceptionHandler(
+    IProblemDetailsService problemDetailsService,
+    IHostEnvironment environment,
+    ILogger<GlobalExceptionHandler> logger)
     : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
+        if (exception is not OperationCanceledException)
+        {
+            logger.LogError(exception, "Unhandled exception while processing {Method} {Path}",
+                httpContext.Request.Method, httpContext.Request.Path);
+        }
+
         var (status, title, code) = exception switch
         {
             ProposalExceedsLimitException => (StatusCodes.Status400BadRequest, "Proposal rejected", ErrorCodes.ProposalExceedsLimit),

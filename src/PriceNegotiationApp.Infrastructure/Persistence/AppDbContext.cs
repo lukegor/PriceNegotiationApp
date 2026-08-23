@@ -21,6 +21,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        builder.Entity<ApplicationUser>().ToTable("users");
         builder.Entity<IdentityRole<Guid>>().ToTable("roles");
         builder.Entity<IdentityUserRole<Guid>>().ToTable("user_roles");
         builder.Entity<IdentityUserClaim<Guid>>().ToTable("user_claims");
@@ -29,4 +30,5 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens");
     }
 }
+
 

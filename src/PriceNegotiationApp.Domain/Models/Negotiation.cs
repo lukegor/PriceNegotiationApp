@@ -1,5 +1,5 @@
+﻿using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Abstractions;
-using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Policy;
 using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
@@ -8,16 +8,16 @@ namespace PriceNegotiationApp.Domain.Models;
 
 public sealed class Negotiation : Entity
 {
+    /// <summary>Base price snapshot taken at creation; protects ongoing negotiations from later product price changes.</summary>
+    public decimal BasePrice { get; private set; }
+
+    public decimal CurrentOffer { get; private set; }
+
     public NegotiationId Id { get; private set; }
 
     public ProductId ProductId { get; private set; }
 
     public CustomerId CustomerId { get; private set; }
-
-    /// <summary>Base price snapshot taken at creation; protects ongoing negotiations from later product price changes.</summary>
-    public Price BasePrice { get; private set; }
-
-    public Price CurrentOffer { get; private set; }
 
     public NegotiationStatus Status { get; private set; }
 
@@ -37,7 +37,7 @@ public sealed class Negotiation : Entity
     }
 
     private Negotiation(
-        NegotiationId id, ProductId productId, CustomerId customerId, Price basePrice, Price currentOffer,
+        NegotiationId id, ProductId productId, CustomerId customerId, decimal basePrice, decimal currentOffer,
         DateTimeOffset createdAtUtc)
     {
         Id = id;
@@ -51,13 +51,13 @@ public sealed class Negotiation : Entity
         LastProposalAtUtc = createdAtUtc;
     }
 
-    public static Negotiation Start(CustomerId customerId, Product product, Price initialOffer, DateTimeOffset now, INegotiationPolicy policy)
+    public static Negotiation Start(CustomerId customerId, Product product, decimal initialOffer, DateTimeOffset now, INegotiationPolicy policy)
     {
         EnsureWithinLimit(product.Price, initialOffer, policy);
         return new Negotiation(NegotiationId.From(Guid.CreateVersion7()), product.Id, customerId, product.Price, initialOffer, now);
     }
 
-    public NegotiationOutcome CounterPropose(Price offer, DateTimeOffset now, INegotiationPolicy policy)
+    public NegotiationOutcome CounterPropose(decimal offer, DateTimeOffset now, INegotiationPolicy policy)
     {
         CheckRule(new NegotiationMustBeOpenRule(Status));
         if (ProposalsUsed >= policy.MaxProposalsPerNegotiation)
@@ -96,12 +96,16 @@ public sealed class Negotiation : Entity
         DecidedAtUtc = now;
     }
 
-    private static void EnsureWithinLimit(Price basePrice, Price offer, INegotiationPolicy policy)
+    private static void EnsureWithinLimit(decimal basePrice, decimal offer, INegotiationPolicy policy)
     {
-        var limit = basePrice.Value * policy.ProposalMultiplierLimit;
-        if (offer.Value > limit)
+        var limit = decimal.Round(basePrice * policy.ProposalMultiplierLimit, 2);
+        Price.From(offer);
+        if (offer > limit)
         {
             throw new ProposalExceedsLimitException(limit);
         }
     }
 }
+
+
+

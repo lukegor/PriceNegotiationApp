@@ -45,7 +45,7 @@ public class ProductServiceShould
     [Fact]
     public async Task UpdateAsync_applies_changes_to_existing_product()
     {
-        var product = Product.Create("Old", Price.From(10m));
+        var product = Product.Create("Old", 10m);
         _products.GetAsync(product.Id, Arg.Any<CancellationToken>()).Returns(product);
 
         var response = await _sut.UpdateAsync(product.Id.Value, "New", 20m, TestContext.Current.CancellationToken);
@@ -57,7 +57,7 @@ public class ProductServiceShould
     [Fact]
     public async Task DeleteAsync_removes_existing_product()
     {
-        var product = Product.Create("Doomed", Price.From(1m));
+        var product = Product.Create("Doomed", 1m);
         _products.GetAsync(product.Id, Arg.Any<CancellationToken>()).Returns(product);
 
         await _sut.DeleteAsync(product.Id.Value, TestContext.Current.CancellationToken);
@@ -65,4 +65,5 @@ public class ProductServiceShould
         _products.Received().Remove(product);
     }
 }
+
 

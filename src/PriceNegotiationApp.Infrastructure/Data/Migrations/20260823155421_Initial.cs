@@ -82,10 +82,10 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    product_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    customer_id = table.Column<Guid>(type: "uuid", nullable: false),
                     base_price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     current_offer = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    product_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    customer_id = table.Column<Guid>(type: "uuid", nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
                     proposals_used = table.Column<int>(type: "integer", nullable: false),
                     created_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),

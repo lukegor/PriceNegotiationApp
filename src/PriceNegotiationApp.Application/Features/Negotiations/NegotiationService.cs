@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Exceptions;
@@ -29,7 +29,7 @@ public sealed class NegotiationService(
         }
 
         var customerId = await customers.GetOrCreateAsync(caller.UserId, ct);
-        var negotiation = Negotiation.Start(customerId, product, Price.From(proposedPrice), time.GetUtcNow(), policy);
+        var negotiation = Negotiation.Start(customerId, product, proposedPrice, time.GetUtcNow(), policy);
         await negotiations.AddAsync(negotiation, ct);
         await uow.SaveChangesAsync(ct);
         return Map(negotiation);
@@ -55,7 +55,7 @@ public sealed class NegotiationService(
     {
         var negotiation = await RequireOwnerAsync(caller, id, ct);
 
-        var outcome = negotiation.CounterPropose(Price.From(proposedPrice), time.GetUtcNow(), policy);
+        var outcome = negotiation.CounterPropose(proposedPrice, time.GetUtcNow(), policy);
         if (outcome == NegotiationOutcome.NoProposalsRemaining)
         {
             throw new ConflictException(ErrorCodes.NoProposalsRemaining, "No proposals remain for this negotiation.");
@@ -138,7 +138,10 @@ public sealed class NegotiationService(
     }
 
     private NegotiationResponse Map(Negotiation n) => new(
-        n.Id.Value, n.ProductId.Value, n.BasePrice.Value, n.CurrentOffer.Value,
+        n.Id.Value, n.ProductId.Value, n.BasePrice, n.CurrentOffer,
         n.Status.ToString(), n.ProposalsUsed, n.RemainingProposals(policy),
         n.CreatedAtUtc, n.LastProposalAtUtc, n.DecidedAtUtc);
 }
+
+
+

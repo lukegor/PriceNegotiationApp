@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Time.Testing;
+﻿using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
@@ -96,8 +96,8 @@ public class NegotiationServiceShould
     public async Task CounterProposeAsync_throws_Conflict_NoProposalsRemaining_when_budget_spent()
     {
         var negotiation = StartOpen(GivenProduct());
-        negotiation.CounterPropose(Price.From(90m), Now, Policy);
-        negotiation.CounterPropose(Price.From(91m), Now, Policy);
+        negotiation.CounterPropose(90m, Now, Policy);
+        negotiation.CounterPropose(91m, Now, Policy);
         GivenNegotiation(negotiation);
 
         var exception = await Assert.ThrowsAsync<ConflictException>(() =>
@@ -119,7 +119,7 @@ public class NegotiationServiceShould
 
     private Product GivenProduct()
     {
-        var product = Product.Create("Widget", Price.From(100m));
+        var product = Product.Create("Widget", 100m);
         _products.GetAsync(product.Id, Arg.Any<CancellationToken>()).Returns(product);
         return product;
     }
@@ -134,9 +134,10 @@ public class NegotiationServiceShould
         Guid.NewGuid(), "admin@test.dev", new HashSet<string> { UserRoles.Admin });
 
     private Negotiation StartOpen(Product product) =>
-        Negotiation.Start(_customer.Id, product, Price.From(80m), Now.AddDays(-1), Policy);
+        Negotiation.Start(_customer.Id, product, 80m, Now.AddDays(-1), Policy);
 
     /// <summary>Deterministic Guid for a given identity string so caller ids match store lookups.</summary>
     private static Guid StableIdentityId(string seed) =>
         new(seed.PadRight(16, '0').Take(16).Select(c => (byte)c).ToArray());
 }
+

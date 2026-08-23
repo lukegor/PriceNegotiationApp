@@ -42,9 +42,9 @@ public sealed class SeedingHostedService(
         if (options.SeedSampleProducts && !await db.Products.AnyAsync(cancellationToken))
         {
             db.Products.AddRange(
-                Product.Create("Mechanical Keyboard", Price.From(249.00m)),
-                Product.Create("Wireless Mouse", Price.From(79.90m)),
-                Product.Create("USB-C Docking Station", Price.From(189.50m)));
+                Product.Create("Mechanical Keyboard", 249.00m),
+                Product.Create("Wireless Mouse", 79.90m),
+                Product.Create("USB-C Docking Station", 189.50m));
             await db.SaveChangesAsync(cancellationToken);
         }
 
@@ -70,4 +70,5 @@ public sealed class SeedingHostedService(
         }
     }
 }
+
 

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PriceNegotiationApp.Domain.Models;
-using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
 
 namespace PriceNegotiationApp.Infrastructure.Persistence.DbEntityConfigurations;
@@ -16,10 +15,8 @@ public sealed class NegotiationConfiguration : IEntityTypeConfiguration<Negotiat
             .ValueGeneratedNever();
         builder.Property(n => n.ProductId).HasConversion(id => id.Value, value => ProductId.From(value));
         builder.Property(n => n.CustomerId).HasConversion(id => id.Value, value => CustomerId.From(value));
-        builder.Property(n => n.BasePrice).HasConversion(price => price.Value, value => Price.From(value))
-            .HasColumnType("numeric(18,2)");
-        builder.Property(n => n.CurrentOffer).HasConversion(price => price.Value, value => Price.From(value))
-            .HasColumnType("numeric(18,2)");
+        builder.Property(n => n.BasePrice).HasColumnType("numeric(18,2)");
+        builder.Property(n => n.CurrentOffer).HasColumnType("numeric(18,2)");
         builder.Property(n => n.Status).HasConversion<int>();
         builder.HasOne<Product>().WithMany().HasForeignKey(n => n.ProductId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Customer>().WithMany().HasForeignKey(n => n.CustomerId).OnDelete(DeleteBehavior.Cascade);

@@ -1,4 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Vogen-generated IComparable implementations trigger MA0097 on the declaring partial. -->
+    <NoWarn>$(NoWarn);MA0097</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Vogen" />
   </ItemGroup>

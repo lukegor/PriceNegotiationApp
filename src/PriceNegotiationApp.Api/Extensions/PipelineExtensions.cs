@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using PriceNegotiationApp.Api.Extensions;
+using PriceNegotiationApp.Api.Modules;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -31,9 +31,16 @@ public static class PipelineExtensions
         app.UseRateLimiter();
         app.UseOutputCache();
 
-        app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
-        app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = r => r.Tags.Contains("ready") });
+        app.MapModules();
 
         return app;
+    }
+
+    private static void MapModules(this WebApplication app)
+    {
+        app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = r => r.Tags.Contains("ready") });
+        app.MapAuthApi();
+        app.MapProductsApi();
     }
 }

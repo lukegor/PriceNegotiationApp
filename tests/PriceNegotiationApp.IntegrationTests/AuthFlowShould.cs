@@ -37,12 +37,12 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
     }
 
     [Fact]
-    public async Task Invalid_registration_payload_is_rejected_before_account_creation()
+    public async Task Invalid_registration_payload_is_unprocessable()
     {
         var response = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/register",
             new RegisterRequest { Email = "not-an-email", Password = "short" }, TestContext.Current.CancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         body.ShouldContain("registration_invalid");
     }

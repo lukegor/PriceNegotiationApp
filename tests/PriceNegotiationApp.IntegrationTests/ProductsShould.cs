@@ -89,19 +89,19 @@ public class ProductsShould(IntegrationTestFixture fixture)
     }
 
     [Fact]
-    public async Task Domain_rejects_invalid_product_payloads_with_400()
+    public async Task Domain_rejects_invalid_product_payloads_with_422()
     {
         var staff = await fixture.LoginAsStaffAsync();
 
         var emptyName = await staff.Client.PostAsJsonAsync("/api/v1/products",
             new { name = string.Empty, price = 10m }, TestContext.Current.CancellationToken);
-        emptyName.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        emptyName.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
         var emptyNameBody = await emptyName.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         emptyNameBody.ShouldContain("domain_rule_violated");
 
         var negativePrice = await staff.Client.PostAsJsonAsync("/api/v1/products",
             new { name = "Valid Name", price = -5m }, TestContext.Current.CancellationToken);
-        negativePrice.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        negativePrice.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
         var negativeBody = await negativePrice.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         negativeBody.ShouldContain("validation_failed");
     }
@@ -160,3 +160,4 @@ public class ProductsShould(IntegrationTestFixture fixture)
         return (await response.Content.ReadFromJsonAsync<ProductResponse>(Json, TestContext.Current.CancellationToken))!;
     }
 }
+

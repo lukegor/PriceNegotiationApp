@@ -137,20 +137,30 @@ Implementation in Domain (`DefaultNegotiationPolicy`), injected into factories/s
 - Registration is public but always assigns `Customer` role. Staff/Admin exist only via seeding.
 - Endpoint gating: role constants in policy strings (e.g., `RequireRoles(UserRoles.Admin, UserRoles.Staff)` helper extension replacing magic strings).
 - Ownership checks become plain data comparisons inside application services: services receive a `CallerContext { UserId, IsInRole(...) }` record resolved in Api from `ClaimsPrincipal`. The resource-based `AuthorizationHandler`/`Operations` classes are deleted (they existed to work around services calling `IAuthorizationService`).
+###  Error contract
+`ProblemDetails` everywhere with stable machine-readable extension property `code`.
+Status semantics: **400** = request could not be understood (framework binding failures);
+**422** = well-formed payload that fails input/business validation; **409** = well-formed
+request that conflicts with current persistent state.
 
-### Error contract
-`ProblemDetails` everywhere with stable machine-readable extension property `code`:
 | Situation | HTTP | code |
 |---|---|---|
-| Validation failure | 400 | `validation_failed` |
+| Malformed request (binding failure) | 400 | framework default |
+| Validation failure (value object / entity rule) | 422 | `validation_failed` |
+| Domain rule violation on input | 422 | `domain_rule_violated` |
+| Registration policy failure | 422 | `registration_invalid` |
+| Proposal exceeds limit | 422 | `proposal_exceeds_limit` |
 | Entity not found | 404 | `{entity}_not_found` |
 | Negotiation closed/terminal | 409 | `negotiation_closed` |
 | No proposals remaining | 409 | `no_proposals_remaining` |
-| Proposal exceeds limit | 400 | `proposal_exceeds_limit` |
+| Open negotiation already exists | 409 | `negotiation_already_open` |
+| Email already registered | 409 | `email_already_registered` |
 | Optimistic concurrency | 409 | `conflict` |
 | Auth required / bad credentials | 401 | `unauthorized` |
 | Forbidden | 403 | `forbidden` |
-Production responses contain no internal exception text (`ExceptionDetail` shown only in Development). The 499-mapped `OperationCanceledException` handler is kept (client-abort is legitimate telemetry).
+
+Production responses contain no internal exception text
+(`ExceptionDetail` shown only in Development). The 499-mapped `OperationCanceledException` handler is kept (client-abort is legitimate telemetry).
 
 ---
 

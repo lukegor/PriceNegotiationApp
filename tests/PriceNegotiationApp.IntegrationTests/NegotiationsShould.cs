@@ -30,7 +30,7 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
     }
 
     [Fact]
-    public async Task Creation_over_double_base_price_is_rejected_400()
+    public async Task Creation_over_double_base_price_is_rejected_422()
     {
         var product = await CreateProductAsync();
         var customer = await fixture.CreateUserAsync();
@@ -38,7 +38,7 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         var response = await customer.Client.PostAsJsonAsync("/api/v1/negotiations",
             new { productId = product.Id, proposedPrice = 250m }, TestContext.Current.CancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         body.ShouldContain("proposal_exceeds_limit");
     }
@@ -191,3 +191,4 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         return (await response.Content.ReadFromJsonAsync<NegotiationView>(Json, TestContext.Current.CancellationToken))!;
     }
 }
+

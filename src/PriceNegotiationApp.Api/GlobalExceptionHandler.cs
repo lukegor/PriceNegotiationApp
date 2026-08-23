@@ -14,6 +14,11 @@ public sealed class GlobalExceptionHandler(
     ILogger<GlobalExceptionHandler> logger)
     : IExceptionHandler
 {
+    // HTTP status semantics used below:
+    //   400 — the request could not be understood (handled by framework binding; nothing maps here).
+    //   401/403/404 — authentication, authorization, missing resource.
+    //   409 — well-formed request that conflicts with the current persistent state.
+    //   422 — well-formed request whose payload fails input/business validation.
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         if (exception is not OperationCanceledException)
@@ -24,13 +29,19 @@ public sealed class GlobalExceptionHandler(
 
         var (status, title, code) = exception switch
         {
-            ProposalExceedsLimitException => (StatusCodes.Status400BadRequest, "Proposal rejected", ErrorCodes.ProposalExceedsLimit),
-            ValueObjectValidationException => (StatusCodes.Status400BadRequest, "Invalid value", ErrorCodes.ValidationFailed),
-            InvalidRequestException invalidRequest => (StatusCodes.Status400BadRequest, "Invalid request", invalidRequest.Code),
-            ClosedNegotiationException => (StatusCodes.Status409Conflict, "Business rule violated", ErrorCodes.NegotiationClosed),
-            DomainException => (StatusCodes.Status400BadRequest, "Business rule violated", ErrorCodes.DomainRuleViolated),
-            NotFoundException notFound => (StatusCodes.Status404NotFound, "Resource not found", notFound.Code),
+            // 422 Unprocessable Content — payload fails validation or business input rules
+            ProposalExceedsLimitException => (StatusCodes.Status422UnprocessableEntity, "Proposal rejected", ErrorCodes.ProposalExceedsLimit),
+            ValueObjectValidationException => (StatusCodes.Status422UnprocessableEntity, "Invalid value", ErrorCodes.ValidationFailed),
+            InvalidRequestException invalidRequest => (StatusCodes.Status422UnprocessableEntity, "Invalid request", invalidRequest.Code),
+
+            // 409 Conflict — request collides with current persistent state
             ConflictException conflict => (StatusCodes.Status409Conflict, "Conflict", conflict.Code),
+            ClosedNegotiationException => (StatusCodes.Status409Conflict, "Business rule violated", ErrorCodes.NegotiationClosed),
+
+            // remaining domain exceptions are input-validation failures
+            DomainException => (StatusCodes.Status422UnprocessableEntity, "Business rule violated", ErrorCodes.DomainRuleViolated),
+
+            NotFoundException notFound => (StatusCodes.Status404NotFound, "Resource not found", notFound.Code),
             ForbiddenAccessException => (StatusCodes.Status403Forbidden, "Forbidden", ErrorCodes.Forbidden),
             UnauthorizedException unauthorized => (StatusCodes.Status401Unauthorized, "Authentication failed", unauthorized.Code),
             OperationCanceledException when httpContext.RequestAborted.IsCancellationRequested

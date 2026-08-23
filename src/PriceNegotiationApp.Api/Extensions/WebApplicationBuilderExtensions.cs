@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -13,10 +14,8 @@ using PriceNegotiationApp.Infrastructure;
 using PriceNegotiationApp.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 using Serilog;
-using Serilog.Events;
 using System.Text;
 using System.Threading.RateLimiting;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace PriceNegotiationApp.Api.Extensions;
 
@@ -74,12 +73,14 @@ public static class WebApplicationBuilderExtensions
                 policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
         }
 
+        var rateLimits = configuration.GetSection(RateLimitingOptions.SectionName).Get<RateLimitingOptions>()
+                         ?? new RateLimitingOptions();
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.AddFixedWindowLimiter(AuthRateLimitPolicy, windowOptions =>
             {
-                windowOptions.PermitLimit = 10;
+                windowOptions.PermitLimit = rateLimits.AuthPermitLimit;
                 windowOptions.Window = TimeSpan.FromMinutes(1);
                 windowOptions.QueueLimit = 0;
             });
@@ -108,5 +109,3 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
-
-

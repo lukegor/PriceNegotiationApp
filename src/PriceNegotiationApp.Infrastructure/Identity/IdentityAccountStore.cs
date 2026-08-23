@@ -6,9 +6,7 @@ using PriceNegotiationApp.Domain.Models;
 
 namespace PriceNegotiationApp.Infrastructure.Identity;
 
-public sealed class IdentityAccountStore(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : IUserAccountStore
+public sealed class IdentityAccountStore(UserManager<ApplicationUser> userManager) : IUserAccountStore
 {
     private static readonly RegistrationOutcome DuplicateEmail = new(false, Guid.Empty, "Email already registered.");
 
@@ -29,10 +27,27 @@ public sealed class IdentityAccountStore(
 
     public async Task<SignInResultKind> PasswordSignInAsync(string email, string password)
     {
-        var result = await signInManager.PasswordSignInAsync(email, password, isPersistent: false, lockoutOnFailure: true);
-        return result.Succeeded ? SignInResultKind.Success
-            : result.IsLockedOut ? SignInResultKind.LockedOut
-            : SignInResultKind.Failure;
+        var user = await userManager.FindByNameAsync(email);
+        if (user is null)
+        {
+            return SignInResultKind.Failure;
+        }
+
+        if (await userManager.IsLockedOutAsync(user))
+        {
+            return SignInResultKind.LockedOut;
+        }
+
+        if (!await userManager.CheckPasswordAsync(user, password))
+        {
+            await userManager.AccessFailedAsync(user);
+            return await userManager.IsLockedOutAsync(user)
+                ? SignInResultKind.LockedOut
+                : SignInResultKind.Failure;
+        }
+
+        await userManager.ResetAccessFailedCountAsync(user);
+        return SignInResultKind.Success;
     }
 
     public async Task<Guid> ResolveUserIdByEmailAsync(string email, CancellationToken ct)
@@ -52,4 +67,3 @@ public sealed class IdentityAccountStore(
     private static RegistrationOutcome ValidationFailed(IEnumerable<IdentityError> errors) =>
         new(false, Guid.Empty, string.Join("; ", errors.Select(e => e.Description)));
 }
-

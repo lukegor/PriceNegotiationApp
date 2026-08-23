@@ -4,6 +4,7 @@ using System.Net;
 
 namespace PriceNegotiationApp.IntegrationTests.Negotiations
 {
+    [Obsolete("TODO: Redo")]
     public class NegotiationServiceTest : BaseIntegrationTest, IClassFixture<IntegrationTestFactory>
     {
         private readonly NegotiationFactory _negotiationFactory;

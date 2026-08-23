@@ -1,9 +1,8 @@
 ﻿using Bogus;
+
 using FluentAssertions;
+
 using NSubstitute;
-using PriceNegotiationApp.Domain;
-using PriceNegotiationApp.Domain.Models.Products;
-using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
 
 namespace PriceNegotiationApp.UnitTests.Domain.Products
 {

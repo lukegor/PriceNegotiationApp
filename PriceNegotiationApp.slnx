@@ -3,15 +3,17 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
+    <Project Path="src/PriceNegotiationApp.Application/PriceNegotiationApp.Application.csproj" />
+    <Project Path="src/PriceNegotiationApp.Contracts/PriceNegotiationApp.Contracts.csproj" />
+    <Project Path="src/PriceNegotiationApp.Domain/PriceNegotiationApp.Domain.csproj" />
+    <Project Path="src/PriceNegotiationApp.Infrastructure/PriceNegotiationApp.Infrastructure.csproj" />
+    <Project Path="src/PriceNegotiationApp.Presentation/PriceNegotiationApp.Presentation.csproj" />
+    <Project Path="src/PriceNegotiationApp.SharedKernel/PriceNegotiationApp.SharedKernel.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PriceNegotiationApp.IntegrationTests/PriceNegotiationApp.IntegrationTests.csproj" />
     <Project Path="tests/PriceNegotiationApp.UnitTests/PriceNegotiationApp.UnitTests.csproj" />
   </Folder>
-  <Project Path="PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
-  <Project Path="PriceNegotiationApp.Application/PriceNegotiationApp.Application.csproj" />
-  <Project Path="PriceNegotiationApp.Contracts/PriceNegotiationApp.Contracts.csproj" Id="7f0c4402-ef36-4fd7-9947-7367c1bec601" />
-  <Project Path="PriceNegotiationApp.Domain/PriceNegotiationApp.Domain.csproj" />
-  <Project Path="PriceNegotiationApp.Infrastructure/PriceNegotiationApp.Infrastructure.csproj" />
-  <Project Path="PriceNegotiationApp.Presentation/PriceNegotiationApp.Presentation.csproj" />
-  <Project Path="PriceNegotiationApp.SharedKernel/PriceNegotiationApp.SharedKernel.csproj" Id="41f7a4eb-3aa3-4817-928a-c08fb64e6ace" />
 </Solution>

@@ -1,5 +1,5 @@
 ﻿using Bogus;
-using PriceNegotiationApp.Domain.Models.Customer;
+using PriceNegotiationApp.Domain.Models.Customers;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
 using PriceNegotiationApp.Domain.Models.Products;

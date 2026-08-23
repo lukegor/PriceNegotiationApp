@@ -10,6 +10,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<GeneratedCodeAnalysisFlags>none</GeneratedCodeAnalysisFlags>
 
 		<NuGetAudit>true</NuGetAudit>
 		<NuGetAuditMode>all</NuGetAuditMode>

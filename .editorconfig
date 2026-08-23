@@ -519,3 +519,6 @@ dotnet_diagnostic.S6966.severity = none
 # Use 'DisposeAsync' instead of 'Dispose'
 dotnet_diagnostic.MA0042.severity = suggestion
 
+
+[**/obj/**/*.cs]
+generated_code = true

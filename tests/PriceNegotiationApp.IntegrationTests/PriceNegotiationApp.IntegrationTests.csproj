@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" />
+    <PackageReference Include="Shouldly" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Refit" />
@@ -16,6 +17,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 </Project>
+
 
 
 

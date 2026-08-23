@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Exceptions;
 using PriceNegotiationApp.Domain.Exceptions;
+using Vogen;
 
 namespace PriceNegotiationApp.Api;
 
@@ -24,7 +25,10 @@ public sealed class GlobalExceptionHandler(
         var (status, title, code) = exception switch
         {
             ProposalExceedsLimitException => (StatusCodes.Status400BadRequest, "Proposal rejected", ErrorCodes.ProposalExceedsLimit),
-            DomainException => (StatusCodes.Status409Conflict, "Business rule violated", ErrorCodes.NegotiationClosed),
+            ValueObjectValidationException => (StatusCodes.Status400BadRequest, "Invalid value", ErrorCodes.ValidationFailed),
+            InvalidRequestException invalidRequest => (StatusCodes.Status400BadRequest, "Invalid request", invalidRequest.Code),
+            ClosedNegotiationException => (StatusCodes.Status409Conflict, "Business rule violated", ErrorCodes.NegotiationClosed),
+            DomainException => (StatusCodes.Status400BadRequest, "Business rule violated", ErrorCodes.DomainRuleViolated),
             NotFoundException notFound => (StatusCodes.Status404NotFound, "Resource not found", notFound.Code),
             ConflictException conflict => (StatusCodes.Status409Conflict, "Conflict", conflict.Code),
             ForbiddenAccessException => (StatusCodes.Status403Forbidden, "Forbidden", ErrorCodes.Forbidden),

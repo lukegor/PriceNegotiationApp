@@ -6,8 +6,8 @@ using PriceNegotiationApp.Application.Exceptions;
 using PriceNegotiationApp.Application.Features.Negotiations;
 using PriceNegotiationApp.Domain.Models;
 using PriceNegotiationApp.Domain.Policy;
-using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using Shouldly;
 using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Application;
@@ -37,10 +37,10 @@ public class NegotiationServiceShould
     [Fact]
     public async Task CreateAsync_throws_NotFound_for_unknown_product()
     {
-        var exception = await Assert.ThrowsAsync<NotFoundException>(() =>
+        var exception = await Should.ThrowAsync<NotFoundException>(() =>
             _sut.CreateAsync(CustomerCaller("u1"), Guid.NewGuid(), 50m, TestContext.Current.CancellationToken));
 
-        Assert.Equal(ErrorCodes.ProductNotFound, exception.Code);
+        exception.Code.ShouldBe(ErrorCodes.ProductNotFound);
     }
 
     [Fact]
@@ -50,10 +50,10 @@ public class NegotiationServiceShould
         _negotiations.FindOpenAsync(product.Id, StableIdentityId("u1"), Arg.Any<CancellationToken>())
             .Returns(StartOpen(product));
 
-        var exception = await Assert.ThrowsAsync<ConflictException>(() =>
+        var exception = await Should.ThrowAsync<ConflictException>(() =>
             _sut.CreateAsync(CustomerCaller("u1"), product.Id.Value, 50m, TestContext.Current.CancellationToken));
 
-        Assert.Equal(ErrorCodes.NegotiationAlreadyOpen, exception.Code);
+        exception.Code.ShouldBe(ErrorCodes.NegotiationAlreadyOpen);
     }
 
     [Fact]
@@ -65,9 +65,9 @@ public class NegotiationServiceShould
 
         var response = await _sut.CreateAsync(CustomerCaller("u1"), product.Id.Value, 80m, TestContext.Current.CancellationToken);
 
-        Assert.Equal(nameof(NegotiationStatus.Open), response.Status);
-        Assert.Equal(2, response.ProposalsRemaining);
-        Assert.Equal(1, response.ProposalsUsed);
+        response.Status.ShouldBe(nameof(NegotiationStatus.Open));
+        response.ProposalsRemaining.ShouldBe(2);
+        response.ProposalsUsed.ShouldBe(1);
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public class NegotiationServiceShould
 
         var outcome = await _sut.CounterProposeAsync(CustomerCaller("u1"), negotiation.Id.Value, 90m, TestContext.Current.CancellationToken);
 
-        Assert.Equal(nameof(NegotiationOutcome.CounterProposed), outcome.Outcome);
-        Assert.Equal(90m, outcome.Negotiation.CurrentOffer);
+        outcome.Outcome.ShouldBe(nameof(NegotiationOutcome.CounterProposed));
+        outcome.Negotiation.CurrentOffer.ShouldBe(90m);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class NegotiationServiceShould
         var negotiation = StartOpen(GivenProduct());
         GivenNegotiation(negotiation);
 
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+        await Should.ThrowAsync<ForbiddenAccessException>(() =>
             _sut.CounterProposeAsync(CustomerCaller("stranger"), negotiation.Id.Value, 90m, TestContext.Current.CancellationToken));
     }
 
@@ -100,10 +100,10 @@ public class NegotiationServiceShould
         negotiation.CounterPropose(91m, Now, Policy);
         GivenNegotiation(negotiation);
 
-        var exception = await Assert.ThrowsAsync<ConflictException>(() =>
+        var exception = await Should.ThrowAsync<ConflictException>(() =>
             _sut.CounterProposeAsync(CustomerCaller("u1"), negotiation.Id.Value, 92m, TestContext.Current.CancellationToken));
 
-        Assert.Equal(ErrorCodes.NoProposalsRemaining, exception.Code);
+        exception.Code.ShouldBe(ErrorCodes.NoProposalsRemaining);
     }
 
     [Fact]
@@ -140,4 +140,3 @@ public class NegotiationServiceShould
     private static Guid StableIdentityId(string seed) =>
         new(seed.PadRight(16, '0').Take(16).Select(c => (byte)c).ToArray());
 }
-

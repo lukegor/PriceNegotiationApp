@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using PriceNegotiationApp.Infrastructure.Auth;
+using Shouldly;
 using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Infrastructure;
@@ -26,10 +27,9 @@ public class JwtManagerShould
 
         var (token, expiresAtUtc) = await sut.GenerateAsync(Guid.NewGuid(), "user@test.dev", ["Customer"]);
 
-        Assert.False(string.IsNullOrWhiteSpace(token));
-        Assert.Equal(3, token.Split('.').Length);
+        token.ShouldNotBeNullOrWhiteSpace();
+        token.Split('.').Length.ShouldBe(3);
         var expected = clock.GetUtcNow().AddMinutes(30);
-        Assert.True((expiresAtUtc - expected).Duration() < TimeSpan.FromSeconds(1));
+        (expiresAtUtc - expected).Duration().ShouldBeLessThan(TimeSpan.FromSeconds(1));
     }
 }
-

@@ -12,7 +12,11 @@ public sealed class AuthService(IUserAccountStore accounts, IJwtTokenGenerator j
         var outcome = await accounts.RegisterAsync(email, password, ct);
         if (!outcome.Succeeded)
         {
-            throw new ConflictException(ErrorCodes.EmailAlreadyRegistered, outcome.ErrorDescription ?? "Registration failed.");
+            throw outcome.EmailAlreadyTaken
+                ? new ConflictException(ErrorCodes.EmailAlreadyRegistered,
+                    outcome.ErrorDescription ?? "Email already registered.")
+                : new InvalidRequestException(ErrorCodes.RegistrationInvalid,
+                    outcome.ErrorDescription ?? "Registration failed.");
         }
 
         return new RegistrationResponse(outcome.UserId);

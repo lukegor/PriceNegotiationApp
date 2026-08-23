@@ -1,4 +1,5 @@
 using PriceNegotiationApp.Domain.ValueObjects;
+using Shouldly;
 using Vogen;
 using Xunit;
 
@@ -10,13 +11,12 @@ public class PriceShould
     public void Accept_positive_values()
     {
         var price = Price.From(19.99m);
-        Assert.Equal(19.99m, price.Value);
+        price.Value.ShouldBe(19.99m);
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
     public void Reject_zero_or_negative_values(decimal value) =>
-        Assert.Throws<ValueObjectValidationException>(() => Price.From(value));
+        Should.Throw<ValueObjectValidationException>(() => Price.From(value));
 }
-

@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Application.Common;
+﻿namespace PriceNegotiationApp.Application.Common;
 
 public static class ErrorCodes
 {
@@ -13,5 +13,9 @@ public static class ErrorCodes
     public const string AccountLocked = "account_locked";
     public const string Forbidden = "forbidden";
     public const string ConcurrencyConflict = "conflict";
+    public const string ValidationFailed = "validation_failed";
+    public const string DomainRuleViolated = "domain_rule_violated";
+    public const string RegistrationInvalid = "registration_invalid";
     public const string InternalError = "internal_error";
 }
+

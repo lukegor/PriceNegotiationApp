@@ -22,6 +22,7 @@ public sealed class Product : Entity
     private Product(ProductId id, string name, decimal price)
     {
         CheckRule(new ProductNameMustNotBeEmpty(name));
+        CheckRule(new ProductNameMustNotBeTooLong(name!));
         Id = id;
         Name = name.Trim();
         // Validates positivity through the value object even though persistence stores a plain numeric column.
@@ -35,6 +36,7 @@ public sealed class Product : Entity
     public bool Update(string name, decimal price)
     {
         CheckRule(new ProductNameMustNotBeEmpty(name));
+        CheckRule(new ProductNameMustNotBeTooLong(name!));
         var validated = ValueObjects.Price.From(price).Value;
         var trimmed = name.Trim();
         if (string.Equals(Name, trimmed, StringComparison.Ordinal) && Price == validated)

@@ -11,5 +11,3 @@ public sealed record NegotiationResponse(
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset LastProposalAtUtc,
     DateTimeOffset? DecidedAtUtc);
-
-public sealed record CounterProposalOutcome(string Outcome, NegotiationResponse Negotiation);

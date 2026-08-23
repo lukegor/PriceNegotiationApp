@@ -51,6 +51,10 @@ Content-Type: application/json
 
 { "productId": "{{productId}}", "proposedPrice": 180.00 }
 
+### Get negotiation by id
+GET {{host}}/api/v1/negotiations/{{negotiationId}}
+Authorization: Bearer {{token}}
+
 ### My negotiations (Customer)
 GET {{host}}/api/v1/negotiations/mine?page=1&pageSize=20
 Authorization: Bearer {{token}}

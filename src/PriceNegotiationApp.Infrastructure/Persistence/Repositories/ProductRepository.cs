@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Exceptions;
@@ -32,19 +32,19 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
 
         if (query.MinPrice.HasValue)
         {
-            q = q.Where(p => p.Price.Value >= query.MinPrice.Value);
+            q = q.Where(p => p.Price >= query.MinPrice.Value);
         }
 
         if (query.MaxPrice.HasValue)
         {
-            q = q.Where(p => p.Price.Value <= query.MaxPrice.Value);
+            q = q.Where(p => p.Price <= query.MaxPrice.Value);
         }
 
         var sortBy = query.SortBy?.Trim().ToLowerInvariant();
         q = (sortBy, query.SortDesc) switch
         {
-            ("price", false) => q.OrderBy(p => p.Price.Value),
-            ("price", true) => q.OrderByDescending(p => p.Price.Value),
+            ("price", false) => q.OrderBy(p => p.Price),
+            ("price", true) => q.OrderByDescending(p => p.Price),
             (_, true) => q.OrderByDescending(p => p.Name),
             _ => q.OrderBy(p => p.Name),
         };
@@ -53,9 +53,11 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
         var items = await q
             .Skip(page.Skip)
             .Take(page.SafePageSize)
-            .Select(p => new ProductResponse(p.Id.Value, p.Name, p.Price.Value))
+            .Select(p => new ProductResponse(p.Id.Value, p.Name, p.Price))
             .ToListAsync(ct);
 
         return new PagedResult<ProductResponse>(items, page.SafePage, page.SafePageSize, total);
     }
 }
+
+

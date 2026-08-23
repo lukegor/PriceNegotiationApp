@@ -12,7 +12,7 @@ using PriceNegotiationApp.Infrastructure.Persistence;
 namespace PriceNegotiationApp.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260823152414_Initial")]
+    [Migration("20260823155421_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

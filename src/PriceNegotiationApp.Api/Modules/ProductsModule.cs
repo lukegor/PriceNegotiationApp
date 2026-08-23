@@ -1,5 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
-using PriceNegotiationApp.Api.Contracts;
+﻿using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.Api.Extensions;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Features.Products;
@@ -13,8 +12,11 @@ public static class ProductsModule
         var group = app.MapGroup("/api/v1/products").WithTags("Products");
 
         group.MapGet("/",
-                async ([AsParameters] ProductListRequest query, IProductService products, CancellationToken ct) =>
-                    TypedResults.Ok(await products.ListAsync(query.ToQuery(), ct)))
+                async (IProductService products, CancellationToken ct,
+                    string? search = null, decimal? minPrice = null, decimal? maxPrice = null,
+                    string? sortBy = null, bool sortDesc = false, int page = 1, int pageSize = 20) =>
+                    TypedResults.Ok(await products.ListAsync(
+                        new ProductQuery(search, minPrice, maxPrice, sortBy, sortDesc, page, pageSize), ct)))
             .CacheOutput(WebApplicationBuilderExtensions.ShortCachePolicy)
             .AllowAnonymous();
 

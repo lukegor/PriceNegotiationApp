@@ -1,5 +1,11 @@
-var app = WebApplication.Create(args);
+using PriceNegotiationApp.Api.Extensions;
 
-app.MapGet("/", () => Results.Ok("PriceNegotiationApp"));
+var builder = WebApplication.CreateBuilder(args);
+builder.AddApiServices();
+
+var app = builder.Build();
+app.UsePipeline();
 
 await app.RunAsync();
+
+public partial class Program;

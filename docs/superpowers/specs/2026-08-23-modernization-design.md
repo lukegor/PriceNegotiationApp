@@ -1,4 +1,4 @@
-# PriceNegotiationApp — Full Modernization Design
+﻿# PriceNegotiationApp — Full Modernization Design
 
 Date: 2026-08-23
 Status: Approved (design gate passed)
@@ -156,7 +156,7 @@ Production responses contain no internal exception text (`ExceptionDetail` shown
 
 ## 6. API Surface (minimal APIs)
 
-Version prefix `/api/v1`. All endpoints accept `CancellationToken`. Success responses use `TypedResults` (typed `Ok<>`, `Created<>`, `NoContent`). Request records carry DataAnnotations validated by .NET 10 built-in minimal-API validation (`builder.Services.AddValidation()`); FluentValidation deleted.
+Version prefix `/api/v1`. All endpoints accept `CancellationToken`. Success responses use `TypedResults` (typed `Ok<>`, `Created<>`, `NoContent`). Request records are plain DTOs with no validation attributes; all input invariants are enforced by the domain (entity rules, value objects, Identity policy) and mapped to ProblemDetails by the global exception handler. FluentValidation deleted.
 
 ### Auth — `/api/v1/auth`
 | Method | Route | Auth | Body → Response |
@@ -211,7 +211,7 @@ OData deleted (package, EDM config, `[EnableQuery]`). Filtering/sorting/paging c
 - `dependabot.yml`: nuget + github-actions ecosystems, weekly.
 - OpenAPI doc generation moves to `artifacts/openapi/` (gitignored; CI artifact).
 
-### Configuration schema (options pattern, `ValidateDataAnnotations` + `ValidateOnStart`)
+### Configuration schema (options pattern, custom `IValidateOptions<T>` + `ValidateOnStart`)
 ```
 Jwt:{Issuer, Audience, SecretKey, ExpiryMinutes}
 Database:ConnectionString
@@ -277,3 +277,4 @@ Each phase ends with: build zero-warnings-as-errors green + relevant tests passi
 - **Testcontainers requires Docker in CI**: GH Actions `ubuntu-latest` provides Docker natively.
 - **Vogen EF converter naming**: verified convention `<VoName>EfCoreValueConverter`; fallback is manual `HasConversion` lambdas in Infrastructure.
 - **Identity + snake_case naming**: Identity tables explicitly re-mapped to their conventional names to avoid breaking UserManager SQL expectations (configurations pin table names).
+

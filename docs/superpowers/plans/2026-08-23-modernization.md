@@ -1,4 +1,4 @@
-# PriceNegotiationApp Full Modernization — Implementation Plan
+﻿# PriceNegotiationApp Full Modernization — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -103,7 +103,7 @@ Api ns PriceNegotiationApp.Api
   Extensions/ClaimsPrincipalExtensions.ToCallerContext()
   Extensions/EndpointConventionExtensions.RequireRoles<T>()
   GlobalExceptionHandler.cs                                  IExceptionHandler
-  Contracts/{AuthRequests,ProductRequests,NegotiationRequests}.cs   DataAnnotations-validated records
+  Contracts/{Auth,Product,Negotiation}Requests.cs               plain request records (no attributes; domain validates)
   Modules/{AuthModule,ProductsModule,NegotiationsModule}.cs  MapXxxApi(IEndpointRouteBuilder)
 ```
 
@@ -2376,51 +2376,41 @@ git add -A && git commit -m "Wire API host: strict JWT validation, ProblemDetail
 
 `src/PriceNegotiationApp.Api/Contracts/AuthRequests.cs`:
 ```csharp
-using System.ComponentModel.DataAnnotations;
 
 namespace PriceNegotiationApp.Api.Contracts;
 
 public sealed class RegisterRequest
 {
-    [Required, EmailAddress]
     public string Email { get; init; } = string.Empty;
 
-    [Required, MinLength(8), MaxLength(128)]
     public string Password { get; init; } = string.Empty;
 }
 
 public sealed class LoginRequest
 {
-    [Required, EmailAddress]
     public string Email { get; init; } = string.Empty;
 
-    [Required]
     public string Password { get; init; } = string.Empty;
 }
 ```
-(.NET 10 built-in validation (`AddValidation()`) validates these automatically; add `builder.Services.AddValidation();` in `AddApiServices`.)
+No attributes here: input invariants are enforced by the domain (entity rules, Price value object, Identity email/password policy) and mapped to ProblemDetails by GlobalExceptionHandler.
 
 `src/PriceNegotiationApp.Api/Contracts/ProductRequests.cs`:
 ```csharp
-using System.ComponentModel.DataAnnotations;
 
 namespace PriceNegotiationApp.Api.Contracts;
 
 public sealed class CreateProductRequest
 {
-    [Required, StringLength(200, MinimumLength = 1)]
     public string Name { get; init; } = string.Empty;
 
-    [Required, Range(0.01, 999_999_999)]
     public decimal Price { get; init; }
 }
 
 public sealed class UpdateProductRequest
 {
-    [Required, StringLength(200, MinimumLength = 1)]
     public string Name { get; init; } = string.Empty;
 
-    [Required, Range(0.01, 999_999_999)]
     public decimal Price { get; init; }
 }
 ```
@@ -2551,7 +2541,7 @@ and call `app.MapModules();` in `UsePipeline`, replacing the two direct `MapHeal
 ```pwsh
 dotnet build && dotnet run --project src/PriceNegotiationApp.Api
 # Manual smoke: POST /api/v1/auth/register, login, GET /api/v1/products?page=1
-git add -A && git commit -m "Add auth and products minimal-API modules with built-in validation and output caching"
+git add -A && git commit -m "Add auth and products minimal-API modules with output caching"
 ```
 
 ---
@@ -2570,22 +2560,18 @@ git add -A && git commit -m "Add auth and products minimal-API modules with buil
 
 `src/PriceNegotiationApp.Api/Contracts/NegotiationRequests.cs`:
 ```csharp
-using System.ComponentModel.DataAnnotations;
 
 namespace PriceNegotiationApp.Api.Contracts;
 
 public sealed class CreateNegotiationRequest
 {
-    [Required]
     public Guid ProductId { get; init; }
 
-    [Required, Range(0.01, 999_999_999)]
     public decimal ProposedPrice { get; init; }
 }
 
 public sealed class CounterProposalRequest
 {
-    [Required, Range(0.01, 999_999_999)]
     public decimal ProposedPrice { get; init; }
 }
 ```
@@ -2944,7 +2930,7 @@ Cover explicitly:
 - Customer blocked from all writes (403).
 - Staff can create/update, cannot delete (403); admin can delete (204).
 - Missing product → 404 with `product_not_found`.
-- Invalid create payload (empty name, negative price) → 400 `validation_failed`-style built-in validation response (assert status + presence of errors array).
+  - Invalid create payload (empty name, negative price) -> 400 with `domain_rule_violated` / `validation_failed` from domain rules
 - Filtering: create 3 known products; assert `search`, `minPrice`, `maxPrice`, `sortBy=price&sortDesc`, `page/pageSize` behaviors incl. `totalCount`.
 - PUT with identical body returns 200 unchanged (idempotent no-op).
 
@@ -3144,3 +3130,4 @@ git add -A && git commit -m "Modernize README and finalize formatting"
 - Fixed: ProductsModule POST double-call, stray `using` in NegotiationsModule, `IdentityAccountStore` failure branch (named helpers), missing `await` on products list handler, `WebApplicationBuilderExtensions` partial-block duplication, `MapModules`/health-checks sequencing between Tasks 7–9, UnitTests → Infrastructure project reference for `JwtManagerShould`.
 - Known deliberate deviations from spec (documented in Global Constraints): idempotent PUT, no client-visible xmin 409 test, CorrelationId enricher dropped.
 - Type consistency verified against canonical type map: service signatures ↔ module handlers ↔ exception codes ↔ test assertions.
+

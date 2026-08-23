@@ -1,7 +1,7 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using PriceNegotiationApp.Api.Contracts;
+﻿using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.IntegrationTests.Support;
+using System.Net;
+using System.Net.Http.Json;
 using Xunit;
 
 namespace PriceNegotiationApp.IntegrationTests;

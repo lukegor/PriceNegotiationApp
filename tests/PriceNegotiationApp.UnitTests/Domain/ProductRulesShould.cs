@@ -1,8 +1,8 @@
-﻿using Xunit;
-using Bogus;
+﻿using Bogus;
 using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Models;
 using Vogen;
+using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Domain;
 

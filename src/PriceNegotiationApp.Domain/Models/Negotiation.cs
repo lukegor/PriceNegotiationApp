@@ -1,5 +1,5 @@
-﻿using PriceNegotiationApp.Domain.Exceptions;
-using PriceNegotiationApp.Domain.Abstractions;
+﻿using PriceNegotiationApp.Domain.Abstractions;
+using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Policy;
 using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;

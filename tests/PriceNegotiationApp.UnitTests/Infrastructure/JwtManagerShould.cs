@@ -1,6 +1,6 @@
-﻿using Xunit;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using PriceNegotiationApp.Infrastructure.Auth;
+using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Infrastructure;
 

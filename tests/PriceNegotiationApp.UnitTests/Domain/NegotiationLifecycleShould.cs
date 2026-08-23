@@ -1,10 +1,10 @@
-﻿using Xunit;
-using Bogus;
+﻿using Bogus;
 using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Models;
 using PriceNegotiationApp.Domain.Policy;
 using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Domain;
 

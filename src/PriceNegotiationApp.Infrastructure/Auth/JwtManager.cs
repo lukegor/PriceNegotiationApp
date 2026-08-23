@@ -1,10 +1,10 @@
-﻿using System.Globalization;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using PriceNegotiationApp.Application.Abstractions;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using PriceNegotiationApp.Application.Abstractions;
 
 namespace PriceNegotiationApp.Infrastructure.Auth;
 

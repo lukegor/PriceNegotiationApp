@@ -1,44 +1,124 @@
 # PriceNegotiationApp
-## Technologies
-[<img align="left" alt="Csharp" width="36px" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" style="padding-right:10px;"/>][csharp]
-[<img align="left" alt="dotnet" width="36px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Microsoft_.NET_logo.svg/2048px-Microsoft_.NET_logo.svg.png" style="padding-right:10px;"/>][dotnet]
-[<img align="left" alt="entityframework" width="36px" style="padding-right:10px;" src="https://github.com/lukegor/PriceNegotiationApp/assets/105490868/bad63060-6eed-47e9-bb65-1ee03f4cccdd"/>][entityframework]
-[<img align="left" alt="XUnit" width="36px" src="https://avatars.githubusercontent.com/u/2092016?s=200&v=4" style="padding-right:10px;"/>][XUnit]
 
-<br>
+Backend-only ASP.NET Core Web API that lets customers negotiate prices with shop staff.
+Customers register, browse products and open price negotiations; staff review offers and
+accept or decline them. A negotiation allows up to **3 proposals in total** (the initial
+offer plus two counters). Any proposal above **2× the product's base price** is auto-rejected.
 
-## Project Description
-<b>PriceNegotiationApp</b> is a backend project built using ASP.NET Core Web API. The application also utilizes Entity Framework and xUnit. It is designed exclusively as an API-only service. It enables customers to negotiate prices with online store staff, offering data management through CRUD operations. Up to 3 proposal retries are allowed within the negotiation process. If a proposal is more than double the base price, it's auto-rejected.
+## Stack
 
-Customers may register, log in, request data about products, open up price negotiation regarding a product, propose a price for 3 times. Shop staff may add products, view negotiations, accept or deny the proposed price. Administrator is privileged to manage data, inluding user data.
+| Layer | Technology |
+|---|---|
+| Runtime | .NET 10, C# (nullable + warnings-as-errors) |
+| API | ASP.NET Core minimal APIs, built-in request validation |
+| Domain | Vogen value objects, business-rule pattern |
+| Persistence | EF Core 10 + Npgsql (PostgreSQL 17), snake_case schema, xmin concurrency |
+| Identity | ASP.NET Core Identity + JWT Bearer (strict issuer/audience/lifetime validation) |
+| Observability | Serilog (console/file), OpenTelemetry (OTLP), `/health/live`, `/health/ready` |
+| Tests | xUnit v3, NSubstitute, Bogus, Testcontainers (real Postgres), 50+ tests |
+| Platform | Docker multi-stage image, docker-compose, GitHub Actions CI, Dependabot |
 
+## Architecture
 
-[csharp]: https://pl.wikipedia.org/wiki/C_Sharp
-[dotnet]: https://learn.microsoft.com/pl-pl/dotnet/
-[entityframework]: https://learn.microsoft.com/pl-pl/ef/
-[XUnit]: https://github.com/xunit/xunit
+```
+src/
+  PriceNegotiationApp.Domain          entities, value objects, rules, negotiation policy
+  PriceNegotiationApp.Application     use-case services + ports (no ASP.NET dependencies)
+  PriceNegotiationApp.Infrastructure  EF Core/Npgsql, Identity, JWT issuance, seeding, migrations
+  PriceNegotiationApp.Api             minimal-API modules, auth policies, ProblemDetails,
+                                      rate limiting, CORS, output caching, health checks
 
+tests/
+  PriceNegotiationApp.UnitTests           domain lifecycle + service logic
+  PriceNegotiationApp.IntegrationTests    WebApplicationFactory + Testcontainers PostgreSQL
+```
 
+Dependencies point strictly inward: `Api → {Application, Infrastructure} → Domain`.
 
-## API Endpoints
+## Quickstart
 
-<img width="978" height="851" alt="obraz" src="https://github.com/user-attachments/assets/96507199-65a9-40f5-8169-29986f269cf7" />
+### Docker Compose (recommended)
 
-## API Documentation
+```bash
+cp .env.example .env        # then edit the values
+docker compose up --build
+```
 
-The documentation in .json format is located in the <b>PriceNegotiationApp.Api.json</b> file.<br/>
-To visualize and interact with the documentation using Swagger UI launch the API project or upload the <b>PriceNegotiationApp.Api.json</b> file on the <b>https://docs.scalar.com/swagger-editor</b> or <b>https://editor-next.swagger.io/</b> or <b>https://redocly.github.io/redoc/</b>.
+The API listens on http://localhost:8080. Migrations run automatically on startup.
 
-## Default accounts
-| Login                 | Password   | Role  |
-|-----------------------|------------|-------|
-| admin@app.com         | Admin123!  | Admin |
-| Staff1@app.com        | Staff123!  | Staff |
+### Local .NET run
 
-## Security
+```bash
+dotnet user-secrets set "Jwt:SecretKey" "dev-only-secret-key-change-me-32-chars-min!!" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Jwt:Issuer"      "https://localhost:5185" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Jwt:Audience"    "price-negotiation-api" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Database:ConnectionString" "Host=localhost;Port=5432;Database=pricenego_dev;Username=postgres;Password=postgres" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Seeding:AdminPassword" "Admin123!" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Seeding:StaffPassword" "Staff123!" --project src/PriceNegotiationApp.Api
 
-The API is secured with JWT authorization. Some non-secretive HTTP GET endpoints have been allowed anonymously. The other require authorization based on user role.
+dotnet run --project src/PriceNegotiationApp.Api
+```
+
+Swagger UI (Scalar) is available at `/scalar` in Development.
+
+## Negotiation rules
+
+1. A customer opens a negotiation on a product with an initial proposal — this consumes
+   proposal 1 of 3.
+2. Staff **accept** (terminal `Accepted`) or **decline**. Declining keeps the negotiation
+   open so the customer can counter with a remaining proposal.
+3. A counter-proposal above 2× the snapshotted base price immediately closes the
+   negotiation as `Declined` (auto-rejection).
+4. When the proposal budget is spent, further counter-proposals are refused (`409`).
+5. The owner can withdraw an open negotiation at any time; admins may delete any.
+
+## API surface (v1)
+
+| Method | Route | Access |
+|---|---|---|
+| POST | `/api/v1/auth/register` | anonymous (rate-limited) |
+| POST | `/api/v1/auth/login` | anonymous (rate-limited) |
+| GET | `/api/v1/auth/me` | authenticated |
+| GET | `/api/v1/products?search=&minPrice=&maxPrice=&sortBy=&sortDesc=&page=&pageSize=` | anonymous |
+| GET | `/api/v1/products/{id}` | anonymous |
+| POST | `/api/v1/products` | Admin, Staff |
+| PUT | `/api/v1/products/{id}` | Admin, Staff |
+| DELETE | `/api/v1/products/{id}` | Admin |
+| POST | `/api/v1/negotiations` | Customer |
+| GET | `/api/v1/negotiations/mine` | Customer |
+| GET | `/api/v1/negotiations` | Admin, Staff |
+| GET | `/api/v1/negotiations/{id}` | owner, Admin, Staff |
+| PATCH | `/api/v1/negotiations/{id}/proposals` | owner |
+| POST | `/api/v1/negotiations/{id}/accept` | Admin, Staff |
+| POST | `/api/v1/negotiations/{id}/decline` | Admin, Staff |
+| DELETE | `/api/v1/negotiations/{id}` | owner or Admin |
+
+Errors use RFC 7807 ProblemDetails with a stable machine-readable `code` extension
+(e.g. `product_not_found`, `negotiation_already_open`, `no_proposals_remaining`).
+
+## Configuration
+
+| Key | Purpose |
+|---|---|
+| `Database:ConnectionString` | PostgreSQL connection string |
+| `Jwt:Issuer` / `Jwt:Audience` / `Jwt:SecretKey` (≥32 chars) / `Jwt:ExpiryMinutes` | token settings — validated at startup |
+| `Seeding:{AdminEmail,AdminPassword,StaffEmail,StaffPassword,SeedSampleProducts}` | startup seed data |
+| `RateLimiting:AuthPermitLimit` | per-IP requests/minute on auth endpoints (default 30) |
+| `Cors:AllowedOrigins` | cross-origin allow-list |
+
+No secrets are committed: use user-secrets locally and environment variables in production.
+
+## Health & telemetry
+
+- `GET /health/live` — process liveness
+- `GET /health/ready` — database connectivity
+- OpenTelemetry traces/metrics export via standard `OTEL_*` environment variables.
+
+## CI
+
+GitHub Actions runs restore → `dotnet format` check → Release build → unit tests →
+Testcontainers-based integration tests on every push and pull request.
 
 ## License
 
-This project is licensed under the [Apache License 2.0](https://opensource.org/license/apache-2-0/)
+Apache License 2.0

@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+.github/
+docs/
+artifacts/
+logs/
+tests/PriceNegotiationApp.IntegrationTests
+*.md
+Dockerfile*
+docker-compose*
+.env*

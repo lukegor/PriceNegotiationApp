@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Format check
+        run: dotnet format --verify-no-changes
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Unit tests
+        run: dotnet test tests/PriceNegotiationApp.UnitTests -c Release --no-build --collect:"XPlat Code Coverage"
+
+      - name: Integration tests
+        run: dotnet test tests/PriceNegotiationApp.IntegrationTests -c Release --no-build --collect:"XPlat Code Coverage"

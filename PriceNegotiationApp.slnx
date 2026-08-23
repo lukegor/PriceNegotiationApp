@@ -6,11 +6,8 @@
   <Folder Name="/src/">
     <Project Path="src/PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
     <Project Path="src/PriceNegotiationApp.Application/PriceNegotiationApp.Application.csproj" />
-    <Project Path="src/PriceNegotiationApp.Contracts/PriceNegotiationApp.Contracts.csproj" />
     <Project Path="src/PriceNegotiationApp.Domain/PriceNegotiationApp.Domain.csproj" />
     <Project Path="src/PriceNegotiationApp.Infrastructure/PriceNegotiationApp.Infrastructure.csproj" />
-    <Project Path="src/PriceNegotiationApp.Presentation/PriceNegotiationApp.Presentation.csproj" />
-    <Project Path="src/PriceNegotiationApp.SharedKernel/PriceNegotiationApp.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PriceNegotiationApp.IntegrationTests/PriceNegotiationApp.IntegrationTests.csproj" />

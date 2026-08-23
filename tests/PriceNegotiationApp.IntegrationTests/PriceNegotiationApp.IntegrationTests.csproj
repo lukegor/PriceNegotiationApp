@@ -1,35 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" />
-    <PackageReference Include="coverlet.collector">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Refit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Contracts\PriceNegotiationApp.Contracts.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
 </Project>
+

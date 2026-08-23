@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Domain.Models.Customer;
+using PriceNegotiationApp.Domain.Models.Customers;
 using PriceNegotiationApp.Domain.Models.Negotiations;
 using PriceNegotiationApp.Domain.Models.Negotiations.ValueObjects;
 using PriceNegotiationApp.Domain.Models.Products;
 using PriceNegotiationApp.Domain.Models.Products.ValueObjects;
-using PriceNegotiationApp.IntegrationTests.Negotiations;
-using PriceNegotiationApp.IntegrationTests.Products;
 using Refit;
 using System.Net.Http.Headers;
 

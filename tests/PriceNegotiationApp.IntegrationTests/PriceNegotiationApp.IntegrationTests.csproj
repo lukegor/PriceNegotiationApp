@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -14,14 +14,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Refit" />
-    <PackageReference Include="SonarAnalyzer.CSharp">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,6 +23,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Contracts\PriceNegotiationApp.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

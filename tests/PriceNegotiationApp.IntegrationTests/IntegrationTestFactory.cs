@@ -2,11 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using PriceNegotiationApp.Api;
-using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Infrastructure.Data;
 
 namespace PriceNegotiationApp.IntegrationTests
 {
@@ -19,7 +15,7 @@ namespace PriceNegotiationApp.IntegrationTests
             builder.ConfigureTestServices(services =>
             {
                 var descriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                    d => object.Equals(d.ServiceType, typeof(DbContextOptions<AppDbContext>)));
 
                 if (descriptor != null)
                 {

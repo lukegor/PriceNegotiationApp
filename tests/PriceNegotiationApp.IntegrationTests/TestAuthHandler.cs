@@ -26,7 +26,7 @@ namespace PriceNegotiationApp.IntegrationTests
             }
 
             var headerValue = authHeader.ToString();
-            if (!headerValue.StartsWith($"{AuthenticationScheme} "))
+            if (!headerValue.StartsWith($"{AuthenticationScheme} ", StringComparison.Ordinal))
             {
                 return Task.FromResult(AuthenticateResult.NoResult());
             }

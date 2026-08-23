@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.Contracts\PriceNegotiationApp.Contracts.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

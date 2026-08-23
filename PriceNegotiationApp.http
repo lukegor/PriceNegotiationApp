@@ -1,0 +1,79 @@
+@host = http://localhost:5185
+@token = paste-access-token-here
+@productId = paste-product-guid
+@negotiationId = paste-negotiation-guid
+
+### Register (public, becomes Customer)
+POST {{host}}/api/v1/auth/register
+Content-Type: application/json
+
+{ "email": "customer1@app.com", "password": "Customer123!" }
+
+### Login
+# @name login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{ "email": "customer1@app.com", "password": "Customer123!" }
+
+### Current user (requires Authorization header)
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{token}}
+
+### List products (anonymous; supports search/minPrice/maxPrice/sortBy/sortDesc/page/pageSize)
+GET {{host}}/api/v1/products?page=1&pageSize=20
+
+### Get product by id
+GET {{host}}/api/v1/products/{{productId}}
+
+### Create product (Admin/Staff)
+POST {{host}}/api/v1/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Mechanical Keyboard", "price": 249.00 }
+
+### Update product (Admin/Staff)
+PUT {{host}}/api/v1/products/{{productId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Mechanical Keyboard PRO", "price": 279.00 }
+
+### Delete product (Admin)
+DELETE {{host}}/api/v1/products/{{productId}}
+Authorization: Bearer {{token}}
+
+### Open a negotiation (Customer)
+POST {{host}}/api/v1/negotiations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "productId": "{{productId}}", "proposedPrice": 180.00 }
+
+### My negotiations (Customer)
+GET {{host}}/api/v1/negotiations/mine?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### All negotiations (Admin/Staff)
+GET {{host}}/api/v1/negotiations?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Counter-proposal (owner)
+PATCH {{host}}/api/v1/negotiations/{{negotiationId}}/proposals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "proposedPrice": 200.00 }
+
+### Accept offer (Admin/Staff)
+POST {{host}}/api/v1/negotiations/{{negotiationId}}/accept
+Authorization: Bearer {{token}}
+
+### Decline offer (Admin/Staff)
+POST {{host}}/api/v1/negotiations/{{negotiationId}}/decline
+Authorization: Bearer {{token}}
+
+### Withdraw negotiation (owner or Admin)
+DELETE {{host}}/api/v1/negotiations/{{negotiationId}}
+Authorization: Bearer {{token}}

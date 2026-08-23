@@ -3,6 +3,7 @@
     <ProjectReference Include="..\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 </Project>

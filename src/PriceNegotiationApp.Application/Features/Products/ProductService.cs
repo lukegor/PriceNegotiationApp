@@ -1,0 +1,60 @@
+using PriceNegotiationApp.Application.Abstractions;
+using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.Application.Exceptions;
+using PriceNegotiationApp.Application.Responses;
+using PriceNegotiationApp.Domain.Models;
+using PriceNegotiationApp.Domain.ValueObjects;
+using PriceNegotiationApp.Domain.ValueObjects.Ids;
+
+namespace PriceNegotiationApp.Application.Features.Products;
+
+public interface IProductService
+{
+    Task<PagedResult<ProductResponse>> ListAsync(ProductQuery query, CancellationToken ct);
+
+    Task<ProductResponse> GetAsync(Guid id, CancellationToken ct);
+
+    Task<ProductResponse> CreateAsync(string name, decimal price, CancellationToken ct);
+
+    Task<ProductResponse> UpdateAsync(Guid id, string name, decimal price, CancellationToken ct);
+
+    Task DeleteAsync(Guid id, CancellationToken ct);
+}
+
+public sealed class ProductService(IProductRepository products, IUnitOfWork uow) : IProductService
+{
+    public Task<PagedResult<ProductResponse>> ListAsync(ProductQuery query, CancellationToken ct) =>
+        products.SearchAsync(query, ct);
+
+    public async Task<ProductResponse> GetAsync(Guid id, CancellationToken ct)
+    {
+        var product = await products.GetAsync(ProductId.From(id), ct)
+                      ?? throw new NotFoundException(nameof(Product), id);
+        return new ProductResponse(product.Id.Value, product.Name, product.Price.Value);
+    }
+
+    public async Task<ProductResponse> CreateAsync(string name, decimal price, CancellationToken ct)
+    {
+        var product = Product.Create(name, Price.From(price));
+        await products.AddAsync(product, ct);
+        await uow.SaveChangesAsync(ct);
+        return new ProductResponse(product.Id.Value, product.Name, product.Price.Value);
+    }
+
+    public async Task<ProductResponse> UpdateAsync(Guid id, string name, decimal price, CancellationToken ct)
+    {
+        var product = await products.GetAsync(ProductId.From(id), ct)
+                      ?? throw new NotFoundException(nameof(Product), id);
+        product.Update(name, Price.From(price));
+        await uow.SaveChangesAsync(ct);
+        return new ProductResponse(product.Id.Value, product.Name, product.Price.Value);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken ct)
+    {
+        var product = await products.GetAsync(ProductId.From(id), ct)
+                      ?? throw new NotFoundException(nameof(Product), id);
+        products.Remove(product);
+        await uow.SaveChangesAsync(ct);
+    }
+}

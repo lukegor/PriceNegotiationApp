@@ -1,7 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+    <PackageReference Include="Vogen" />
   </ItemGroup>
-
 </Project>

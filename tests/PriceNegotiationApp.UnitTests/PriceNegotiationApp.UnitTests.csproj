@@ -1,39 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <IsTestProject>true</IsTestProject>
-    <SignAssembly>False</SignAssembly>
-	  <Authors>Łukasz Górski</Authors>
-	  <Copyright>Copyright © 2023-2026 Łukasz Górski</Copyright>
-	  <RepositoryUrl>https://github.com/lukegor/PriceNegotiationApp</RepositoryUrl>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Infrastructure\PriceNegotiationApp.Infrastructure.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" />
-    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.collector">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Application\Negotiations\" />
-    <Folder Include="Application\Products\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
-  </ItemGroup>
-
 </Project>
+

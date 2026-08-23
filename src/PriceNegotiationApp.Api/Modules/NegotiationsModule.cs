@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.Api.Extensions;
 using PriceNegotiationApp.Application.Common;
@@ -21,15 +21,15 @@ public static class NegotiationsModule
             .RequireRoles(UserRoles.Customer);
 
         group.MapGet("/mine",
-                async (ClaimsPrincipal principal, INegotiationService negotiations,
-                    [FromQuery] int page, [FromQuery] int pageSize, CancellationToken ct) =>
+                async (ClaimsPrincipal principal, INegotiationService negotiations, CancellationToken ct,
+                    [FromQuery] int page = 1, [FromQuery] int pageSize = 20) =>
                     TypedResults.Ok(await negotiations.ListMineAsync(
                         principal.ToCallerContext(), new PageQuery(page, pageSize), ct)))
             .RequireRoles(UserRoles.Customer);
 
         group.MapGet("/",
-                async (INegotiationService negotiations, [FromQuery] int page, [FromQuery] int pageSize,
-                    CancellationToken ct) =>
+                async (INegotiationService negotiations, CancellationToken ct,
+                    [FromQuery] int page = 1, [FromQuery] int pageSize = 20) =>
                     TypedResults.Ok(await negotiations.ListAsync(new PageQuery(page, pageSize), ct)))
             .RequireRoles(UserRoles.Admin, UserRoles.Staff);
 
@@ -66,3 +66,4 @@ public static class NegotiationsModule
         return app;
     }
 }
+

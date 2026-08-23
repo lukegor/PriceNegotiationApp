@@ -99,13 +99,13 @@ public class NegotiationLifecycleShould
     }
 
     [Fact]
-    public void Decline_closes_negotiation_as_Declined()
+    public void Decline_keeps_open_so_customer_can_counter()
     {
         var negotiation = StartValid();
 
-        negotiation.Decline(_now.AddDays(1));
+        negotiation.Decline();
 
-        Assert.Equal(NegotiationStatus.Declined, negotiation.Status);
+        Assert.Equal(NegotiationStatus.Open, negotiation.Status);
     }
 
     [Fact]
@@ -116,7 +116,9 @@ public class NegotiationLifecycleShould
 
         Assert.Throws<DomainException>(() => negotiation.CounterPropose(50m, _now, Policy));
         Assert.Throws<DomainException>(() => negotiation.Accept(_now));
-        Assert.Throws<DomainException>(() => negotiation.Decline(_now));
+        Assert.Throws<DomainException>(() => negotiation.Decline());
     }
 }
+
+
 

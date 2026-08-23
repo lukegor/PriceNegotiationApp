@@ -42,5 +42,6 @@ public static class PipelineExtensions
         app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = r => r.Tags.Contains("ready") });
         app.MapAuthApi();
         app.MapProductsApi();
+        app.MapNegotiationsApi();
     }
 }

@@ -76,7 +76,7 @@ public sealed class NegotiationService(
     public async Task<NegotiationResponse> DeclineAsync(Guid id, CancellationToken ct)
     {
         var negotiation = await RequireAsync(id, ct);
-        negotiation.Decline(time.GetUtcNow());
+        negotiation.Decline();
         await uow.SaveChangesAsync(ct);
         return Map(negotiation);
     }
@@ -142,6 +142,7 @@ public sealed class NegotiationService(
         n.Status.ToString(), n.ProposalsUsed, n.RemainingProposals(policy),
         n.CreatedAtUtc, n.LastProposalAtUtc, n.DecidedAtUtc);
 }
+
 
 
 

@@ -84,7 +84,12 @@ public sealed class Negotiation : Entity
 
     public void Accept(DateTimeOffset now) => Decide(NegotiationStatus.Accepted, now);
 
-    public void Decline(DateTimeOffset now) => Decide(NegotiationStatus.Declined, now);
+    /// <summary>
+    /// Staff rejects the current offer. The negotiation deliberately stays open so the
+    /// customer may spend a remaining proposal; it terminates only via Accept,
+    /// auto-rejection, or withdrawal.
+    /// </summary>
+    public void Decline() => CheckRule(new NegotiationMustBeOpenRule(Status));
 
     public int RemainingProposals(INegotiationPolicy policy) =>
         Math.Max(0, policy.MaxProposalsPerNegotiation - ProposalsUsed);
@@ -106,6 +111,8 @@ public sealed class Negotiation : Entity
         }
     }
 }
+
+
 
 
 

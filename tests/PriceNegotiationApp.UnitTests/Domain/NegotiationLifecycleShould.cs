@@ -2,8 +2,8 @@
 using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Models;
 using PriceNegotiationApp.Domain.Policy;
-using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using Shouldly;
 using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Domain;
@@ -23,29 +23,23 @@ public class NegotiationLifecycleShould
     {
         var negotiation = StartValid();
 
-        Assert.Equal(NegotiationStatus.Open, negotiation.Status);
-        Assert.Equal(1, negotiation.ProposalsUsed);
-        Assert.Equal(100m, negotiation.BasePrice);
-        Assert.Equal(2, negotiation.RemainingProposals(Policy));
+        negotiation.Status.ShouldBe(NegotiationStatus.Open);
+        negotiation.ProposalsUsed.ShouldBe(1);
+        negotiation.BasePrice.ShouldBe(100m);
+        negotiation.RemainingProposals(Policy).ShouldBe(2);
     }
 
     [Fact]
-    public void Start_rejects_offer_over_twice_base_price()
-    {
-        var over = 201m;
-
-        Assert.Throws<ProposalExceedsLimitException>(
-            () => Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _product, over, _now, Policy));
-    }
+    public void Start_rejects_offer_over_twice_base_price() =>
+        Should.Throw<ProposalExceedsLimitException>(
+            () => Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _product, 201m, _now, Policy));
 
     [Fact]
     public void Start_accepts_offer_exactly_at_limit()
     {
-        var atLimit = 200m;
+        var negotiation = Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _product, 200m, _now, Policy);
 
-        var negotiation = Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _product, atLimit, _now, Policy);
-
-        Assert.Equal(200m, negotiation.CurrentOffer);
+        negotiation.CurrentOffer.ShouldBe(200m);
     }
 
     [Fact]
@@ -55,10 +49,10 @@ public class NegotiationLifecycleShould
 
         var outcome = negotiation.CounterPropose(90m, _now.AddMinutes(5), Policy);
 
-        Assert.Equal(NegotiationOutcome.CounterProposed, outcome);
-        Assert.Equal(90m, negotiation.CurrentOffer);
-        Assert.Equal(2, negotiation.ProposalsUsed);
-        Assert.Equal(NegotiationStatus.Open, negotiation.Status);
+        outcome.ShouldBe(NegotiationOutcome.CounterProposed);
+        negotiation.CurrentOffer.ShouldBe(90m);
+        negotiation.ProposalsUsed.ShouldBe(2);
+        negotiation.Status.ShouldBe(NegotiationStatus.Open);
     }
 
     [Fact]
@@ -68,9 +62,9 @@ public class NegotiationLifecycleShould
 
         var outcome = negotiation.CounterPropose(500m, _now.AddMinutes(5), Policy);
 
-        Assert.Equal(NegotiationOutcome.AutoRejected, outcome);
-        Assert.Equal(NegotiationStatus.Declined, negotiation.Status);
-        Assert.NotNull(negotiation.DecidedAtUtc);
+        outcome.ShouldBe(NegotiationOutcome.AutoRejected);
+        negotiation.Status.ShouldBe(NegotiationStatus.Declined);
+        negotiation.DecidedAtUtc.ShouldNotBeNull();
     }
 
     [Fact]
@@ -82,9 +76,9 @@ public class NegotiationLifecycleShould
 
         var outcome = negotiation.CounterPropose(92m, _now, Policy);
 
-        Assert.Equal(NegotiationOutcome.NoProposalsRemaining, outcome);
-        Assert.NotEqual(92m, negotiation.CurrentOffer);
-        Assert.Equal(NegotiationStatus.Open, negotiation.Status);
+        outcome.ShouldBe(NegotiationOutcome.NoProposalsRemaining);
+        negotiation.CurrentOffer.ShouldNotBe(92m);
+        negotiation.Status.ShouldBe(NegotiationStatus.Open);
     }
 
     [Fact]
@@ -94,8 +88,8 @@ public class NegotiationLifecycleShould
 
         negotiation.Accept(_now.AddDays(1));
 
-        Assert.Equal(NegotiationStatus.Accepted, negotiation.Status);
-        Assert.NotNull(negotiation.DecidedAtUtc);
+        negotiation.Status.ShouldBe(NegotiationStatus.Accepted);
+        negotiation.DecidedAtUtc.ShouldNotBeNull();
     }
 
     [Fact]
@@ -105,7 +99,7 @@ public class NegotiationLifecycleShould
 
         negotiation.Decline();
 
-        Assert.Equal(NegotiationStatus.Open, negotiation.Status);
+        negotiation.Status.ShouldBe(NegotiationStatus.Open);
     }
 
     [Fact]
@@ -114,11 +108,8 @@ public class NegotiationLifecycleShould
         var negotiation = StartValid();
         negotiation.Accept(_now);
 
-        Assert.Throws<DomainException>(() => negotiation.CounterPropose(50m, _now, Policy));
-        Assert.Throws<DomainException>(() => negotiation.Accept(_now));
-        Assert.Throws<DomainException>(() => negotiation.Decline());
+        Should.Throw<ClosedNegotiationException>(() => negotiation.CounterPropose(50m, _now, Policy));
+        Should.Throw<ClosedNegotiationException>(() => negotiation.Accept(_now));
+        Should.Throw<ClosedNegotiationException>(() => negotiation.Decline());
     }
 }
-
-
-

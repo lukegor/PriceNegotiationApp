@@ -1,5 +1,6 @@
 ﻿using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.IntegrationTests.Support;
+using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
@@ -16,10 +17,10 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
 
         var me = await session.Client.GetAsync("/api/v1/auth/me", TestContext.Current.CancellationToken);
 
-        me.EnsureSuccessStatusCode();
+        me.StatusCode.ShouldBe(HttpStatusCode.OK);
         var user = await me.Content.ReadFromJsonAsync<MeResponse>(TestContext.Current.CancellationToken);
-        Assert.Equal(session.Email, user!.Email);
-        Assert.Contains("Customer", user.Roles);
+        user!.Email.ShouldBe(session.Email);
+        user.Roles.ShouldContain("Customer");
     }
 
     [Fact]
@@ -31,8 +32,19 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
         var first = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/register", body, TestContext.Current.CancellationToken);
         var second = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/register", body, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
-        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        first.StatusCode.ShouldBe(HttpStatusCode.Created);
+        second.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task Invalid_registration_payload_is_rejected_before_account_creation()
+    {
+        var response = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/register",
+            new RegisterRequest { Email = "not-an-email", Password = "short" }, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        body.ShouldContain("registration_invalid");
     }
 
     [Fact]
@@ -43,9 +55,9 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
         var response = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/login",
             new LoginRequest { Email = session.Email, Password = "WrongPass1!" }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("invalid_credentials", body, StringComparison.Ordinal);
+        body.ShouldContain("invalid_credentials");
     }
 
     [Fact]
@@ -63,9 +75,9 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
         var retry = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/login",
             new LoginRequest { Email = session.Email, Password = "Passw0rd!x" }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, retry.StatusCode);
+        retry.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         var body = await retry.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("account_locked", body, StringComparison.Ordinal);
+        body.ShouldContain("account_locked");
     }
 
     [Fact]
@@ -73,7 +85,6 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
     {
         var response = await fixture.Anonymous.GetAsync("/api/v1/auth/me", TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }
-

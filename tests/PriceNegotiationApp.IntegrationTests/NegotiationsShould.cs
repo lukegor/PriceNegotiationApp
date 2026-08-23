@@ -1,4 +1,5 @@
 ﻿using PriceNegotiationApp.IntegrationTests.Support;
+using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -20,12 +21,12 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         var response = await customer.Client.PostAsJsonAsync("/api/v1/negotiations",
             new { productId = product.Id, proposedPrice = 80m }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
         var mine = await customer.Client.GetFromJsonAsync<PagedNegotiations>("/api/v1/negotiations/mine", Json, TestContext.Current.CancellationToken);
-        var negotiation = Assert.Single(mine!.Items);
-        Assert.Equal("Open", negotiation.Status);
-        Assert.Equal(2, negotiation.ProposalsRemaining);
-        Assert.Equal(100m, negotiation.BasePrice);
+        var negotiation = mine!.Items.ShouldHaveSingleItem();
+        negotiation.Status.ShouldBe("Open");
+        negotiation.ProposalsRemaining.ShouldBe(2);
+        negotiation.BasePrice.ShouldBe(100m);
     }
 
     [Fact]
@@ -37,9 +38,9 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         var response = await customer.Client.PostAsJsonAsync("/api/v1/negotiations",
             new { productId = product.Id, proposedPrice = 250m }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("proposal_exceeds_limit", body, StringComparison.Ordinal);
+        body.ShouldContain("proposal_exceeds_limit");
     }
 
     [Fact]
@@ -53,10 +54,10 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         var second = await customer.Client.PostAsJsonAsync("/api/v1/negotiations",
             new { productId = product.Id, proposedPrice = 85m }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
-        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        first.StatusCode.ShouldBe(HttpStatusCode.Created);
+        second.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var body = await second.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("negotiation_already_open", body, StringComparison.Ordinal);
+        body.ShouldContain("negotiation_already_open");
     }
 
     [Fact]
@@ -64,28 +65,26 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
     {
         var (customer, staff, negotiationId) = await StartOpenNegotiationAsync();
 
-        // Round 1: staff declines, customer counters
+        // Round 1: staff declines (stays open), customer counters
         await StaffDecideAsync(staff, negotiationId, decline: true);
-        var counter1 = await CounterProposeAsync(customer, negotiationId, 90m);
-        Assert.Equal(HttpStatusCode.OK, counter1.StatusCode);
+        (await CounterProposeAsync(customer, negotiationId, 90m)).StatusCode.ShouldBe(HttpStatusCode.OK);
 
         // Round 2: staff declines again, customer uses the last proposal
         await StaffDecideAsync(staff, negotiationId, decline: true);
-        var counter2 = await CounterProposeAsync(customer, negotiationId, 95m);
-        Assert.Equal(HttpStatusCode.OK, counter2.StatusCode);
+        (await CounterProposeAsync(customer, negotiationId, 95m)).StatusCode.ShouldBe(HttpStatusCode.OK);
 
         // Staff accepts the final offer
         var accept = await staff.Client.PostAsJsonAsync($"/api/v1/negotiations/{negotiationId}/accept", new { }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, accept.StatusCode);
+        accept.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var view = await GetNegotiationAsync(staff, negotiationId);
-        Assert.Equal("Accepted", view.Status);
+        view.Status.ShouldBe("Accepted");
 
         // Terminal state refuses further proposals
         var late = await CounterProposeAsync(customer, negotiationId, 50m);
-        Assert.Equal(HttpStatusCode.Conflict, late.StatusCode);
+        late.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var lateBody = await late.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("negotiation_closed", lateBody, StringComparison.Ordinal);
+        lateBody.ShouldContain("negotiation_closed");
     }
 
     [Fact]
@@ -101,9 +100,9 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
 
         var third = await CounterProposeAsync(customer, negotiationId, 92m);
 
-        Assert.Equal(HttpStatusCode.Conflict, third.StatusCode);
+        third.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var body = await third.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("no_proposals_remaining", body, StringComparison.Ordinal);
+        body.ShouldContain("no_proposals_remaining");
     }
 
     [Fact]
@@ -113,11 +112,11 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
 
         var response = await CounterProposeAsync(customer, negotiationId, 500m);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var outcome = await response.Content.ReadFromJsonAsync<CounterOutcome>(Json, TestContext.Current.CancellationToken);
-        Assert.Equal("AutoRejected", outcome!.Outcome);
-        Assert.Equal("Declined", outcome.Negotiation.Status);
-        Assert.NotNull(outcome.Negotiation.DecidedAtUtc);
+        outcome!.Outcome.ShouldBe("AutoRejected");
+        outcome.Negotiation.Status.ShouldBe("Declined");
+        outcome.Negotiation.DecidedAtUtc.ShouldNotBeNull();
     }
 
     [Fact]
@@ -128,22 +127,21 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         var admin = await fixture.LoginAsAdminAsync();
 
         // Stranger cannot view or counter-propose
-        Assert.Equal(HttpStatusCode.Forbidden,
-            (await stranger.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden,
-            (await CounterProposeAsync(stranger, negotiationId, 50m)).StatusCode);
+        (await stranger.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await CounterProposeAsync(stranger, negotiationId, 50m)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
 
         // Staff and admin can view
-        Assert.Equal(HttpStatusCode.OK,
-            (await staff.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.OK,
-            (await admin.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken)).StatusCode);
+        (await staff.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await admin.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.OK);
 
         // Only owner can withdraw; admin can delete anything
-        Assert.Equal(HttpStatusCode.Forbidden,
-            (await stranger.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.NoContent,
-            (await owner.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken)).StatusCode);
+        (await stranger.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await owner.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
     private sealed record CounterOutcome(string Outcome, NegotiationView Negotiation);
@@ -193,6 +191,3 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         return (await response.Content.ReadFromJsonAsync<NegotiationView>(Json, TestContext.Current.CancellationToken))!;
     }
 }
-
-
-

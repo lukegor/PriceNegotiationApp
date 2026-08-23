@@ -1,4 +1,5 @@
 ﻿using PriceNegotiationApp.IntegrationTests.Support;
+using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -15,29 +16,24 @@ public class ProductsShould(IntegrationTestFixture fixture)
     public async Task Anonymous_can_list_and_get_but_not_write()
     {
         var staff = await fixture.LoginAsStaffAsync();
-        var create = await staff.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = "Anon Probe", price = 42m }, TestContext.Current.CancellationToken);
-        create.EnsureSuccessStatusCode();
-        var created = await create.Content.ReadFromJsonAsync<ProductResponse>(Json, TestContext.Current.CancellationToken);
+        var created = await CreateProductAsync(staff, "Anon Probe", 42m);
 
         var list = await fixture.Anonymous.GetAsync("/api/v1/products?page=1&pageSize=10", TestContext.Current.CancellationToken);
-        var listBody = await list.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Console.WriteLine("LIST400BODY=" + listBody);
-        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        list.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var single = await fixture.Anonymous.GetAsync($"/api/v1/products/{created!.Id}", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, single.StatusCode);
+        var single = await fixture.Anonymous.GetAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
+        single.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var post = await fixture.Anonymous.PostAsJsonAsync("/api/v1/products",
             new { name = "X", price = 1m }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.Unauthorized, post.StatusCode);
+        post.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
         var put = await fixture.Anonymous.PutAsJsonAsync($"/api/v1/products/{created.Id}",
             new { name = "X", price = 2m }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.Unauthorized, put.StatusCode);
+        put.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
         var delete = await fixture.Anonymous.DeleteAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.Unauthorized, delete.StatusCode);
+        delete.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -45,12 +41,12 @@ public class ProductsShould(IntegrationTestFixture fixture)
     {
         var customer = await fixture.CreateUserAsync();
 
-        Assert.Equal(HttpStatusCode.Forbidden, (await customer.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = "C", price = 1m }, TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await customer.Client.PutAsJsonAsync($"/api/v1/products/{Guid.NewGuid()}",
-            new { name = "C", price = 1m }, TestContext.Current.CancellationToken)).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await customer.Client.DeleteAsync(
-            $"/api/v1/products/{Guid.NewGuid()}", TestContext.Current.CancellationToken)).StatusCode);
+        (await customer.Client.PostAsJsonAsync("/api/v1/products",
+            new { name = "C", price = 1m }, TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await customer.Client.PutAsJsonAsync($"/api/v1/products/{Guid.NewGuid()}",
+            new { name = "C", price = 1m }, TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await customer.Client.DeleteAsync(
+            $"/api/v1/products/{Guid.NewGuid()}", TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -62,10 +58,10 @@ public class ProductsShould(IntegrationTestFixture fixture)
 
         var put = await staff.Client.PutAsJsonAsync($"/api/v1/products/{created.Id}",
             new { name = "Staff Updated", price = created.Price + 1 }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+        put.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var delete = await staff.Client.DeleteAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.Forbidden, delete.StatusCode);
+        delete.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -75,10 +71,10 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var created = await CreateProductAsync(admin);
 
         var delete = await admin.Client.DeleteAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+        delete.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
         var get = await fixture.Anonymous.GetAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+        get.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -87,22 +83,27 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var response = await fixture.Anonymous.GetAsync(
             $"/api/v1/products/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("product_not_found", body, StringComparison.Ordinal);
+        body.ShouldContain("product_not_found");
     }
 
     [Fact]
-    public async Task Invalid_create_payload_fails_validation()
+    public async Task Domain_rejects_invalid_product_payloads_with_400()
     {
         var staff = await fixture.LoginAsStaffAsync();
 
-        var response = await staff.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = string.Empty, price = -5m }, TestContext.Current.CancellationToken);
+        var emptyName = await staff.Client.PostAsJsonAsync("/api/v1/products",
+            new { name = string.Empty, price = 10m }, TestContext.Current.CancellationToken);
+        emptyName.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var emptyNameBody = await emptyName.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        emptyNameBody.ShouldContain("domain_rule_violated");
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Contains("errors", body.ToLowerInvariant(), StringComparison.Ordinal);
+        var negativePrice = await staff.Client.PostAsJsonAsync("/api/v1/products",
+            new { name = "Valid Name", price = -5m }, TestContext.Current.CancellationToken);
+        negativePrice.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var negativeBody = await negativePrice.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        negativeBody.ShouldContain("validation_failed");
     }
 
     [Fact]
@@ -117,23 +118,24 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var search = await fixture.Anonymous.GetAsync(
             $"/api/v1/products?search={marker}", TestContext.Current.CancellationToken);
         var paged = await search.Content.ReadFromJsonAsync<PagedProducts>(Json, TestContext.Current.CancellationToken);
-        Assert.Equal(3, paged!.TotalCount);
+        paged!.TotalCount.ShouldBe(3);
 
         var sorted = await fixture.Anonymous.GetAsync(
             $"/api/v1/products?search={marker}&sortBy=price&sortDesc=true&page=1&pageSize=2",
             TestContext.Current.CancellationToken);
+        sorted.StatusCode.ShouldBe(HttpStatusCode.OK);
         var sortedPage = await sorted.Content.ReadFromJsonAsync<PagedProducts>(Json, TestContext.Current.CancellationToken);
-        Assert.Equal(3, sortedPage!.TotalCount);
-        Assert.Equal(2, sortedPage.Items.Count);
-        Assert.True(sortedPage.Items[0].Price >= sortedPage.Items[1].Price);
-        Assert.Equal(30m, sortedPage.Items[0].Price);
+        sortedPage!.TotalCount.ShouldBe(3);
+        sortedPage.Items.Count.ShouldBe(2);
+        sortedPage.Items[0].Price.ShouldBeGreaterThanOrEqualTo(sortedPage.Items[1].Price);
+        sortedPage.Items[0].Price.ShouldBe(30m);
 
         var range = await fixture.Anonymous.GetAsync(
             $"/api/v1/products?search={marker}&minPrice=15&maxPrice=25",
             TestContext.Current.CancellationToken);
         var rangePage = await range.Content.ReadFromJsonAsync<PagedProducts>(Json, TestContext.Current.CancellationToken);
-        var item = Assert.Single(rangePage!.Items);
-        Assert.Equal(20m, item.Price);
+        var item = rangePage!.Items.ShouldHaveSingleItem();
+        item.Price.ShouldBe(20m);
     }
 
     [Fact]
@@ -145,9 +147,9 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var put = await staff.Client.PutAsJsonAsync($"/api/v1/products/{created.Id}",
             new { name = created.Name, price = created.Price }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+        put.StatusCode.ShouldBe(HttpStatusCode.OK);
         var body = await put.Content.ReadFromJsonAsync<ProductResponse>(Json, TestContext.Current.CancellationToken);
-        Assert.Equal(created.Name, body!.Name);
+        body!.Name.ShouldBe(created.Name);
     }
 
     private static async Task<ProductResponse> CreateProductAsync(UserSession session, string? name = null, decimal? price = null)
@@ -158,9 +160,3 @@ public class ProductsShould(IntegrationTestFixture fixture)
         return (await response.Content.ReadFromJsonAsync<ProductResponse>(Json, TestContext.Current.CancellationToken))!;
     }
 }
-
-
-
-
-
-

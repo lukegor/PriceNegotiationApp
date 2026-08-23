@@ -1,14 +1,5 @@
 namespace PriceNegotiationApp.Application.Abstractions;
 
-public enum SignInResultKind
-{
-    Success,
-    LockedOut,
-    Failure,
-}
-
-public sealed record RegistrationOutcome(bool Succeeded, Guid UserId, string? ErrorDescription);
-
 public interface IUserAccountStore
 {
     Task<RegistrationOutcome> RegisterAsync(string email, string password, CancellationToken ct);

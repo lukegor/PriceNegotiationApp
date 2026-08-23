@@ -44,8 +44,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddProblemDetails(options =>
                 options.CustomizeProblemDetails = context =>
                     context.ProblemDetails.Extensions.TryAdd("traceId", context.HttpContext.TraceIdentifier))
-            .AddExceptionHandler<GlobalExceptionHandler>()
-            .AddValidation();
+            .AddExceptionHandler<GlobalExceptionHandler>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -109,3 +108,5 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
+
+

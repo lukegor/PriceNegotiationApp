@@ -59,7 +59,7 @@ public sealed class Negotiation : Entity
 
     public NegotiationOutcome CounterPropose(decimal offer, DateTimeOffset now, INegotiationPolicy policy)
     {
-        CheckRule(new NegotiationMustBeOpenRule(Status));
+        EnsureOpen();
         if (ProposalsUsed >= policy.MaxProposalsPerNegotiation)
         {
             return NegotiationOutcome.NoProposalsRemaining;
@@ -89,30 +89,33 @@ public sealed class Negotiation : Entity
     /// customer may spend a remaining proposal; it terminates only via Accept,
     /// auto-rejection, or withdrawal.
     /// </summary>
-    public void Decline() => CheckRule(new NegotiationMustBeOpenRule(Status));
+    public void Decline() => EnsureOpen();
 
     public int RemainingProposals(INegotiationPolicy policy) =>
         Math.Max(0, policy.MaxProposalsPerNegotiation - ProposalsUsed);
 
     private void Decide(NegotiationStatus terminalStatus, DateTimeOffset now)
     {
-        CheckRule(new NegotiationMustBeOpenRule(Status));
+        EnsureOpen();
         Status = terminalStatus;
         DecidedAtUtc = now;
+    }
+
+    private void EnsureOpen()
+    {
+        if (Status != NegotiationStatus.Open)
+        {
+            throw new ClosedNegotiationException();
+        }
     }
 
     private static void EnsureWithinLimit(decimal basePrice, decimal offer, INegotiationPolicy policy)
     {
         var limit = decimal.Round(basePrice * policy.ProposalMultiplierLimit, 2);
-        Price.From(offer);
+        ValueObjects.Price.From(offer);
         if (offer > limit)
         {
             throw new ProposalExceedsLimitException(limit);
         }
     }
 }
-
-
-
-
-

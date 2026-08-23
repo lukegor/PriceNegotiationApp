@@ -8,8 +8,6 @@ namespace PriceNegotiationApp.Infrastructure.Identity;
 
 public sealed class IdentityAccountStore(UserManager<ApplicationUser> userManager) : IUserAccountStore
 {
-    private static readonly RegistrationOutcome DuplicateEmail = new(false, Guid.Empty, "Email already registered.");
-
     public async Task<RegistrationOutcome> RegisterAsync(string email, string password, CancellationToken ct)
     {
         var user = new ApplicationUser { UserName = email, Email = email };
@@ -17,12 +15,12 @@ public sealed class IdentityAccountStore(UserManager<ApplicationUser> userManage
         if (!result.Succeeded)
         {
             return result.Errors.Any(e => e.Code is "DuplicateEmail" or "DuplicateUserName")
-                ? DuplicateEmail
-                : ValidationFailed(result.Errors);
+                ? RegistrationOutcome.DuplicateEmail()
+                : RegistrationOutcome.ValidationFailed(string.Join("; ", result.Errors.Select(e => e.Description)));
         }
 
         await userManager.AddToRoleAsync(user, UserRoles.Customer);
-        return new RegistrationOutcome(true, user.Id, null);
+        return RegistrationOutcome.Success(user.Id);
     }
 
     public async Task<SignInResultKind> PasswordSignInAsync(string email, string password)
@@ -63,7 +61,5 @@ public sealed class IdentityAccountStore(UserManager<ApplicationUser> userManage
                    ?? throw new NotFoundException(nameof(ApplicationUser), userId);
         return (IReadOnlyList<string>)await userManager.GetRolesAsync(user);
     }
-
-    private static RegistrationOutcome ValidationFailed(IEnumerable<IdentityError> errors) =>
-        new(false, Guid.Empty, string.Join("; ", errors.Select(e => e.Description)));
 }
+

@@ -4,7 +4,7 @@ using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Exceptions;
 using PriceNegotiationApp.Application.Features.Products;
 using PriceNegotiationApp.Domain.Models;
-using PriceNegotiationApp.Domain.ValueObjects;
+using Shouldly;
 using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Application;
@@ -23,10 +23,10 @@ public class ProductServiceShould
     [Fact]
     public async Task GetAsync_throws_NotFound_when_missing()
     {
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
+        var exception = await Should.ThrowAsync<NotFoundException>(
             () => _sut.GetAsync(Guid.NewGuid(), TestContext.Current.CancellationToken));
 
-        Assert.Equal(ErrorCodes.ProductNotFound, exception.Code);
+        exception.Code.ShouldBe(ErrorCodes.ProductNotFound);
     }
 
     [Fact]
@@ -37,8 +37,8 @@ public class ProductServiceShould
 
         var response = await _sut.CreateAsync("  Keyboard ", 99.5m, TestContext.Current.CancellationToken);
 
-        Assert.Equal("Keyboard", response.Name);
-        Assert.Equal("Keyboard", added!.Name);
+        response.Name.ShouldBe("Keyboard");
+        added!.Name.ShouldBe("Keyboard");
         await _uow.Received().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -50,8 +50,8 @@ public class ProductServiceShould
 
         var response = await _sut.UpdateAsync(product.Id.Value, "New", 20m, TestContext.Current.CancellationToken);
 
-        Assert.Equal("New", response.Name);
-        Assert.Equal(20m, response.Price);
+        response.Name.ShouldBe("New");
+        response.Price.ShouldBe(20m);
     }
 
     [Fact]
@@ -65,5 +65,3 @@ public class ProductServiceShould
         _products.Received().Remove(product);
     }
 }
-
-

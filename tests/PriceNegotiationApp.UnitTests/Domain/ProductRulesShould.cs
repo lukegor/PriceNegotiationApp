@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Models;
+using Shouldly;
 using Vogen;
 using Xunit;
 
@@ -15,22 +16,26 @@ public class ProductRulesShould
     [InlineData("")]
     [InlineData("   ")]
     public void Create_rejects_null_or_whitespace_name(string? name) =>
-        Assert.Throws<DomainException>(() => Product.Create(name!, 10m));
+        Should.Throw<DomainException>(() => Product.Create(name!, 10m));
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
     public void Create_rejects_non_positive_price(decimal price) =>
-        Assert.Throws<ValueObjectValidationException>(() => Product.Create("Thing", price));
+        Should.Throw<ValueObjectValidationException>(() => Product.Create("Thing", price));
+
+    [Fact]
+    public void Create_rejects_name_over_200_characters() =>
+        Should.Throw<DomainException>(() => Product.Create(new string('x', 201), 10m));
 
     [Fact]
     public void Create_trims_name_and_assigns_id()
     {
         var product = Product.Create("  Keyboard  ", 99.5m);
 
-        Assert.Equal("Keyboard", product.Name);
-        Assert.NotEqual(Guid.Empty, product.Id.Value);
-        Assert.Equal(99.5m, product.Price);
+        product.Name.ShouldBe("Keyboard");
+        product.Id.Value.ShouldNotBe(Guid.Empty);
+        product.Price.ShouldBe(99.5m);
     }
 
     [Fact]
@@ -40,9 +45,9 @@ public class ProductRulesShould
 
         var changed = product.Update("New", 20m);
 
-        Assert.True(changed);
-        Assert.Equal("New", product.Name);
-        Assert.Equal(20m, product.Price);
+        changed.ShouldBeTrue();
+        product.Name.ShouldBe("New");
+        product.Price.ShouldBe(20m);
     }
 
     [Fact]
@@ -52,7 +57,6 @@ public class ProductRulesShould
 
         var changed = product.Update("Same", 10m);
 
-        Assert.False(changed);
+        changed.ShouldBeFalse();
     }
 }
-

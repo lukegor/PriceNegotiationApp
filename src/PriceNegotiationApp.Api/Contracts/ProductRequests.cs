@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using PriceNegotiationApp.Application.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace PriceNegotiationApp.Api.Contracts;
 

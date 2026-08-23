@@ -1,7 +1,7 @@
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using PriceNegotiationApp.Api.Contracts;
+using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Xunit;
 

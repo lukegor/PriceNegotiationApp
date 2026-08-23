@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using PriceNegotiationApp.Application.Common;
+using System.Security.Claims;
 
 namespace PriceNegotiationApp.Api.Extensions;
 

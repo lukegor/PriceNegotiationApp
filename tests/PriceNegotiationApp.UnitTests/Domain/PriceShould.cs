@@ -1,6 +1,6 @@
-using Xunit;
 using PriceNegotiationApp.Domain.ValueObjects;
 using Vogen;
+using Xunit;
 
 namespace PriceNegotiationApp.UnitTests.Domain;
 

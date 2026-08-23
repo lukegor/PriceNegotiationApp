@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.Api.Extensions;
 using PriceNegotiationApp.Application.Features.Auth;
+using System.Security.Claims;
 
 namespace PriceNegotiationApp.Api.Modules;
 

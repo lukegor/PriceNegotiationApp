@@ -15,7 +15,7 @@ offer plus two counters). Any proposal above **2× the product's base price** is
 | Persistence | EF Core 10 + Npgsql (PostgreSQL 17), snake_case schema, xmin concurrency |
 | Identity | ASP.NET Core Identity + JWT Bearer (strict issuer/audience/lifetime validation) |
 | Observability | Serilog (console/file), OpenTelemetry (OTLP), `/health/live`, `/health/ready` |
-| Tests | xUnit v3, NSubstitute, Bogus, Testcontainers (real Postgres), 50+ tests |
+| Tests | xUnit v3, Bogus, Testcontainers (real Postgres), Shouldly assertions |
 | Platform | Docker multi-stage image, docker-compose, GitHub Actions CI, Dependabot |
 
 ## Architecture
@@ -25,27 +25,46 @@ one PostgreSQL schema per context.
 
 ```
 src/
-  PriceNegotiationApp.AppHost               composition root: pipeline, authN/authZ validation,
+  PriceNegotiationApp.Api                   composition root: pipeline, authN/authZ validation,
   │                                         ProblemDetails, rate limiting, CORS, output caching,
   │                                         health checks, OTel; wires modules and the single
   │                                         inter-module adapter
-  PriceNegotiationApp.BuildingBlocks        shared primitives: CallerContext, paging,
-  │                                         error semantics, policy names, role names
+  PriceNegotiationApp.SharedKernel          shared primitives: CallerContext, paging,
+  │                                         error semantics, policy names, role names,
+  │                                         seeding/design-time factory bases
   PriceNegotiationApp.Modules.Identity      users/roles/JWT issuance/seeding → schema identity
   PriceNegotiationApp.Modules.Catalog       products → schema catalog
   PriceNegotiationApp.Modules.Negotiations  negotiations/customers/policy → schema negotiations
 
 tests/
-  PriceNegotiationApp.Modules.*.Tests       per-module unit tests (module public surface only)
+  PriceNegotiationApp.Modules.*.Tests       per-module unit tests
   PriceNegotiationApp.IntegrationTests      WebApplicationFactory + Testcontainers PostgreSQL
 ```
 
-Rules: modules never reference each other; cross-module interaction flows through
-consumer-owned ports wired in AppHost (`Composition/CatalogToNegotiations` is currently
-the only edge). Each context owns its migrations; startup applies them in order
-identity → catalog → negotiations. Per-module connection overrides:
-`Database:Modules:{Identity|Catalog|Negotiations}:ConnectionString` (falls back to
-`Database:ConnectionString`).
+Every module uses the same layout:
+
+```
+Modules.X/
+  XModule.cs, XEndpoints.cs   public registration + endpoint mapping
+  Domain/                     entities, value objects, policies        (internal)
+  Features/<Entity>/          handlers + models per feature group       (internal)
+  Persistence/                DbContext, configurations, migrations     (internal)
+  Ports/                      required-services contracts               (public)
+  Public/                     cross-assembly contract surface           (public)
+  Seeding/                    module seeder on the shared base          (internal)
+```
+
+Rules:
+
+- Modules never reference each other; module implementation types are `internal`, so the
+  boundary is enforced at compile time. `InternalsVisibleTo` is granted only to the
+  composition root (`Api`) and each module's own test project.
+- Cross-module interaction flows through consumer-owned ports wired in Api
+  (`Composition/CatalogToNegotiations` is currently the only edge).
+- Each context owns its migrations; startup applies them in order
+  identity → catalog → negotiations. Per-module connection overrides:
+  `Database:Modules:{Identity|Catalog|Negotiations}:ConnectionString` (falls back to
+  `Database:ConnectionString`).
 
 ### Migrations
 

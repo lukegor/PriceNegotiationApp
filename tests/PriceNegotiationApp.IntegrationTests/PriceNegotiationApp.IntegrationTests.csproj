@@ -4,7 +4,7 @@
     <NoWarn>$(NoWarn);CA1707;S1118</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.AppHost\PriceNegotiationApp.AppHost.csproj" />
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" />

@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.AppHost.Extensions;
+namespace PriceNegotiationApp.Api.Extensions;
 
 public sealed class JwtSettings
 {

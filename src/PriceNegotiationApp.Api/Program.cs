@@ -1,4 +1,4 @@
-using PriceNegotiationApp.AppHost.Extensions;
+using PriceNegotiationApp.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddApiServices();

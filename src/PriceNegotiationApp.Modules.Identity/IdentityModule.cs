@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using PriceNegotiationApp.SharedKernel;
-using PriceNegotiationApp.Modules.Identity.Auth;
 using PriceNegotiationApp.Modules.Identity.Features.Auth;
 using PriceNegotiationApp.Modules.Identity.Persistence;
 using PriceNegotiationApp.Modules.Identity.Seeding;

@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace PriceNegotiationApp.Modules.Identity.Auth;
+namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
 public sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider clock)
 {

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Catalog.Domain;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
+using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Catalog.Features.Products;
 

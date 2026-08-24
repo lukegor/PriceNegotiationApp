@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Persistence.Configurations;
+using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Persistence;
 

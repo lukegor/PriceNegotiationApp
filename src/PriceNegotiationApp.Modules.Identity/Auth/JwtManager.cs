@@ -7,7 +7,7 @@ using System.Text;
 
 namespace PriceNegotiationApp.Modules.Identity.Auth;
 
-public sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider clock) 
+public sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider clock)
 {
     public Task<(string Token, DateTimeOffset ExpiresAtUtc)> GenerateAsync(Guid userId, string email, IReadOnlyCollection<string> roles)
     {

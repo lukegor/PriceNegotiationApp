@@ -1,9 +1,9 @@
-using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Modules.Identity.Persistence;
 
 namespace PriceNegotiationApp.Modules.Identity.Seeding;

@@ -1,5 +1,5 @@
-using System.Globalization;
 using PriceNegotiationApp.BuildingBlocks;
+using System.Globalization;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 

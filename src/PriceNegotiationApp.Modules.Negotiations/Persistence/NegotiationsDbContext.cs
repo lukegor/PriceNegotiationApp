@@ -5,7 +5,7 @@ using PriceNegotiationApp.Modules.Negotiations.Persistence.Configurations;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Persistence;
 
-public sealed class NegotiationsDbContext(DbContextOptions<NegotiationsDbContext> options) : DbContext(options)
+internal sealed class NegotiationsDbContext(DbContextOptions<NegotiationsDbContext> options) : DbContext(options)
 {
     public DbSet<Customer> Customers => Set<Customer>();
 

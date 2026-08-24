@@ -16,4 +16,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PriceNegotiationApp.Api" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Identity.Tests" />
+  </ItemGroup>
 </Project>

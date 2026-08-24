@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
-public sealed class Negotiation
+internal sealed class Negotiation
 {
     /// <summary>Base price snapshot taken at creation; protects ongoing negotiations from later product price changes.</summary>
     public decimal BasePrice { get; private set; }

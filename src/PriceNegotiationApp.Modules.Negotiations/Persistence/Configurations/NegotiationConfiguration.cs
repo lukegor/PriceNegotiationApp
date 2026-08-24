@@ -4,7 +4,7 @@ using PriceNegotiationApp.Modules.Negotiations.Domain;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Persistence.Configurations;
 
-public sealed class NegotiationConfiguration : IEntityTypeConfiguration<Negotiation>
+internal sealed class NegotiationConfiguration : IEntityTypeConfiguration<Negotiation>
 {
     public void Configure(EntityTypeBuilder<Negotiation> builder)
     {

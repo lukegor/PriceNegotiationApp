@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 
 namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
-public sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
+internal sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
 {
     public ValidateOptionsResult Validate(string? name, JwtOptions options)
     {

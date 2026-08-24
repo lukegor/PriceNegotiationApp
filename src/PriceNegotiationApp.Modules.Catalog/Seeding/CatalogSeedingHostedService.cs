@@ -8,7 +8,7 @@ using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Catalog.Seeding;
 
-public sealed class CatalogSeedingHostedService(
+internal sealed class CatalogSeedingHostedService(
     IServiceScopeFactory scopeFactory,
     IOptions<CatalogSeedingOptions> options,
     ILogger<CatalogSeedingHostedService> logger) : ModuleSeedingHostedServiceBase(scopeFactory)

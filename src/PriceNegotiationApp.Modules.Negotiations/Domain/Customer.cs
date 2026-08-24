@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
-public sealed class Customer
+internal sealed class Customer
 {
     public CustomerId Id { get; private set; }
 

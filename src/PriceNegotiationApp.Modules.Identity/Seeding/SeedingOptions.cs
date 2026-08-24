@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Identity.Seeding;
 
-public sealed class SeedingOptions
+internal sealed class SeedingOptions
 {
     public const string SectionName = "Seeding";
 

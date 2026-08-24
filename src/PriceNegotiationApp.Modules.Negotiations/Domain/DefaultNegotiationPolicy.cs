@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
-public sealed class DefaultNegotiationPolicy : INegotiationPolicy
+internal sealed class DefaultNegotiationPolicy : INegotiationPolicy
 {
     public int MaxProposalsPerNegotiation => 3;
 

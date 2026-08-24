@@ -5,7 +5,7 @@ using PriceVo = PriceNegotiationApp.Modules.Catalog.Domain.Price;
 namespace PriceNegotiationApp.Modules.Catalog.Domain;
 
 
-public sealed class Product
+internal sealed class Product
 {
     public const int MaxNameLength = 200;
 

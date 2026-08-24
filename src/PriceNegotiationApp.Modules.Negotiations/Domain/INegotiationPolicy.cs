@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
-public interface INegotiationPolicy
+internal interface INegotiationPolicy
 {
     int MaxProposalsPerNegotiation { get; }
 

@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Api.Contracts;
+using PriceNegotiationApp.IntegrationTests.Support;
 using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -55,3 +55,5 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     public Task<UserSession> LoginAsStaffAsync() =>
         LoginAsync(IntegrationTestFactory.StaffEmail, IntegrationTestFactory.SeedPassword);
 }
+
+

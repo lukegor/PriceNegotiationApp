@@ -1,4 +1,3 @@
-﻿using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.IntegrationTests.Support;
 using Shouldly;
 using System.Net;
@@ -88,3 +87,4 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }
+

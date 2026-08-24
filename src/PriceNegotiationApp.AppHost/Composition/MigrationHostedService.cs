@@ -6,7 +6,7 @@ using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Identity.Persistence;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 
-namespace PriceNegotiationApp.Api.Composition;
+namespace PriceNegotiationApp.AppHost.Composition;
 
 public sealed class MigrationHostedService(IServiceScopeFactory scopeFactory, ILogger<MigrationHostedService> logger)
     : IHostedService
@@ -28,6 +28,7 @@ public sealed class MigrationHostedService(IServiceScopeFactory scopeFactory, IL
         await db.Database.MigrateAsync(ct);
     }
 }
+
 
 
 

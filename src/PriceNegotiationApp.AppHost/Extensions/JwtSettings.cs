@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Api.Extensions;
+namespace PriceNegotiationApp.AppHost.Extensions;
 
 public sealed class JwtSettings
 {
@@ -8,3 +8,4 @@ public sealed class JwtSettings
 
     public required string SecretKey { get; init; }
 }
+

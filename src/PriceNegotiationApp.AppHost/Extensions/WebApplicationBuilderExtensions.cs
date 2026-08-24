@@ -20,7 +20,7 @@ using Serilog;
 using System.Text;
 using System.Threading.RateLimiting;
 
-namespace PriceNegotiationApp.Api.Extensions;
+namespace PriceNegotiationApp.AppHost.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
@@ -102,7 +102,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddOpenApi();
 
         builder.Services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource.AddService("PriceNegotiationApp.Api"))
+            .ConfigureResource(resource => resource.AddService("PriceNegotiationApp.AppHost"))
             .WithTracing(tracing => tracing
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation())
@@ -114,3 +114,4 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
+

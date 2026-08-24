@@ -4,7 +4,7 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
+    <Project Path="src/PriceNegotiationApp.AppHost/PriceNegotiationApp.AppHost.csproj" />
     <Project Path="src/PriceNegotiationApp.BuildingBlocks/PriceNegotiationApp.BuildingBlocks.csproj" />
     <Project Path="src/PriceNegotiationApp.Modules.Catalog/PriceNegotiationApp.Modules.Catalog.csproj" />
     <Project Path="src/PriceNegotiationApp.Modules.Identity/PriceNegotiationApp.Modules.Identity.csproj" />
@@ -17,4 +17,5 @@
     <Project Path="tests/PriceNegotiationApp.Modules.Negotiations.Tests/PriceNegotiationApp.Modules.Negotiations.Tests.csproj" />
   </Folder>
 </Solution>
+
 

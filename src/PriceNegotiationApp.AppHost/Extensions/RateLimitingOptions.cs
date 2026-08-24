@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Api.Extensions;
+namespace PriceNegotiationApp.AppHost.Extensions;
 
 public sealed class RateLimitingOptions
 {
@@ -6,3 +6,4 @@ public sealed class RateLimitingOptions
 
     public int AuthPermitLimit { get; init; } = 30;
 }
+

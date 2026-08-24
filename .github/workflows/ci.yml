@@ -24,8 +24,6 @@ jobs:
       - name: Build
         run: dotnet build -c Release --no-restore
 
-      - name: Unit tests
-        run: dotnet test tests/PriceNegotiationApp.UnitTests -c Release --no-build --collect:"XPlat Code Coverage"
+      - name: Test
+        run: dotnet test PriceNegotiationApp.slnx -c Release --no-build --collect:"XPlat Code Coverage"
 
-      - name: Integration tests
-        run: dotnet test tests/PriceNegotiationApp.IntegrationTests -c Release --no-build --collect:"XPlat Code Coverage"

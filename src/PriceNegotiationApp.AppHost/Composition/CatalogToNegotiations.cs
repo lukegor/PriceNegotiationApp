@@ -3,7 +3,7 @@ using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Catalog.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Ports;
 
-namespace PriceNegotiationApp.Api.Composition;
+namespace PriceNegotiationApp.AppHost.Composition;
 
 /// <summary>The single sanctioned inter-module edge: Negotiations reads product price snapshots.</summary>
 public sealed class CatalogToNegotiations(CatalogDbContext db) : IProductPriceProvider
@@ -14,6 +14,7 @@ public sealed class CatalogToNegotiations(CatalogDbContext db) : IProductPricePr
             .Select(p => new ProductSnapshot(productId, p.Price))
             .FirstOrDefaultAsync(ct);
 }
+
 
 
 

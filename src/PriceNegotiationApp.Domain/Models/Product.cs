@@ -1,5 +1,5 @@
-using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.Domain.ValueObjects;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
 
 namespace PriceNegotiationApp.Domain.Models;
@@ -63,5 +63,4 @@ public sealed class Product
         ValueObjects.Price.From(price);
     }
 }
-
 

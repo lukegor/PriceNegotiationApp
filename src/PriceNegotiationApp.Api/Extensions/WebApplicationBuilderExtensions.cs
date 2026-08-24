@@ -1,3 +1,6 @@
+using PriceNegotiationApp.Modules.Negotiations;
+using PriceNegotiationApp.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +15,6 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using PriceNegotiationApp.Application;
 using PriceNegotiationApp.Infrastructure;
-using PriceNegotiationApp.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 using Serilog;
 using System.Text;
@@ -28,6 +30,9 @@ public static class WebApplicationBuilderExtensions
     {
         var configuration = builder.Configuration;
 
+        // Migrations must run before any module seeder (hosted services start in registration order).
+        builder.Services.AddHostedService<Composition.MigrationHostedService>();
+
         builder.Host.UseSerilog((context, _, logConfiguration) => logConfiguration
             .ReadFrom.Configuration(context.Configuration)
             .Enrich.FromLogContext()
@@ -37,6 +42,9 @@ public static class WebApplicationBuilderExtensions
         builder.Services
             .AddApplicationServices()
             .AddInfrastructure(configuration);
+
+        builder.Services.AddNegotiationsModule(configuration);
+        builder.Services.AddScoped<PriceNegotiationApp.Modules.Negotiations.Ports.IProductPriceProvider, Composition.CatalogToNegotiations>();
 
         builder.Services.AddProblemDetails(options =>
                 options.CustomizeProblemDetails = context =>
@@ -107,6 +115,12 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
+
+
+
+
+
+
 
 
 

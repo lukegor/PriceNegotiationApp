@@ -1,12 +1,5 @@
-using PriceNegotiationApp.Modules.Catalog;
-using PriceNegotiationApp.Modules.Catalog.Persistence;
-using PriceNegotiationApp.Modules.Negotiations;
-using PriceNegotiationApp.Infrastructure.Persistence;
-using PriceNegotiationApp.Modules.Negotiations.Persistence;
-using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -15,8 +8,13 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using PriceNegotiationApp.Application;
-using PriceNegotiationApp.Infrastructure;
+using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.Modules.Catalog;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
+using PriceNegotiationApp.Modules.Identity;
+using PriceNegotiationApp.Modules.Identity.Persistence;
+using PriceNegotiationApp.Modules.Negotiations;
+using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using Scalar.AspNetCore;
 using Serilog;
 using System.Text;
@@ -41,13 +39,11 @@ public static class WebApplicationBuilderExtensions
             .WriteTo.Console()
             .WriteTo.File(Path.Combine("logs", "api-.log"), rollingInterval: RollingInterval.Day));
 
-        builder.Services
-            .AddApplicationServices()
-            .AddInfrastructure(configuration);
-
-        builder.Services.AddNegotiationsModule(configuration);
+        builder.Services.AddIdentityModule(configuration);
         builder.Services.AddCatalogModule(configuration);
-        builder.Services.AddScoped<PriceNegotiationApp.Modules.Negotiations.Ports.IProductPriceProvider, Composition.CatalogToNegotiations>();
+        builder.Services.AddNegotiationsModule(configuration);
+        builder.Services.AddScoped<PriceNegotiationApp.Modules.Negotiations.Ports.IProductPriceProvider,
+            Composition.CatalogToNegotiations>();
 
         builder.Services.AddProblemDetails(options =>
                 options.CustomizeProblemDetails = context =>
@@ -118,16 +114,3 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

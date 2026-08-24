@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
-using PriceNegotiationApp.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Identity.Persistence;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 
 namespace PriceNegotiationApp.Api.Composition;
@@ -28,5 +28,7 @@ public sealed class MigrationHostedService(IServiceScopeFactory scopeFactory, IL
         await db.Database.MigrateAsync(ct);
     }
 }
+
+
 
 

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.Modules.Negotiations.Features;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 using Vogen;
 
 namespace PriceNegotiationApp.Api;

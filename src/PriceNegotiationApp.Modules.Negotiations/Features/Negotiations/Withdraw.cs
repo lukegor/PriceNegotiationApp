@@ -6,7 +6,7 @@ using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using System.Security.Claims;
 
-namespace PriceNegotiationApp.Modules.Negotiations.Features;
+namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
 internal static class Withdraw
 {

@@ -5,17 +5,17 @@ using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 
-namespace PriceNegotiationApp.Modules.Negotiations.Features;
+namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
-internal static class Accept
+internal static class Decline
 {
-    internal static void MapAccept(this RouteGroupBuilder group)
+    internal static void MapDecline(this RouteGroupBuilder group)
     {
-        group.MapPost("/{id:guid}/accept", async (Guid id, NegotiationsDbContext db,
-                INegotiationPolicy policy, TimeProvider clock, CancellationToken ct) =>
+        group.MapPost("/{id:guid}/decline", async (Guid id, NegotiationsDbContext db,
+                INegotiationPolicy policy, CancellationToken ct) =>
             {
                 var negotiation = await NegotiationAccess.RequireAsync(db, id, ct);
-                negotiation.Accept(clock.GetUtcNow());
+                negotiation.Decline();
                 await db.SaveChangesAsync(ct);
                 return TypedResults.Ok(NegotiationResponses.ToResponse(negotiation, policy));
             })

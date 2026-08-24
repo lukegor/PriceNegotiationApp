@@ -7,7 +7,7 @@ using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.Modules.Negotiations.Ports;
 using System.Security.Claims;
 
-namespace PriceNegotiationApp.Modules.Negotiations.Features;
+namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
 internal static class Create
 {

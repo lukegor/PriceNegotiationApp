@@ -1,6 +1,6 @@
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 
-namespace PriceNegotiationApp.Modules.Negotiations.Features;
+namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
 public sealed class CreateNegotiationRequest
 {

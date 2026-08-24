@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.Modules.Negotiations.Features;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
 namespace PriceNegotiationApp.Modules.Negotiations;
 

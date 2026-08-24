@@ -18,7 +18,8 @@ public sealed class NegotiationConfiguration : IEntityTypeConfiguration<Negotiat
         builder.Property(n => n.BasePrice).HasColumnType("numeric(18,2)");
         builder.Property(n => n.CurrentOffer).HasColumnType("numeric(18,2)");
         builder.Property(n => n.Status).HasConversion<int>();
-        builder.HasOne<Product>().WithMany().HasForeignKey(n => n.ProductId).OnDelete(DeleteBehavior.Restrict);
+        // No FK to catalog.products by design (separate schemas/modules). Product existence is
+        // validated at negotiation creation; negotiations survive product deletion on snapshots.
         builder.HasOne<Customer>().WithMany().HasForeignKey(n => n.CustomerId).OnDelete(DeleteBehavior.Cascade);
         // One OPEN negotiation per customer per product; closed history preserved.
         builder.HasIndex(n => new { n.ProductId, n.CustomerId })

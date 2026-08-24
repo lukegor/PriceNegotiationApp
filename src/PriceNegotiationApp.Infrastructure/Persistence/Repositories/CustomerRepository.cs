@@ -5,7 +5,7 @@ using PriceNegotiationApp.Domain.ValueObjects.Ids;
 
 namespace PriceNegotiationApp.Infrastructure.Persistence.Repositories;
 
-public sealed class CustomerRepository(AppDbContext db, IUnitOfWork uow) : ICustomerRepository
+public sealed class CustomerRepository(NegotiationsDbContext db, IUnitOfWork uow) : ICustomerRepository
 {
     public async Task<CustomerId> GetOrCreateAsync(Guid identityUserId, CancellationToken ct)
     {
@@ -24,3 +24,4 @@ public sealed class CustomerRepository(AppDbContext db, IUnitOfWork uow) : ICust
     public Task<Customer?> GetByIdentityAsync(Guid identityUserId, CancellationToken ct) =>
         db.Customers.FirstOrDefaultAsync(c => c.IdentityUserId == identityUserId, ct);
 }
+

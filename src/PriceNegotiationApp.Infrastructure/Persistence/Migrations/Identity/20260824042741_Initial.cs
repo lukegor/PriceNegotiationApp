@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using System;
 
 #nullable disable
 
-namespace PriceNegotiationApp.Infrastructure.Data.Migrations
+namespace PriceNegotiationApp.Infrastructure.Persistence.Migrations.Identity
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -12,34 +12,12 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "customers",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    identity_user_id = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_customers", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "products",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_products", x => x.id);
-                });
+            migrationBuilder.EnsureSchema(
+                name: "identity");
 
             migrationBuilder.CreateTable(
                 name: "roles",
+                schema: "identity",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -54,6 +32,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "users",
+                schema: "identity",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -78,40 +57,8 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "negotiations",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    base_price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    current_offer = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    product_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    customer_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    status = table.Column<int>(type: "integer", nullable: false),
-                    proposals_used = table.Column<int>(type: "integer", nullable: false),
-                    created_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    last_proposal_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    decided_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_negotiations", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_negotiations_customers_customer_id",
-                        column: x => x.customer_id,
-                        principalTable: "customers",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_negotiations_products_product_id",
-                        column: x => x.product_id,
-                        principalTable: "products",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "role_claims",
+                schema: "identity",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -126,6 +73,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                     table.ForeignKey(
                         name: "fk_role_claims_roles_role_id",
                         column: x => x.role_id,
+                        principalSchema: "identity",
                         principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -133,6 +81,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "user_claims",
+                schema: "identity",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -147,6 +96,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                     table.ForeignKey(
                         name: "fk_user_claims_users_user_id",
                         column: x => x.user_id,
+                        principalSchema: "identity",
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -154,6 +104,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "user_logins",
+                schema: "identity",
                 columns: table => new
                 {
                     login_provider = table.Column<string>(type: "text", nullable: false),
@@ -167,6 +118,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                     table.ForeignKey(
                         name: "fk_user_logins_users_user_id",
                         column: x => x.user_id,
+                        principalSchema: "identity",
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -174,6 +126,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "user_roles",
+                schema: "identity",
                 columns: table => new
                 {
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -185,12 +138,14 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                     table.ForeignKey(
                         name: "fk_user_roles_roles_role_id",
                         column: x => x.role_id,
+                        principalSchema: "identity",
                         principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "fk_user_roles_users_user_id",
                         column: x => x.user_id,
+                        principalSchema: "identity",
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -198,6 +153,7 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
 
             migrationBuilder.CreateTable(
                 name: "user_tokens",
+                schema: "identity",
                 columns: table => new
                 {
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -211,62 +167,52 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
                     table.ForeignKey(
                         name: "fk_user_tokens_users_user_id",
                         column: x => x.user_id,
+                        principalSchema: "identity",
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_customers_identity_user_id",
-                table: "customers",
-                column: "identity_user_id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_negotiations_customer_id",
-                table: "negotiations",
-                column: "customer_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_negotiations_product_id_customer_id",
-                table: "negotiations",
-                columns: new[] { "product_id", "customer_id" },
-                unique: true,
-                filter: "status = 1");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_role_claims_role_id",
+                schema: "identity",
                 table: "role_claims",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
+                schema: "identity",
                 table: "roles",
                 column: "normalized_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_claims_user_id",
+                schema: "identity",
                 table: "user_claims",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_logins_user_id",
+                schema: "identity",
                 table: "user_logins",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_roles_role_id",
+                schema: "identity",
                 table: "user_roles",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
+                schema: "identity",
                 table: "users",
                 column: "normalized_email");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
+                schema: "identity",
                 table: "users",
                 column: "normalized_user_name",
                 unique: true);
@@ -276,34 +222,32 @@ namespace PriceNegotiationApp.Infrastructure.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "negotiations");
+                name: "role_claims",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "role_claims");
+                name: "user_claims",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "user_claims");
+                name: "user_logins",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "user_logins");
+                name: "user_roles",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "user_roles");
+                name: "user_tokens",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "user_tokens");
+                name: "roles",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "customers");
-
-            migrationBuilder.DropTable(
-                name: "products");
-
-            migrationBuilder.DropTable(
-                name: "roles");
-
-            migrationBuilder.DropTable(
-                name: "users");
+                name: "users",
+                schema: "identity");
         }
     }
 }

@@ -144,6 +144,35 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
             .StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
+    [Fact]
+    public async Task Negotiations_survive_when_referenced_product_is_deleted()
+    {
+        var product = await CreateProductAsync();
+        var customer = await fixture.CreateUserAsync();
+
+        var create = await customer.Client.PostAsJsonAsync("/api/v1/negotiations",
+            new { productId = product.Id, proposedPrice = 80m }, TestContext.Current.CancellationToken);
+        create.EnsureSuccessStatusCode();
+
+        var admin = await fixture.LoginAsAdminAsync();
+        var delete = await admin.Client.DeleteAsync($"/api/v1/products/{product.Id}", TestContext.Current.CancellationToken);
+        delete.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var mine = await customer.Client.GetFromJsonAsync<PagedNegotiations>(
+            "/api/v1/negotiations/mine?page=1&pageSize=10", Json, TestContext.Current.CancellationToken);
+        mine!.TotalCount.ShouldBe(1);
+        mine.Items.ShouldHaveSingleItem().BasePrice.ShouldBe(100m);
+    }
+
+    [Fact]
+    public async Task Ready_endpoint_reports_all_module_schemas()
+    {
+        var response = await fixture.Anonymous.GetAsync("/health/ready", TestContext.Current.CancellationToken);
+
+        response.EnsureSuccessStatusCode();
+        (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ShouldContain("Healthy");
+    }
+
     private sealed record CounterOutcome(string Outcome, NegotiationView Negotiation);
 
     private sealed record NegotiationView(

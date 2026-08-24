@@ -91,7 +91,9 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
-            .AddDbContextCheck<AppDbContext>("database", tags: ["ready"]);
+            .AddDbContextCheck<IdentityModuleDbContext>("database-identity", tags: ["ready"])
+            .AddDbContextCheck<CatalogDbContext>("database-catalog", tags: ["ready"])
+            .AddDbContextCheck<NegotiationsDbContext>("database-negotiations", tags: ["ready"]);
 
         builder.Services.AddOpenApi();
 

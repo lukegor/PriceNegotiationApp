@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Exceptions;
@@ -8,7 +8,7 @@ using PriceNegotiationApp.Domain.ValueObjects.Ids;
 
 namespace PriceNegotiationApp.Infrastructure.Persistence.Repositories;
 
-public sealed class ProductRepository(AppDbContext db) : IProductRepository
+public sealed class ProductRepository(CatalogDbContext db) : IProductRepository
 {
     public Task<Product?> GetAsync(ProductId id, CancellationToken ct) =>
         db.Products.FirstOrDefaultAsync(p => p.Id == id, ct);
@@ -59,5 +59,6 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
         return new PagedResult<ProductResponse>(items, page.SafePage, page.SafePageSize, total);
     }
 }
+
 
 

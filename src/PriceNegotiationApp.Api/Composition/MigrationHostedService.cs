@@ -6,7 +6,7 @@ using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Identity.Persistence;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 
-namespace PriceNegotiationApp.AppHost.Composition;
+namespace PriceNegotiationApp.Api.Composition;
 
 public sealed class MigrationHostedService(IServiceScopeFactory scopeFactory, ILogger<MigrationHostedService> logger)
     : IHostedService

@@ -5,7 +5,7 @@ using PriceNegotiationApp.Modules.Negotiations;
 using Scalar.AspNetCore;
 using Serilog;
 
-namespace PriceNegotiationApp.AppHost.Extensions;
+namespace PriceNegotiationApp.Api.Extensions;
 
 public static class PipelineExtensions
 {

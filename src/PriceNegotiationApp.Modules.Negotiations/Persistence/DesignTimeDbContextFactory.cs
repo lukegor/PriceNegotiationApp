@@ -1,22 +1,14 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
+using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Persistence;
 
-public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<NegotiationsDbContext>
+public sealed class DesignTimeDbContextFactory : DesignTimeDbContextFactoryBase<NegotiationsDbContext>
 {
-    public NegotiationsDbContext CreateDbContext(string[] args) =>
-        new(new DbContextOptionsBuilder<NegotiationsDbContext>()
-            .UseNpgsql(DesignTime.ConnectionString,
+    protected override void Configure(DbContextOptionsBuilder<NegotiationsDbContext> builder) =>
+        builder.UseNpgsql(LocalConnectionString,
                 npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Negotiations"))
-            .UseSnakeCaseNamingConvention()
-            .Options);
-}
+            .UseSnakeCaseNamingConvention();
 
-internal static class DesignTime
-{
-#pragma warning disable S2068 // Design-time default only; never used in production wiring.
-    internal const string ConnectionString =
-        "Host=localhost;Port=5432;Database=pricenego_design;Username=postgres;Password=postgres";
-#pragma warning restore S2068
+    protected override NegotiationsDbContext Create(DbContextOptions<NegotiationsDbContext> options) => new(options);
 }

@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
-public enum NegotiationStatus
+internal enum NegotiationStatus
 {
     Open = 1,
     Accepted = 2,

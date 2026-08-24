@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Catalog.Features.Products;
 
-public sealed record ProductQuery(
+internal sealed record ProductQuery(
     string? Search = null,
     decimal? MinPrice = null,
     decimal? MaxPrice = null,

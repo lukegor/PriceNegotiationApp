@@ -18,4 +18,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Vogen" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PriceNegotiationApp.Api" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Tests" />
+  </ItemGroup>
 </Project>

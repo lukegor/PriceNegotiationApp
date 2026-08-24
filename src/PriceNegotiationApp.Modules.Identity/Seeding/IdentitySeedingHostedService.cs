@@ -7,7 +7,7 @@ using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Identity.Seeding;
 
-public sealed class IdentitySeedingHostedService(
+internal sealed class IdentitySeedingHostedService(
     IServiceScopeFactory scopeFactory,
     IOptions<SeedingOptions> options,
     ILogger<IdentitySeedingHostedService> logger) : ModuleSeedingHostedServiceBase(scopeFactory)

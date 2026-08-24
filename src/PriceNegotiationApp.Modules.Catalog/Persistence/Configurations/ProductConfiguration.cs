@@ -4,7 +4,7 @@ using PriceNegotiationApp.Modules.Catalog.Domain;
 
 namespace PriceNegotiationApp.Modules.Catalog.Persistence.Configurations;
 
-public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
+internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {

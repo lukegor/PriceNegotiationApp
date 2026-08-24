@@ -2,19 +2,19 @@ using PriceNegotiationApp.Modules.Negotiations.Domain;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
-public sealed class CreateNegotiationRequest
+internal sealed class CreateNegotiationRequest
 {
     public Guid ProductId { get; init; }
 
     public decimal ProposedPrice { get; init; }
 }
 
-public sealed class CounterProposalRequest
+internal sealed class CounterProposalRequest
 {
     public decimal ProposedPrice { get; init; }
 }
 
-public sealed record NegotiationResponse(
+internal sealed record NegotiationResponse(
     Guid Id,
     Guid ProductId,
     decimal BasePrice,
@@ -26,10 +26,10 @@ public sealed record NegotiationResponse(
     DateTimeOffset LastProposalAtUtc,
     DateTimeOffset? DecidedAtUtc);
 
-public sealed record CounterProposalOutcome(string Outcome, NegotiationResponse Negotiation);
+internal sealed record CounterProposalOutcome(string Outcome, NegotiationResponse Negotiation);
 
 /// <summary>Machine-readable error codes owned by this feature (frozen contract).</summary>
-public static class NegotiationErrorCodes
+internal static class NegotiationErrorCodes
 {
     public const string NegotiationClosed = "negotiation_closed";
 

@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
-public sealed class JwtOptions
+internal sealed class JwtOptions
 {
     public const string SectionName = "Jwt";
 

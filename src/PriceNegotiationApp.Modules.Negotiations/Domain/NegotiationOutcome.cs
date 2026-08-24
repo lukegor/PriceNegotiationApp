@@ -1,6 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
-public enum NegotiationOutcome
+internal enum NegotiationOutcome
 {
     CounterProposed = 1,
     AutoRejected = 2,

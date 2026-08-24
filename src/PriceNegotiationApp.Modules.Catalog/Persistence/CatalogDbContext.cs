@@ -4,7 +4,7 @@ using PriceNegotiationApp.Modules.Catalog.Persistence.Configurations;
 
 namespace PriceNegotiationApp.Modules.Catalog.Persistence;
 
-public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
+internal sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
 {
     public DbSet<Product> Products => Set<Product>();
 

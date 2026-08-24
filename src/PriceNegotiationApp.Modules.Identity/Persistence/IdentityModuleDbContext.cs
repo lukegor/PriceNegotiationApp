@@ -5,7 +5,7 @@ using PriceNegotiationApp.Modules.Identity.Persistence;
 
 namespace PriceNegotiationApp.Modules.Identity.Persistence;
 
-public sealed class IdentityModuleDbContext(DbContextOptions<IdentityModuleDbContext> options)
+internal sealed class IdentityModuleDbContext(DbContextOptions<IdentityModuleDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     protected override void OnModelCreating(ModelBuilder builder)

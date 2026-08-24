@@ -6,7 +6,7 @@ using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Features;
 using Vogen;
 
-namespace PriceNegotiationApp.Api;
+namespace PriceNegotiationApp.AppHost;
 
 public sealed class GlobalExceptionHandler(
     IProblemDetailsService problemDetailsService,
@@ -63,6 +63,7 @@ public sealed class GlobalExceptionHandler(
         });
     }
 }
+
 
 
 

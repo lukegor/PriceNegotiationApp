@@ -5,7 +5,7 @@ using PriceNegotiationApp.Modules.Negotiations;
 using Scalar.AspNetCore;
 using Serilog;
 
-namespace PriceNegotiationApp.Api.Extensions;
+namespace PriceNegotiationApp.AppHost.Extensions;
 
 public static class PipelineExtensions
 {
@@ -47,6 +47,7 @@ public static class PipelineExtensions
         app.MapNegotiationsEndpoints();
     }
 }
+
 
 
 

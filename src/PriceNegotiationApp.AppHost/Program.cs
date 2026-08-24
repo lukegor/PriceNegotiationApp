@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Api.Extensions;
+using PriceNegotiationApp.AppHost.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddApiServices();
@@ -9,3 +9,4 @@ app.UsePipeline();
 await app.RunAsync();
 
 public partial class Program;
+

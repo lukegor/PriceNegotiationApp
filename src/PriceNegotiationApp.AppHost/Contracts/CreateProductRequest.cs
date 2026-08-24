@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Api.Contracts;
+namespace PriceNegotiationApp.AppHost.Contracts;
 
 public sealed class CreateProductRequest
 {
@@ -6,3 +6,4 @@ public sealed class CreateProductRequest
 
     public decimal Price { get; init; }
 }
+

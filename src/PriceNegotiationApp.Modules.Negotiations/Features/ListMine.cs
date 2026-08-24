@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
+using System.Security.Claims;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Features;
 

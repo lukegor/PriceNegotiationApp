@@ -1,7 +1,7 @@
-using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Features;
 using Vogen;

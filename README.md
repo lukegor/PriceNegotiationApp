@@ -20,21 +20,41 @@ offer plus two counters). Any proposal above **2× the product's base price** is
 
 ## Architecture
 
+Modular monolith: three bounded contexts behind compiler-enforced boundaries,
+one PostgreSQL schema per context.
+
 ```
 src/
-  PriceNegotiationApp.Domain          entities, value objects, rules, negotiation policy
-  PriceNegotiationApp.Application     use-case services + ports (no ASP.NET dependencies)
-  PriceNegotiationApp.Infrastructure  EF Core/Npgsql, Identity, JWT issuance, seeding, migrations
-  PriceNegotiationApp.Api             minimal-API modules, auth policies, ProblemDetails,
-                                      rate limiting, CORS, output caching, health checks
+  PriceNegotiationApp.AppHost               composition root: pipeline, authN/authZ validation,
+  │                                         ProblemDetails, rate limiting, CORS, output caching,
+  │                                         health checks, OTel; wires modules and the single
+  │                                         inter-module adapter
+  PriceNegotiationApp.BuildingBlocks        shared primitives: CallerContext, paging,
+  │                                         error semantics, policy names, role names
+  PriceNegotiationApp.Modules.Identity      users/roles/JWT issuance/seeding → schema identity
+  PriceNegotiationApp.Modules.Catalog       products → schema catalog
+  PriceNegotiationApp.Modules.Negotiations  negotiations/customers/policy → schema negotiations
 
 tests/
-  PriceNegotiationApp.UnitTests           domain lifecycle + service logic
-  PriceNegotiationApp.IntegrationTests    WebApplicationFactory + Testcontainers PostgreSQL
+  PriceNegotiationApp.Modules.*.Tests       per-module unit tests (module public surface only)
+  PriceNegotiationApp.IntegrationTests      WebApplicationFactory + Testcontainers PostgreSQL
 ```
 
-Dependencies point strictly inward: `Api → {Application, Infrastructure} → Domain`.
+Rules: modules never reference each other; cross-module interaction flows through
+consumer-owned ports wired in AppHost (`Composition/CatalogToNegotiations` is currently
+the only edge). Each context owns its migrations; startup applies them in order
+identity → catalog → negotiations. Per-module connection overrides:
+`Database:Modules:{Identity|Catalog|Negotiations}:ConnectionString` (falls back to
+`Database:ConnectionString`).
 
+### Migrations
+
+Each module owns its migration stream (history tables live in the default schema):
+
+```bash
+dotnet ef migrations add <Name> --context CatalogDbContext `
+  -p src/PriceNegotiationApp.Modules.Catalog -o Persistence/Migrations
+```
 ## Quickstart
 
 ### Docker Compose (recommended)
@@ -71,6 +91,8 @@ Swagger UI (Scalar) is available at `/scalar` in Development.
    negotiation as `Declined` (auto-rejection).
 4. When the proposal budget is spent, further counter-proposals are refused (`409`).
 5. The owner can withdraw an open negotiation at any time; admins may delete any.
+6. Deleting a product does not delete or block its negotiations — they keep their
+   price snapshot (product existence is only validated when a negotiation is created).
 
 ## API surface (v1)
 

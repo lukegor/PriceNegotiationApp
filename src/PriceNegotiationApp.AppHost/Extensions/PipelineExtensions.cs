@@ -1,6 +1,6 @@
-using PriceNegotiationApp.Modules.Identity;
-using PriceNegotiationApp.Modules.Catalog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using PriceNegotiationApp.Modules.Catalog;
+using PriceNegotiationApp.Modules.Identity;
 using PriceNegotiationApp.Modules.Negotiations;
 using Scalar.AspNetCore;
 using Serilog;

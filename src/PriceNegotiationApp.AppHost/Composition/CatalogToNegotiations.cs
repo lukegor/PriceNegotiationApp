@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Catalog.Domain;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Negotiations.Ports;
 
 namespace PriceNegotiationApp.AppHost.Composition;

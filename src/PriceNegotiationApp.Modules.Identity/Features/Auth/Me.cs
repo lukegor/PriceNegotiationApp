@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using System.Security.Claims;
 using PriceNegotiationApp.BuildingBlocks;
+using System.Security.Claims;
 
 namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 

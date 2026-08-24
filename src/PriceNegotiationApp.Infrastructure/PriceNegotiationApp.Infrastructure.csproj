@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Domain\PriceNegotiationApp.Domain.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.BuildingBlocks\PriceNegotiationApp.BuildingBlocks.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" />
@@ -21,4 +22,3 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
 </Project>
-

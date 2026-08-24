@@ -1,7 +1,7 @@
-﻿using NSubstitute;
-using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Application.Exceptions;
+using PriceNegotiationApp.BuildingBlocks;
+using NSubstitute;
+using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Features.Products;
 using PriceNegotiationApp.Domain.Models;
 using Shouldly;
@@ -26,7 +26,7 @@ public class ProductServiceShould
         var exception = await Should.ThrowAsync<NotFoundException>(
             () => _sut.GetAsync(Guid.NewGuid(), TestContext.Current.CancellationToken));
 
-        exception.Code.ShouldBe(ErrorCodes.ProductNotFound);
+        exception.Code.ShouldBe(LegacyErrorCodes.ProductNotFound);
     }
 
     [Fact]
@@ -65,3 +65,8 @@ public class ProductServiceShould
         _products.Received().Remove(product);
     }
 }
+
+
+
+
+

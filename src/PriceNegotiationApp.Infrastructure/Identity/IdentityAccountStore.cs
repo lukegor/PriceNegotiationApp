@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Application.Exceptions;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Domain.Models;
 
 namespace PriceNegotiationApp.Infrastructure.Identity;
@@ -62,4 +62,5 @@ public sealed class IdentityAccountStore(UserManager<ApplicationUser> userManage
         return (IReadOnlyList<string>)await userManager.GetRolesAsync(user);
     }
 }
+
 

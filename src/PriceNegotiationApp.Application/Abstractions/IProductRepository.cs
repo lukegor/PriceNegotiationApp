@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Application.Responses;
 using PriceNegotiationApp.Domain.Models;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
@@ -17,3 +17,4 @@ public interface IProductRepository
 
     void Remove(Product product);
 }
+

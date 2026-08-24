@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Application.Responses;
 
 namespace PriceNegotiationApp.Application.Features.Products;
@@ -15,3 +15,4 @@ public interface IProductService
 
     Task DeleteAsync(Guid id, CancellationToken ct);
 }
+

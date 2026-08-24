@@ -1,9 +1,8 @@
-using PriceNegotiationApp.Domain.Abstractions;
 using PriceNegotiationApp.Domain.ValueObjects.Ids;
 
 namespace PriceNegotiationApp.Domain.Models;
 
-public sealed class Customer : Entity
+public sealed class Customer
 {
     public CustomerId Id { get; private set; }
 
@@ -22,3 +21,4 @@ public sealed class Customer : Entity
     public static Customer Create(Guid identityUserId) =>
         new(CustomerId.From(Guid.CreateVersion7()), identityUserId);
 }
+

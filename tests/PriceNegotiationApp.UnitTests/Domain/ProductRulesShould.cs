@@ -1,4 +1,5 @@
-﻿using Bogus;
+using PriceNegotiationApp.BuildingBlocks;
+using Bogus;
 using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Models;
 using Shouldly;
@@ -60,3 +61,4 @@ public class ProductRulesShould
         changed.ShouldBeFalse();
     }
 }
+

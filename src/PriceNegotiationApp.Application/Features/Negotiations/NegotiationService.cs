@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Application.Exceptions;
+using PriceNegotiationApp.BuildingBlocks;
+using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Responses;
 using PriceNegotiationApp.Domain.Models;
 using PriceNegotiationApp.Domain.Policy;
@@ -25,7 +25,7 @@ public sealed class NegotiationService(
 
         if (await negotiations.FindOpenAsync(product.Id, caller.UserId, ct) is not null)
         {
-            throw new ConflictException(ErrorCodes.NegotiationAlreadyOpen, "An open negotiation already exists for this product.");
+            throw new ConflictException(LegacyErrorCodes.NegotiationAlreadyOpen, "An open negotiation already exists for this product.");
         }
 
         var customerId = await customers.GetOrCreateAsync(caller.UserId, ct);
@@ -58,7 +58,7 @@ public sealed class NegotiationService(
         var outcome = negotiation.CounterPropose(proposedPrice, time.GetUtcNow(), policy);
         if (outcome == NegotiationOutcome.NoProposalsRemaining)
         {
-            throw new ConflictException(ErrorCodes.NoProposalsRemaining, "No proposals remain for this negotiation.");
+            throw new ConflictException(LegacyErrorCodes.NoProposalsRemaining, "No proposals remain for this negotiation.");
         }
 
         await uow.SaveChangesAsync(ct);
@@ -142,6 +142,10 @@ public sealed class NegotiationService(
         n.Status.ToString(), n.ProposalsUsed, n.RemainingProposals(policy),
         n.CreatedAtUtc, n.LastProposalAtUtc, n.DecidedAtUtc);
 }
+
+
+
+
 
 
 

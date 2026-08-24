@@ -1,4 +1,3 @@
-﻿using PriceNegotiationApp.Domain.Abstractions;
 using PriceNegotiationApp.Domain.Exceptions;
 using PriceNegotiationApp.Domain.Policy;
 using PriceNegotiationApp.Domain.ValueObjects;
@@ -6,7 +5,7 @@ using PriceNegotiationApp.Domain.ValueObjects.Ids;
 
 namespace PriceNegotiationApp.Domain.Models;
 
-public sealed class Negotiation : Entity
+public sealed class Negotiation
 {
     /// <summary>Base price snapshot taken at creation; protects ongoing negotiations from later product price changes.</summary>
     public decimal BasePrice { get; private set; }
@@ -119,3 +118,4 @@ public sealed class Negotiation : Entity
         }
     }
 }
+

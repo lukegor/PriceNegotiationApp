@@ -1,5 +1,5 @@
-﻿using PriceNegotiationApp.Api.Contracts;
-using PriceNegotiationApp.Api.Extensions;
+using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.Api.Contracts;
 using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.Application.Features.Products;
 
@@ -17,14 +17,14 @@ public static class ProductsModule
                     string? sortBy = null, bool sortDesc = false, int page = 1, int pageSize = 20) =>
                     TypedResults.Ok(await products.ListAsync(
                         new ProductQuery(search, minPrice, maxPrice, sortBy, sortDesc, page, pageSize), ct)))
-            .CacheOutput(WebApplicationBuilderExtensions.ShortCachePolicy)
+            .CacheOutput(Policies.ShortCachePolicy)
             .AllowAnonymous();
 
         group.MapGet("/{id:guid}",
                 async (Guid id, IProductService products, CancellationToken ct) =>
                     TypedResults.Ok(await products.GetAsync(id, ct)))
             .WithName("GetProductById")
-            .CacheOutput(WebApplicationBuilderExtensions.ShortCachePolicy)
+            .CacheOutput(Policies.ShortCachePolicy)
             .AllowAnonymous();
 
         group.MapPost("/", async (CreateProductRequest request, IProductService products, CancellationToken ct) =>
@@ -46,3 +46,5 @@ public static class ProductsModule
         return app;
     }
 }
+
+

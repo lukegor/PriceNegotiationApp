@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Time.Testing;
+using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using PriceNegotiationApp.Application.Abstractions;
-using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Application.Exceptions;
 using PriceNegotiationApp.Application.Features.Negotiations;
 using PriceNegotiationApp.Domain.Models;
 using PriceNegotiationApp.Domain.Policy;
@@ -40,7 +40,7 @@ public class NegotiationServiceShould
         var exception = await Should.ThrowAsync<NotFoundException>(() =>
             _sut.CreateAsync(CustomerCaller("u1"), Guid.NewGuid(), 50m, TestContext.Current.CancellationToken));
 
-        exception.Code.ShouldBe(ErrorCodes.ProductNotFound);
+        exception.Code.ShouldBe(LegacyErrorCodes.ProductNotFound);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class NegotiationServiceShould
         var exception = await Should.ThrowAsync<ConflictException>(() =>
             _sut.CreateAsync(CustomerCaller("u1"), product.Id.Value, 50m, TestContext.Current.CancellationToken));
 
-        exception.Code.ShouldBe(ErrorCodes.NegotiationAlreadyOpen);
+        exception.Code.ShouldBe(LegacyErrorCodes.NegotiationAlreadyOpen);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class NegotiationServiceShould
         var exception = await Should.ThrowAsync<ConflictException>(() =>
             _sut.CounterProposeAsync(CustomerCaller("u1"), negotiation.Id.Value, 92m, TestContext.Current.CancellationToken));
 
-        exception.Code.ShouldBe(ErrorCodes.NoProposalsRemaining);
+        exception.Code.ShouldBe(LegacyErrorCodes.NoProposalsRemaining);
     }
 
     [Fact]
@@ -140,3 +140,8 @@ public class NegotiationServiceShould
     private static Guid StableIdentityId(string seed) =>
         new(seed.PadRight(16, '0').Take(16).Select(c => (byte)c).ToArray());
 }
+
+
+
+
+

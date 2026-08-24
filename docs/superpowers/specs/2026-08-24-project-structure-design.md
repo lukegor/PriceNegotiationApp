@@ -15,8 +15,10 @@ API routes, database schemas/migrations, or feature behavior.
 Audit findings addressed:
 
 - `AppHost` name falsely implies .NET Aspire (it is a plain ASP.NET Core host).
-- Leaky shared kernel: `SharedKernel.ProductQuery` is Catalog domain logic;
-  `SharedKernel.UserRoles` is Identity's public contract.
+- Leaky shared kernel: `SharedKernel.ProductQuery` is Catalog domain logic.
+  `UserRoles` was re-examined and stays: it is cross-cutting authorization vocabulary used by
+  the host policies plus Catalog, Identity, and Negotiations endpoint gates — same category as
+  `Policies`/`ErrorCodes`.
 - Asymmetric module internals: only Negotiations has `Ports/`; only Identity has `Public/` and
   `Auth/`; Negotiations' `Features/` is flat while Catalog nests per entity.
 - Ownership is convention-only: module implementation types are `public`, so nothing prevents
@@ -72,8 +74,8 @@ Concrete moves:
   `Features/Auth/`; `Features/Auth/` content stays there.
 - Catalog gains `Public/` only if it has a cross-module contract today; if it exposes none, the
   folder is omitted rather than created empty.
-- `UserRoles` moves from SharedKernel to `Modules.Identity/Public/UserRoles.cs`.
-- `ProductQuery` moves from SharedKernel to `Modules.Catalog/Features/Products/`.
+- `UserRoles` stays in SharedKernel (see audit notes above).
+- `ProductQuery` moves from SharedKernel to `Modules.Catalog/Features/Products/ProductQuery.cs`.
 
 Rule: **`Public/` plus the two root files are the ownership boundary** — everything else in a
 module is an implementation detail. Folders exist only when they have content; no empty folders
@@ -84,7 +86,7 @@ are created for symmetry's sake.
 `SharedKernel` keeps only assembly-agnostic primitives:
 
 - `CallerContext` + extensions, `DbConnections`, `EndpointConventionExtensions`, `ErrorCodes`,
-  `Exceptions`, `PagedResult`, `PageQuery`, `Policies`
+  `Exceptions`, `PagedResult`, `PageQuery`, `Policies`, `UserRoles`
 - New shared plumbing bases: `ModuleSeedingHostedServiceBase`,
   `DesignTimeDbContextFactoryBase`
 

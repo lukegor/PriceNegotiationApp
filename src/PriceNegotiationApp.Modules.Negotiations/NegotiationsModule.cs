@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 

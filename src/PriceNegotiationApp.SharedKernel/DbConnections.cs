@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace PriceNegotiationApp.BuildingBlocks;
+namespace PriceNegotiationApp.SharedKernel;
 
 public static class DbConnections
 {

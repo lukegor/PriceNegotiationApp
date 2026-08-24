@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.BuildingBlocks;
+namespace PriceNegotiationApp.SharedKernel;
 
 /// <summary>Role-name contract shared by host authorization policies and module endpoint gates.</summary>
 public static class UserRoles

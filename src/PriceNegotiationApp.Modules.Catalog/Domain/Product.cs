@@ -1,4 +1,4 @@
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using Vogen;
 using PriceVo = PriceNegotiationApp.Modules.Catalog.Domain.Price;
 

@@ -1,4 +1,4 @@
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using System.Globalization;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;

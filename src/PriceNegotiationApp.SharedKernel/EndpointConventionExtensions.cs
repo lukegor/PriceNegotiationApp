@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 
-namespace PriceNegotiationApp.BuildingBlocks;
+namespace PriceNegotiationApp.SharedKernel;
 
 public static class EndpointConventionExtensions
 {

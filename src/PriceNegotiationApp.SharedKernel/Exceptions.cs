@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.BuildingBlocks;
+namespace PriceNegotiationApp.SharedKernel;
 
 public sealed class ConflictException(string code, string message) : Exception(message)
 {

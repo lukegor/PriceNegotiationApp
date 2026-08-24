@@ -9,7 +9,7 @@
     <OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PriceNegotiationApp.BuildingBlocks\PriceNegotiationApp.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Catalog\PriceNegotiationApp.Modules.Catalog.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity\PriceNegotiationApp.Modules.Identity.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations\PriceNegotiationApp.Modules.Negotiations.csproj" />

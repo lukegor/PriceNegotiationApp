@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Catalog.Domain;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
 

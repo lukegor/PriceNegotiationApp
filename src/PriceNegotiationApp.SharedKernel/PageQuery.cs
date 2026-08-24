@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.BuildingBlocks;
+namespace PriceNegotiationApp.SharedKernel;
 
 public sealed record PageQuery(int Page, int PageSize)
 {

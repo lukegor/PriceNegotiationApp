@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Persistence.Configurations;
 

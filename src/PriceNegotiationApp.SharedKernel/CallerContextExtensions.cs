@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PriceNegotiationApp.BuildingBlocks;
+namespace PriceNegotiationApp.SharedKernel;
 
 public static class CallerContextExtensions
 {

@@ -1,5 +1,5 @@
 using Bogus;
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Catalog.Domain;
 using Shouldly;
 using Vogen;

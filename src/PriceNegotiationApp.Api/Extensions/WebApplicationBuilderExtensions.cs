@@ -8,7 +8,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Catalog;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Identity;

@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PriceNegotiationApp.Domain.Models;
-using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using PriceNegotiationApp.Modules.Catalog.Domain;
 
-namespace PriceNegotiationApp.Infrastructure.Persistence.DbEntityConfigurations;
+namespace PriceNegotiationApp.Modules.Catalog.Persistence.Configurations;
 
 public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
@@ -17,3 +16,5 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Version).IsRowVersion();
     }
 }
+
+

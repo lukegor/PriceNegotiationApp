@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PriceNegotiationApp.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
 
 #nullable disable
 
-namespace PriceNegotiationApp.Infrastructure.Persistence.Migrations.Catalog
+namespace PriceNegotiationApp.Modules.Catalog.Persistence.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    partial class CatalogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260824052228_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,7 +26,7 @@ namespace PriceNegotiationApp.Infrastructure.Persistence.Migrations.Catalog
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("PriceNegotiationApp.Domain.Models.Product", b =>
+            modelBuilder.Entity("PriceNegotiationApp.Modules.Catalog.Domain.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

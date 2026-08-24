@@ -1,28 +1,32 @@
-using PriceNegotiationApp.BuildingBlocks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Application.Abstractions;
-using PriceNegotiationApp.Application.Responses;
-using PriceNegotiationApp.Domain.Models;
-using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
 
-namespace PriceNegotiationApp.Infrastructure.Persistence.Repositories;
+namespace PriceNegotiationApp.Modules.Catalog.Features.Products;
 
-public sealed class ProductRepository(CatalogDbContext db) : IProductRepository
+internal static class List
 {
-    public Task<Product?> GetAsync(ProductId id, CancellationToken ct) =>
-        db.Products.FirstOrDefaultAsync(p => p.Id == id, ct);
+    internal static void MapList(this RouteGroupBuilder group)
+    {
+        group.MapGet("/", async (CatalogDbContext db, CancellationToken ct,
+                string? search = null, decimal? minPrice = null, decimal? maxPrice = null,
+                string? sortBy = null, bool sortDesc = false, int page = 1, int pageSize = 20) =>
+                TypedResults.Ok(await SearchAsync(db,
+                    new ProductQuery(search, minPrice, maxPrice, sortBy, sortDesc, page, pageSize), ct)))
+            .CacheOutput(Policies.ShortCachePolicy)
+            .AllowAnonymous();
+    }
 
-    public IQueryable<Product> Query() => db.Products.AsNoTracking();
-
-    public async Task AddAsync(Product product, CancellationToken ct) =>
-        await db.Products.AddAsync(product, ct);
-
-    public void Remove(Product product) => db.Products.Remove(product);
-
-    public async Task<PagedResult<ProductResponse>> SearchAsync(ProductQuery query, CancellationToken ct)
+    internal static async Task<PagedResult<ProductResponse>> SearchAsync(
+        CatalogDbContext db, ProductQuery query, CancellationToken ct)
     {
         var page = new PageQuery(query.Page, query.PageSize);
-        var q = Query();
+        var q = db.Products.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
@@ -58,8 +62,5 @@ public sealed class ProductRepository(CatalogDbContext db) : IProductRepository
         return new PagedResult<ProductResponse>(items, page.SafePage, page.SafePageSize, total);
     }
 }
-
-
-
 
 

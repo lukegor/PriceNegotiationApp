@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Domain.Models;
-using PriceNegotiationApp.Infrastructure.Persistence.DbEntityConfigurations;
+using PriceNegotiationApp.Modules.Catalog.Domain;
+using PriceNegotiationApp.Modules.Catalog.Persistence.Configurations;
 
-namespace PriceNegotiationApp.Infrastructure.Persistence;
+namespace PriceNegotiationApp.Modules.Catalog.Persistence;
 
 public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
 {
@@ -12,7 +12,6 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("catalog");
-        // Explicit registration: configurations are owned per context, never assembly-scanned.
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
     }
 }

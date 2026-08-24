@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PriceNegotiationApp.BuildingBlocks\PriceNegotiationApp.BuildingBlocks.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity\PriceNegotiationApp.Modules.Identity.csproj" />
+    <ProjectReference Include="..\\PriceNegotiationApp.Modules.Catalog\\PriceNegotiationApp.Modules.Catalog.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations\PriceNegotiationApp.Modules.Negotiations.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Application\PriceNegotiationApp.Application.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Infrastructure\PriceNegotiationApp.Infrastructure.csproj" />
@@ -37,6 +38,7 @@
     <PackageReference Include="Serilog.Sinks.Grafana.Loki" />
   </ItemGroup>
 </Project>
+
 
 
 

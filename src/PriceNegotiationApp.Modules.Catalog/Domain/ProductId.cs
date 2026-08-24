@@ -1,7 +1,8 @@
 using Vogen;
 
-namespace PriceNegotiationApp.Domain.ValueObjects.Ids;
+namespace PriceNegotiationApp.Modules.Catalog.Domain;
 
 [ValueObject<Guid>(Conversions.None)]
 public readonly partial record struct ProductId;
+
 

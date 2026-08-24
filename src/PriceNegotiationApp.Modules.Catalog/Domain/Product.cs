@@ -1,8 +1,9 @@
 using PriceNegotiationApp.BuildingBlocks;
-using PriceNegotiationApp.Domain.ValueObjects;
-using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using Vogen;
+using PriceVo = PriceNegotiationApp.Modules.Catalog.Domain.Price;
 
-namespace PriceNegotiationApp.Domain.Models;
+namespace PriceNegotiationApp.Modules.Catalog.Domain;
+
 
 public sealed class Product
 {
@@ -26,7 +27,7 @@ public sealed class Product
         EnsureValid(name, price);
         Id = id;
         Name = name.Trim();
-        Price = ValueObjects.Price.From(price).Value;
+        Price = PriceVo.From(price).Value;
     }
 
     public static Product Create(string name, decimal price) =>
@@ -36,7 +37,7 @@ public sealed class Product
     public bool Update(string name, decimal price)
     {
         EnsureValid(name, price);
-        var validated = ValueObjects.Price.From(price).Value;
+        var validated = PriceVo.From(price).Value;
         var trimmed = name.Trim();
         if (string.Equals(Name, trimmed, StringComparison.Ordinal) && Price == validated)
         {
@@ -60,7 +61,9 @@ public sealed class Product
             throw new DomainException($"Product name must not exceed {MaxNameLength} characters.");
         }
 
-        ValueObjects.Price.From(price);
+        PriceVo.From(price);
     }
 }
+
+
 

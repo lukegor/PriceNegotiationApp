@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PriceNegotiationApp.Infrastructure.Persistence.Migrations.Catalog
+namespace PriceNegotiationApp.Modules.Catalog.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

@@ -3,9 +3,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <!-- Compile surface for the shared design-time factory base (the Design package ships none). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
 </Project>

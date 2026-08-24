@@ -98,9 +98,12 @@ Nothing Catalog-, Identity-, or Negotiations-specific remains in the kernel.
   `Ports/` stay `public`: they are the module's required-services contract, which the host must
   implement and register against.
 - Only `Public/` contents and `XModule.cs` / `XEndpoints.cs` remain `public`.
+- The composition root (Api) is granted `InternalsVisibleTo` by each module: it legitimately
+  reaches into module internals for the sanctioned adapter (`CatalogToNegotiations`) and the
+  central exception mapper. This privilege applies only to the host — never to other modules.
 - Test projects get access via `InternalsVisibleTo` in each module's csproj.
-- Host consumes modules exclusively through registration methods and `Public/` types; violations
-  become build errors under the existing warnings-as-errors policy.
+- Module-to-module access stays impossible: no module references another and internals are not
+  visible to them; violations become build errors under the existing warnings-as-errors policy.
 
 ## 5. De-duplication
 

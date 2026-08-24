@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Infrastructure.Persistence;
-using PriceNegotiationApp.Domain.ValueObjects.Ids;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
+using PriceNegotiationApp.Modules.Catalog.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Ports;
 
 namespace PriceNegotiationApp.Api.Composition;
@@ -14,4 +14,6 @@ public sealed class CatalogToNegotiations(CatalogDbContext db) : IProductPricePr
             .Select(p => new ProductSnapshot(productId, p.Price))
             .FirstOrDefaultAsync(ct);
 }
+
+
 

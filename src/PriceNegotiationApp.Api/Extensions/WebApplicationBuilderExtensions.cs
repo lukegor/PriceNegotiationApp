@@ -1,3 +1,5 @@
+using PriceNegotiationApp.Modules.Catalog;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Negotiations;
 using PriceNegotiationApp.Infrastructure.Persistence;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
@@ -44,6 +46,7 @@ public static class WebApplicationBuilderExtensions
             .AddInfrastructure(configuration);
 
         builder.Services.AddNegotiationsModule(configuration);
+        builder.Services.AddCatalogModule(configuration);
         builder.Services.AddScoped<PriceNegotiationApp.Modules.Negotiations.Ports.IProductPriceProvider, Composition.CatalogToNegotiations>();
 
         builder.Services.AddProblemDetails(options =>
@@ -115,6 +118,8 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
+
+
 
 
 

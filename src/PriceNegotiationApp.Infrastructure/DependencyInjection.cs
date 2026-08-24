@@ -20,12 +20,7 @@ public static class DependencyInjection
         services.AddDbContext<IdentityModuleDbContext>(options => options
             .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Identity"))
             .UseSnakeCaseNamingConvention());
-        services.AddDbContext<CatalogDbContext>(options => options
-            .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Catalog"))
-            .UseSnakeCaseNamingConvention());
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<DbContext>(sp => sp.GetRequiredService<CatalogDbContext>());
-        services.AddScoped<IProductRepository, ProductRepository>();
 
         services.AddIdentityCore<ApplicationUser>(options =>
             {
@@ -47,10 +42,10 @@ public static class DependencyInjection
         services.AddOptions<SeedingOptions>()
             .Bind(configuration.GetSection(SeedingOptions.SectionName));
         services.AddHostedService<IdentitySeedingHostedService>();
-        services.AddHostedService<CatalogSeedingHostedService>();
 
         return services;
     }
 }
+
 
 

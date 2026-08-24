@@ -3,14 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using PriceNegotiationApp.Domain.Models;
-using PriceNegotiationApp.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Catalog.Domain;
+using PriceNegotiationApp.Modules.Catalog.Persistence;
 
-namespace PriceNegotiationApp.Infrastructure.Seeding;
+namespace PriceNegotiationApp.Modules.Catalog.Seeding;
 
 public sealed class CatalogSeedingHostedService(
     IServiceScopeFactory scopeFactory,
-    IOptions<SeedingOptions> options,
+    IOptions<CatalogSeedingOptions> options,
     ILogger<CatalogSeedingHostedService> logger) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)

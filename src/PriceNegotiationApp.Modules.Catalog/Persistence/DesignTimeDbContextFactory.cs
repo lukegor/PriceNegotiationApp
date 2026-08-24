@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using PriceNegotiationApp.Infrastructure.Persistence;
 
-namespace PriceNegotiationApp.Infrastructure.Data;
+namespace PriceNegotiationApp.Modules.Catalog.Persistence;
 
-public sealed class IdentityDesignTimeFactory : IDesignTimeDbContextFactory<IdentityModuleDbContext>
+public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<CatalogDbContext>
 {
-    public IdentityModuleDbContext CreateDbContext(string[] args) =>
-        new(new DbContextOptionsBuilder<IdentityModuleDbContext>()
+    public CatalogDbContext CreateDbContext(string[] args) =>
+        new(new DbContextOptionsBuilder<CatalogDbContext>()
             .UseNpgsql(DesignTime.ConnectionString,
-                npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Identity"))
+                npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Catalog"))
             .UseSnakeCaseNamingConvention()
             .Options);
 }

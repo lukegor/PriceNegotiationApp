@@ -1,11 +1,11 @@
 using PriceNegotiationApp.BuildingBlocks;
 using Bogus;
-using PriceNegotiationApp.Domain.Models;
+using PriceNegotiationApp.Modules.Catalog.Domain;
 using Shouldly;
 using Vogen;
 using Xunit;
 
-namespace PriceNegotiationApp.UnitTests.Domain;
+namespace PriceNegotiationApp.Modules.Catalog.Tests;
 
 public class ProductRulesShould
 {
@@ -60,5 +60,6 @@ public class ProductRulesShould
         changed.ShouldBeFalse();
     }
 }
+
 
 

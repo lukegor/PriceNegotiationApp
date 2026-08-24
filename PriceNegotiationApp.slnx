@@ -5,19 +5,16 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
-    <Project Path="src/PriceNegotiationApp.Application/PriceNegotiationApp.Application.csproj" />
-    <Project Path="src/PriceNegotiationApp.Domain/PriceNegotiationApp.Domain.csproj" />
-    <Project Path="src/PriceNegotiationApp.Infrastructure/PriceNegotiationApp.Infrastructure.csproj" />
     <Project Path="src/PriceNegotiationApp.BuildingBlocks/PriceNegotiationApp.BuildingBlocks.csproj" />
+    <Project Path="src/PriceNegotiationApp.Modules.Catalog/PriceNegotiationApp.Modules.Catalog.csproj" />
     <Project Path="src/PriceNegotiationApp.Modules.Identity/PriceNegotiationApp.Modules.Identity.csproj" />
     <Project Path="src/PriceNegotiationApp.Modules.Negotiations/PriceNegotiationApp.Modules.Negotiations.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PriceNegotiationApp.IntegrationTests/PriceNegotiationApp.IntegrationTests.csproj" />
-    <Project Path="tests/PriceNegotiationApp.Modules.Negotiations.Tests/PriceNegotiationApp.Modules.Negotiations.Tests.csproj" />
     <Project Path="tests/PriceNegotiationApp.Modules.Catalog.Tests/PriceNegotiationApp.Modules.Catalog.Tests.csproj" />
-    <Project Path="tests/PriceNegotiationApp.UnitTests/PriceNegotiationApp.UnitTests.csproj" />
+    <Project Path="tests/PriceNegotiationApp.Modules.Identity.Tests/PriceNegotiationApp.Modules.Identity.Tests.csproj" />
+    <Project Path="tests/PriceNegotiationApp.Modules.Negotiations.Tests/PriceNegotiationApp.Modules.Negotiations.Tests.csproj" />
   </Folder>
 </Solution>
-
 

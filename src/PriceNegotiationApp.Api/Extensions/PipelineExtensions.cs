@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Api.Modules;
+using PriceNegotiationApp.Modules.Identity;
 using PriceNegotiationApp.Modules.Catalog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using PriceNegotiationApp.Modules.Negotiations;
@@ -42,11 +42,12 @@ public static class PipelineExtensions
     {
         app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
         app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = r => r.Tags.Contains("ready") });
-        app.MapAuthApi();
+        app.MapAuthEndpoints();
         app.MapCatalogEndpoints();
         app.MapNegotiationsEndpoints();
     }
 }
+
 
 
 

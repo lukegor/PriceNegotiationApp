@@ -1,4 +1,3 @@
-using PriceNegotiationApp.Application.Common;
 using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -64,6 +63,7 @@ public sealed class GlobalExceptionHandler(
         });
     }
 }
+
 
 
 

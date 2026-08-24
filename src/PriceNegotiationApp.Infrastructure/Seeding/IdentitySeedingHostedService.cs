@@ -1,3 +1,4 @@
+using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -50,3 +51,4 @@ public sealed class IdentitySeedingHostedService(
         }
     }
 }
+

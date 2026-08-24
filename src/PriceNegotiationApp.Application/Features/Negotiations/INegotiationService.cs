@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Application.Responses;
 
 namespace PriceNegotiationApp.Application.Features.Negotiations;
@@ -21,3 +21,4 @@ public interface INegotiationService
 
     Task WithdrawAsync(CallerContext caller, Guid id, CancellationToken ct);
 }
+

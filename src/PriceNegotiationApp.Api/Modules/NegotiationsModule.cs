@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PriceNegotiationApp.Api.Contracts;
-using PriceNegotiationApp.Api.Extensions;
 using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Application.Features.Negotiations;
 using System.Security.Claims;
 
@@ -66,4 +66,7 @@ public static class NegotiationsModule
         return app;
     }
 }
+
+
+
 

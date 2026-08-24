@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Application.Common;
+namespace PriceNegotiationApp.BuildingBlocks;
 
 public sealed record CallerContext(Guid UserId, string Email, IReadOnlySet<string> Roles)
 {

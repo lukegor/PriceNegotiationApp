@@ -1,4 +1,4 @@
-using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
 using PriceNegotiationApp.Application.Responses;
 
 namespace PriceNegotiationApp.Application.Features.Auth;
@@ -11,3 +11,4 @@ public interface IAuthService
 
     CurrentUserResponse CurrentUserAsync(CallerContext caller);
 }
+

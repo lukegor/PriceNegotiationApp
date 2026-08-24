@@ -1,8 +1,8 @@
+using PriceNegotiationApp.Application.Common;
+using PriceNegotiationApp.BuildingBlocks;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Application.Exceptions;
 using PriceNegotiationApp.Domain.Exceptions;
 using Vogen;
 
@@ -30,13 +30,13 @@ public sealed class GlobalExceptionHandler(
         var (status, title, code) = exception switch
         {
             // 422 Unprocessable Content — payload fails validation or business input rules
-            ProposalExceedsLimitException => (StatusCodes.Status422UnprocessableEntity, "Proposal rejected", ErrorCodes.ProposalExceedsLimit),
+            ProposalExceedsLimitException => (StatusCodes.Status422UnprocessableEntity, "Proposal rejected", LegacyErrorCodes.ProposalExceedsLimit),
             ValueObjectValidationException => (StatusCodes.Status422UnprocessableEntity, "Invalid value", ErrorCodes.ValidationFailed),
             InvalidRequestException invalidRequest => (StatusCodes.Status422UnprocessableEntity, "Invalid request", invalidRequest.Code),
 
             // 409 Conflict — request collides with current persistent state
             ConflictException conflict => (StatusCodes.Status409Conflict, "Conflict", conflict.Code),
-            ClosedNegotiationException => (StatusCodes.Status409Conflict, "Business rule violated", ErrorCodes.NegotiationClosed),
+            ClosedNegotiationException => (StatusCodes.Status409Conflict, "Business rule violated", LegacyErrorCodes.NegotiationClosed),
 
             // remaining domain exceptions are input-validation failures
             DomainException => (StatusCodes.Status422UnprocessableEntity, "Business rule violated", ErrorCodes.DomainRuleViolated),
@@ -63,3 +63,7 @@ public sealed class GlobalExceptionHandler(
         });
     }
 }
+
+
+
+

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using PriceNegotiationApp.BuildingBlocks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
@@ -21,11 +22,7 @@ namespace PriceNegotiationApp.Api.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
-    public const string AuthRateLimitPolicy = "auth";
-
     public const string CorsPolicy = "api";
-
-    public const string ShortCachePolicy = "short";
 
     public static WebApplicationBuilder AddApiServices(this WebApplicationBuilder builder)
     {
@@ -77,7 +74,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddFixedWindowLimiter(AuthRateLimitPolicy, windowOptions =>
+            options.AddFixedWindowLimiter(Policies.AuthRateLimitPolicy, windowOptions =>
             {
                 windowOptions.PermitLimit = rateLimits.AuthPermitLimit;
                 windowOptions.Window = TimeSpan.FromMinutes(1);
@@ -85,7 +82,7 @@ public static class WebApplicationBuilderExtensions
             });
         });
 
-        builder.Services.AddOutputCache(options => options.AddPolicy(ShortCachePolicy,
+        builder.Services.AddOutputCache(options => options.AddPolicy(Policies.ShortCachePolicy,
             policy => policy.Expire(TimeSpan.FromSeconds(30))
                 .SetVaryByQuery("search", "minPrice", "maxPrice", "sortBy", "sortDesc", "page", "pageSize")));
 
@@ -110,5 +107,8 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 }
+
+
+
 
 

@@ -1,6 +1,6 @@
-using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Common;
-using PriceNegotiationApp.Application.Exceptions;
+using PriceNegotiationApp.BuildingBlocks;
+using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Application.Responses;
 
 namespace PriceNegotiationApp.Application.Features.Auth;
@@ -13,9 +13,9 @@ public sealed class AuthService(IUserAccountStore accounts, IJwtTokenGenerator j
         if (!outcome.Succeeded)
         {
             throw outcome.EmailAlreadyTaken
-                ? new ConflictException(ErrorCodes.EmailAlreadyRegistered,
+                ? new ConflictException(LegacyErrorCodes.EmailAlreadyRegistered,
                     outcome.ErrorDescription ?? "Email already registered.")
-                : new InvalidRequestException(ErrorCodes.RegistrationInvalid,
+                : new InvalidRequestException(LegacyErrorCodes.RegistrationInvalid,
                     outcome.ErrorDescription ?? "Registration failed.");
         }
 
@@ -28,9 +28,9 @@ public sealed class AuthService(IUserAccountStore accounts, IJwtTokenGenerator j
         switch (signIn)
         {
             case SignInResultKind.LockedOut:
-                throw new UnauthorizedException(ErrorCodes.AccountLocked, "Account temporarily locked.");
+                throw new UnauthorizedException(LegacyErrorCodes.AccountLocked, "Account temporarily locked.");
             case SignInResultKind.Failure:
-                throw new UnauthorizedException(ErrorCodes.InvalidCredentials, "Invalid credentials.");
+                throw new UnauthorizedException(LegacyErrorCodes.InvalidCredentials, "Invalid credentials.");
         }
 
         var userId = await accounts.ResolveUserIdByEmailAsync(email, ct);
@@ -42,3 +42,7 @@ public sealed class AuthService(IUserAccountStore accounts, IJwtTokenGenerator j
     public CurrentUserResponse CurrentUserAsync(CallerContext caller) =>
         new(caller.UserId, caller.Email, caller.Roles.ToList());
 }
+
+
+
+

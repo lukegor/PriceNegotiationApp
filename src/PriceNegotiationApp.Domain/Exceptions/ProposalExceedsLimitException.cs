@@ -1,4 +1,5 @@
 using System.Globalization;
+using PriceNegotiationApp.BuildingBlocks;
 
 namespace PriceNegotiationApp.Domain.Exceptions;
 

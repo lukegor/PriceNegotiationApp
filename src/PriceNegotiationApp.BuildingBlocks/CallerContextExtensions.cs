@@ -1,9 +1,8 @@
-using PriceNegotiationApp.Application.Common;
 using System.Security.Claims;
 
-namespace PriceNegotiationApp.Api.Extensions;
+namespace PriceNegotiationApp.BuildingBlocks;
 
-public static class ClaimsPrincipalExtensions
+public static class CallerContextExtensions
 {
     public static CallerContext ToCallerContext(this ClaimsPrincipal principal)
     {

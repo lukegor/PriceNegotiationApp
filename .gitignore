@@ -364,3 +364,6 @@ FodyWeavers.xsd
 artifacts/
 logs/
 *.user
+
+.env
+logs/

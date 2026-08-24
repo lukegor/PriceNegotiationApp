@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace PriceNegotiationApp.Modules.Identity.Auth;
+namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
 public sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
 {

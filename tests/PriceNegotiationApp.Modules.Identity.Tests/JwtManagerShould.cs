@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using PriceNegotiationApp.Modules.Identity.Auth;
+using PriceNegotiationApp.Modules.Identity.Features.Auth;
 using Shouldly;
 using Xunit;
 

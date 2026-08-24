@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using PriceNegotiationApp.Application.Abstractions;
 using PriceNegotiationApp.Infrastructure.Auth;
-using PriceNegotiationApp.Infrastructure.Hosting;
 using PriceNegotiationApp.Infrastructure.Identity;
 using PriceNegotiationApp.Infrastructure.Persistence;
 using PriceNegotiationApp.Infrastructure.Persistence.Repositories;
@@ -24,16 +23,9 @@ public static class DependencyInjection
         services.AddDbContext<CatalogDbContext>(options => options
             .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Catalog"))
             .UseSnakeCaseNamingConvention());
-        services.AddDbContext<NegotiationsDbContext>(options => options
-            .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Negotiations"))
-            .UseSnakeCaseNamingConvention());
-
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DbContext>(sp => sp.GetRequiredService<CatalogDbContext>());
-        services.AddScoped<DbContext>(sp => sp.GetRequiredService<NegotiationsDbContext>());
         services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<INegotiationRepository, NegotiationRepository>();
-        services.AddScoped<ICustomerRepository, CustomerRepository>();
 
         services.AddIdentityCore<ApplicationUser>(options =>
             {
@@ -54,11 +46,11 @@ public static class DependencyInjection
 
         services.AddOptions<SeedingOptions>()
             .Bind(configuration.GetSection(SeedingOptions.SectionName));
-
-        services.AddHostedService<MigrationHostedService>();
         services.AddHostedService<IdentitySeedingHostedService>();
         services.AddHostedService<CatalogSeedingHostedService>();
 
         return services;
     }
 }
+
+

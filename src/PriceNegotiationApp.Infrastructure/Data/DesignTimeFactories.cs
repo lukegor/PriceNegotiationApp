@@ -24,16 +24,6 @@ public sealed class CatalogDesignTimeFactory : IDesignTimeDbContextFactory<Catal
             .Options);
 }
 
-public sealed class NegotiationsDesignTimeFactory : IDesignTimeDbContextFactory<NegotiationsDbContext>
-{
-    public NegotiationsDbContext CreateDbContext(string[] args) =>
-        new(new DbContextOptionsBuilder<NegotiationsDbContext>()
-            .UseNpgsql(DesignTime.ConnectionString,
-                npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Negotiations"))
-            .UseSnakeCaseNamingConvention()
-            .Options);
-}
-
 internal static class DesignTime
 {
 #pragma warning disable S2068 // Design-time default only; never used in production wiring.

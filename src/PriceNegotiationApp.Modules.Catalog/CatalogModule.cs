@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Catalog.Seeding;
+using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Catalog;
 

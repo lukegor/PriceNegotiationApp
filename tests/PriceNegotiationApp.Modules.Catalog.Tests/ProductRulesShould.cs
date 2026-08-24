@@ -1,6 +1,6 @@
 using Bogus;
-using PriceNegotiationApp.SharedKernel;
 using PriceNegotiationApp.Modules.Catalog.Domain;
+using PriceNegotiationApp.SharedKernel;
 using Shouldly;
 using Vogen;
 using Xunit;

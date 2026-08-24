@@ -6,8 +6,8 @@ Status: Approved (Approach A — normalized modular monolith)
 ## Context
 
 The solution is a disciplined modular monolith targeting .NET 10: three feature modules
-(Catalog, Identity, Negotiations), a shared `BuildingBlocks` kernel, and a single host.
-Dependency rules are already strict (modules reference only BuildingBlocks; the host is the
+(Catalog, Identity, Negotiations), a shared `SharedKernel` kernel, and a single host.
+Dependency rules are already strict (modules reference only SharedKernel; the host is the
 composition root; one sanctioned cross-module edge via dependency inversion). This restructure
 tightens ownership boundaries, normalizes layout, removes duplication and cruft. It changes no
 API routes, database schemas/migrations, or feature behavior.
@@ -15,8 +15,8 @@ API routes, database schemas/migrations, or feature behavior.
 Audit findings addressed:
 
 - `AppHost` name falsely implies .NET Aspire (it is a plain ASP.NET Core host).
-- Leaky shared kernel: `BuildingBlocks.ProductQuery` is Catalog domain logic;
-  `BuildingBlocks.UserRoles` is Identity's public contract.
+- Leaky shared kernel: `SharedKernel.ProductQuery` is Catalog domain logic;
+  `SharedKernel.UserRoles` is Identity's public contract.
 - Asymmetric module internals: only Negotiations has `Ports/`; only Identity has `Public/` and
   `Auth/`; Negotiations' `Features/` is flat while Catalog nests per entity.
 - Ownership is convention-only: module implementation types are `public`, so nothing prevents
@@ -32,7 +32,7 @@ Audit findings addressed:
 PriceNegotiationApp.slnx
 ├── src/
 │   ├── PriceNegotiationApp.Api/            ← renamed from AppHost
-│   ├── PriceNegotiationApp.BuildingBlocks/ ← slimmed generic-only kernel
+│   ├── PriceNegotiationApp.SharedKernel/ ← slimmed generic-only kernel
 │   ├── PriceNegotiationApp.Modules.Catalog/
 │   ├── PriceNegotiationApp.Modules.Identity/
 │   └── PriceNegotiationApp.Modules.Negotiations/
@@ -41,7 +41,7 @@ PriceNegotiationApp.slnx
     └── PriceNegotiationApp.Modules.{Catalog|Identity|Negotiations}.Tests/
 ```
 
-- Dependency rule unchanged: modules reference **only** BuildingBlocks; Api references all
+- Dependency rule unchanged: modules reference **only** SharedKernel; Api references all
   modules as composition root; tests reference their subject (IntegrationTests → Api).
 - The single inter-module edge remains `Ports/IProductPriceProvider` implemented by
   `Api/Composition/CatalogToNegotiations`.
@@ -72,8 +72,8 @@ Concrete moves:
   `Features/Auth/`; `Features/Auth/` content stays there.
 - Catalog gains `Public/` only if it has a cross-module contract today; if it exposes none, the
   folder is omitted rather than created empty.
-- `UserRoles` moves from BuildingBlocks to `Modules.Identity/Public/UserRoles.cs`.
-- `ProductQuery` moves from BuildingBlocks to `Modules.Catalog/Features/Products/`.
+- `UserRoles` moves from SharedKernel to `Modules.Identity/Public/UserRoles.cs`.
+- `ProductQuery` moves from SharedKernel to `Modules.Catalog/Features/Products/`.
 
 Rule: **`Public/` plus the two root files are the ownership boundary** — everything else in a
 module is an implementation detail. Folders exist only when they have content; no empty folders
@@ -81,7 +81,7 @@ are created for symmetry's sake.
 
 ## 3. Slim shared kernel
 
-`BuildingBlocks` keeps only assembly-agnostic primitives:
+`SharedKernel` keeps only assembly-agnostic primitives:
 
 - `CallerContext` + extensions, `DbConnections`, `EndpointConventionExtensions`, `ErrorCodes`,
   `Exceptions`, `PagedResult`, `PageQuery`, `Policies`
@@ -102,9 +102,9 @@ Nothing Catalog-, Identity-, or Negotiations-specific remains in the kernel.
 
 ## 5. De-duplication
 
-- Seeding: one generic base hosted service in BuildingBlocks; each module supplies DbContext,
+- Seeding: one generic base hosted service in SharedKernel; each module supplies DbContext,
   seed logic, and options binding only.
-- Design-time factories: shared abstract base in BuildingBlocks; each module's factory reduces
+- Design-time factories: shared abstract base in SharedKernel; each module's factory reduces
   to a few lines naming its DbContext and connection string.
 - The duplicated `Price` value object in Catalog vs Negotiations domains intentionally remains —
   bounded-context hygiene, not an accident.

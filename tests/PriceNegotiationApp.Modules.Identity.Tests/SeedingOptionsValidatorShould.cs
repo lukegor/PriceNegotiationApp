@@ -13,12 +13,12 @@ public class SeedingOptionsValidatorShould
         string adminPassword = "Sup3rSecret!",
         string staffEmail = "staff@app.com",
         string staffPassword = "Sup3rSecret!") => new()
-    {
-        AdminEmail = adminEmail,
-        AdminPassword = adminPassword,
-        StaffEmail = staffEmail,
-        StaffPassword = staffPassword,
-    };
+        {
+            AdminEmail = adminEmail,
+            AdminPassword = adminPassword,
+            StaffEmail = staffEmail,
+            StaffPassword = staffPassword,
+        };
 
     [Fact]
     public void Accept_a_complete_configuration() =>

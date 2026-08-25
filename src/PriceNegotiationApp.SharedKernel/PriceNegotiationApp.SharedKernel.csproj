@@ -5,5 +5,7 @@
   <ItemGroup>
     <!-- Compile surface for the shared design-time factory base (the Design package ships none). -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <!-- PostgresException translation for DbWriteGuard. -->
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 </Project>

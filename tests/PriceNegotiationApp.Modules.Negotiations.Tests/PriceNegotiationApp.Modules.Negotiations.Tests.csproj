@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\..\src\PriceNegotiationApp.Modules.Negotiations\PriceNegotiationApp.Modules.Negotiations.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.TestKit\PriceNegotiationApp.TestKit.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" />

@@ -16,6 +16,7 @@
     <Project Path="tests/PriceNegotiationApp.Modules.Catalog.Tests/PriceNegotiationApp.Modules.Catalog.Tests.csproj" />
     <Project Path="tests/PriceNegotiationApp.Modules.Identity.Tests/PriceNegotiationApp.Modules.Identity.Tests.csproj" />
     <Project Path="tests/PriceNegotiationApp.Modules.Negotiations.Tests/PriceNegotiationApp.Modules.Negotiations.Tests.csproj" />
+    <Project Path="tests/PriceNegotiationApp.TestKit/PriceNegotiationApp.TestKit.csproj" />
   </Folder>
 </Solution>
 

@@ -15,7 +15,7 @@ offer plus two counters). Any proposal above **2× the product's base price** is
 | Persistence | EF Core 10 + Npgsql (PostgreSQL 17), snake_case schema, xmin concurrency |
 | Identity | ASP.NET Core Identity + JWT Bearer (strict issuer/audience/lifetime validation) |
 | Observability | Serilog (console/file), OpenTelemetry (OTLP), `/health/live`, `/health/ready` |
-| Tests | xUnit v3 on Microsoft.Testing.Platform (MTP code coverage), Bogus, Shouldly, NetArchTest boundary tests, Testcontainers (real Postgres) |
+| Tests | xUnit v3 on Microsoft.Testing.Platform (MTP code coverage), Bogus, Shouldly, ArchUnitNET boundary tests, Testcontainers (real Postgres) |
 | Platform | Docker multi-stage image, docker-compose, GitHub Actions CI, Dependabot |
 
 ## Architecture
@@ -37,7 +37,7 @@ src/
   PriceNegotiationApp.Modules.Negotiations  negotiations/customers/policy → schema negotiations
 
 tests/
-  PriceNegotiationApp.ArchitectureTests     NetArchTest rules pinning module boundaries
+  PriceNegotiationApp.ArchitectureTests     ArchUnitNET rules pinning module boundaries
   PriceNegotiationApp.Modules.*.Tests       per-module unit tests
   PriceNegotiationApp.IntegrationTests      WebApplicationFactory + Testcontainers PostgreSQL
 ```

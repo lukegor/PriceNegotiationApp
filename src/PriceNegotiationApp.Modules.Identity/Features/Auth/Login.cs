@@ -39,7 +39,7 @@ internal static class Login
                 await userManager.ResetAccessFailedCountAsync(user);
 
                 var roles = (IReadOnlyList<string>)await userManager.GetRolesAsync(user);
-                var (token, expiresAtUtc) = await jwt.GenerateAsync(user.Id, request.Email, roles);
+                var (token, expiresAtUtc) = jwt.Generate(user.Id, request.Email, roles);
                 return TypedResults.Ok(new AuthResponse(token, expiresAtUtc, request.Email, roles));
             })
         .RequireRateLimiting(Policies.AuthRateLimitPolicy)

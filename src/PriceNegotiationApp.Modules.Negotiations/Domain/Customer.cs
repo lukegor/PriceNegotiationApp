@@ -1,5 +1,7 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
+/// <summary>Reference row binding an Identity user to this context. Intentionally
+/// anemic — see CustomerConfiguration for rationale. Do not enrich without cause.</summary>
 internal sealed class Customer
 {
     public CustomerId Id { get; private set; }

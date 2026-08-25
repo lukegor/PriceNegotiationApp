@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.SharedKernel;
-
 using PriceNegotiationApp.Modules.Catalog.Persistence;
+using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Catalog.Features.Products;
 

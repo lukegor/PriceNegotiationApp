@@ -171,10 +171,12 @@ public class DbWriteGuardShould
     {
         var db = new ThrowingDbContext(withUniqueViolation: false);
 
-        Should.Throw<InvalidOperationException>(() =>
+        var thrown = Should.Throw<DbUpdateException>(() =>
             db.SaveOrConflictAsync(
                 constraint => new ConflictException(constraint, "conflict"),
                 TestContext.Current.CancellationToken).GetAwaiter().GetResult());
+
+        thrown.InnerException.ShouldBeOfType<InvalidOperationException>();
     }
 
     private sealed class ThrowingDbContext(bool withUniqueViolation = true) : DbContext

@@ -16,7 +16,7 @@ public static class NegotiationEndpoints
         group.MapGetOne();
         group.MapCounterPropose();
         group.MapAccept();
-        group.MapDecline();
+        group.MapRejectCurrentOffer();
         group.MapWithdraw();
         return app;
     }

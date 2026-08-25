@@ -31,11 +31,14 @@ internal static class Create
                 var negotiation = Negotiation.Start(customerId, snapshot.ProductId, snapshot.Price,
                     request.ProposedPrice, clock.GetUtcNow(), policy);
                 await db.Negotiations.AddAsync(negotiation, ct);
-                await db.SaveChangesAsync(ct);
+                // The partial unique index is the real guard; a race that slipped past the
+                // pre-check above surfaces here as a 409 instead of a 500.
+                await db.SaveOrConflictAsync(
+                    _ => new ConflictException(NegotiationErrorCodes.NegotiationAlreadyOpen,
+                        "An open negotiation already exists for this product."), ct);
                 return TypedResults.Created("/api/v1/negotiations/mine",
-                    NegotiationResponses.ToResponse(negotiation, policy));
+                    NegotiationResponses.ToResponse(negotiation));
             })
         .RequireRoles(UserRoles.Customer);
     }
 }
-

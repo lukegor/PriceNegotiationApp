@@ -115,7 +115,7 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var outcome = await response.Content.ReadFromJsonAsync<CounterOutcome>(Json, TestContext.Current.CancellationToken);
         outcome!.Outcome.ShouldBe("AutoRejected");
-        outcome.Negotiation.Status.ShouldBe("Declined");
+        outcome.Negotiation.Status.ShouldBe("Rejected");
         outcome.Negotiation.DecidedAtUtc.ShouldNotBeNull();
     }
 

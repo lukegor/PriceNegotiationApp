@@ -12,7 +12,7 @@ internal static class List
 {
     internal static void MapList(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (NegotiationsDbContext db, INegotiationPolicy policy,
+        group.MapGet("/", async (NegotiationsDbContext db,
                 CancellationToken ct, int page = 1, int pageSize = 20) =>
             {
                 var query = new PageQuery(page, pageSize);
@@ -22,7 +22,7 @@ internal static class List
                     .Skip(query.Skip).Take(query.SafePageSize)
                     .ToListAsync(ct);
                 return TypedResults.Ok(new PagedResult<NegotiationResponse>(
-                    items.Select(n => NegotiationResponses.ToResponse(n, policy)).ToList(),
+                    items.Select(NegotiationResponses.ToResponse).ToList(),
                     query.SafePage, query.SafePageSize, total));
             })
         .RequireRoles(UserRoles.Admin, UserRoles.Staff);

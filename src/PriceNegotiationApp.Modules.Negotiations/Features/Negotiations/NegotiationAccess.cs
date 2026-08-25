@@ -11,6 +11,11 @@ internal static class NegotiationAccess
         await db.Negotiations.FirstOrDefaultAsync(n => n.Id == NegotiationId.From(id), ct)
         ?? throw new NotFoundException(nameof(Negotiation), id);
 
+    /// <summary>Read-only load for endpoints that never mutate the entity.</summary>
+    public static async Task<Negotiation> RequireReadOnlyAsync(NegotiationsDbContext db, Guid id, CancellationToken ct) =>
+        await db.Negotiations.AsNoTracking().FirstOrDefaultAsync(n => n.Id == NegotiationId.From(id), ct)
+        ?? throw new NotFoundException(nameof(Negotiation), id);
+
     public static async Task<Negotiation> RequireOwnedAsync(
         NegotiationsDbContext db, CallerContext caller, Guid id, CancellationToken ct)
     {
@@ -55,7 +60,18 @@ internal static class NegotiationAccess
         }
 
         var customer = Customer.Create(identityUserId);
-        await db.Customers.AddAsync(customer, ct);
+        db.Customers.Add(customer);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (DbWriteGuard.IsUniqueViolation(ex, out _))
+        {
+            // A concurrent first request already provisioned the customer row.
+            db.Entry(customer).State = EntityState.Detached;
+            return (await CustomerByIdentityAsync(db, identityUserId, ct))!.Id;
+        }
+
         return customer.Id;
     }
 

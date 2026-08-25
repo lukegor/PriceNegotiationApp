@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.SharedKernel;
 
@@ -12,16 +11,14 @@ internal static class Accept
     internal static void MapAccept(this RouteGroupBuilder group)
     {
         group.MapPost("/{id:guid}/accept", async (Guid id, NegotiationsDbContext db,
-                INegotiationPolicy policy, TimeProvider clock, CancellationToken ct) =>
+                TimeProvider clock, CancellationToken ct) =>
             {
                 var negotiation = await NegotiationAccess.RequireAsync(db, id, ct);
                 negotiation.Accept(clock.GetUtcNow());
                 await db.SaveChangesAsync(ct);
-                return TypedResults.Ok(NegotiationResponses.ToResponse(negotiation, policy));
+                return TypedResults.Ok(new StaffActionResponse("accepted",
+                    NegotiationResponses.ToResponse(negotiation)));
             })
         .RequireRoles(UserRoles.Admin, UserRoles.Staff);
     }
 }
-
-
-

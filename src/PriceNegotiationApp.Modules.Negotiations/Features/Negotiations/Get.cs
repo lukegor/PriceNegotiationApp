@@ -15,16 +15,16 @@ internal static class Get
     internal static void MapGetOne(this RouteGroupBuilder group)
     {
         group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal principal, NegotiationsDbContext db,
-                INegotiationPolicy policy, CancellationToken ct) =>
+                CancellationToken ct) =>
             {
                 var caller = principal.ToCallerContext();
-                var negotiation = await NegotiationAccess.RequireAsync(db, id, ct);
+                var negotiation = await NegotiationAccess.RequireReadOnlyAsync(db, id, ct);
                 if (!await NegotiationAccess.CanAccessAsync(db, caller, negotiation, ct))
                 {
                     throw new ForbiddenAccessException();
                 }
 
-                return TypedResults.Ok(NegotiationResponses.ToResponse(negotiation, policy));
+                return TypedResults.Ok(NegotiationResponses.ToResponse(negotiation));
             })
         .RequireAuthorization();
     }

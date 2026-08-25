@@ -12,8 +12,16 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GeneratedCodeAnalysisFlags>none</GeneratedCodeAnalysisFlags>
 
-		<NuGetAudit>true</NuGetAudit>
-		<NuGetAuditMode>all</NuGetAuditMode>
-		<NuGetAuditLevel>moderate</NuGetAuditLevel>
-	</PropertyGroup>
+	<NuGetAudit>true</NuGetAudit>
+	<NuGetAuditMode>all</NuGetAuditMode>
+	<NuGetAuditLevel>moderate</NuGetAuditLevel>
+  </PropertyGroup>
+  <!-- Conventions for every test project; keeps individual test csprojs reference-only.
+       Lives in props (not targets): must be visible to package-provided build checks
+       (e.g. xunit.v3's executable-output requirement) that run before targets import. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName.EndsWith(`Tests`))' == 'true'">
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1707;S1118</NoWarn>
+  </PropertyGroup>
 </Project>

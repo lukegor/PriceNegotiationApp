@@ -28,7 +28,7 @@
 ### Task 1: Centralize test-project conventions
 
 **Files:**
-- Create: `Directory.Build.targets`
+- Modify: `Directory.Build.props`
 - Modify: `tests/PriceNegotiationApp.Modules.Negotiations.Tests/PriceNegotiationApp.Modules.Negotiations.Tests.csproj`
 - Modify: `tests/PriceNegotiationApp.Modules.Identity.Tests/PriceNegotiationApp.Modules.Identity.Tests.csproj`
 - Modify: `tests/PriceNegotiationApp.Modules.Catalog.Tests/PriceNegotiationApp.Modules.Catalog.Tests.csproj`
@@ -39,20 +39,24 @@
 - Consumes: nothing.
 - Produces: implicit build conventions for any project whose name contains `.Tests` — `OutputType=Exe`, `IsPackable=false`, `NoWarn += CA1707;S1118`. Later tasks rely on csprojs NOT redeclaring these.
 
-- [ ] **Step 1: Create the targets file**
+- [ ] **Step 1: Add the conventions to Directory.Build.props**
 
-`Directory.Build.targets` (repo root):
+Append inside the existing top-level `<Project>` element (after the NuGetAudit properties):
 
 ```xml
-<Project>
-  <!-- Conventions for every test project; keeps individual test csprojs reference-only. -->
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
+  <!-- Conventions for every test project; keeps individual test csprojs reference-only.
+       Lives in props (not targets): must be visible to package-provided build checks
+       (e.g. xunit.v3's executable-output requirement) that run before targets import. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName.EndsWith(`Tests`))' == 'true'">
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);CA1707;S1118</NoWarn>
   </PropertyGroup>
-</Project>
 ```
+
+(MSBuild property-function string literals use backticks, not quotes. The block lives in
+`Directory.Build.props`, NOT a new `Directory.Build.targets` — package-provided build checks
+such as xunit.v3's executable-output validation execute before the targets import would run.)
 
 - [ ] **Step 2: Slim the five test csprojs**
 
@@ -80,13 +84,13 @@ Apply the same deletion to the other four; their reference items stay as-is.
 dotnet build && dotnet test tests/PriceNegotiationApp.Modules.Negotiations.Tests --no-build
 ```
 
-Build succeeds with zero warnings; all unit tests pass. If MSBuild complains about the condition syntax, the correct form is `Condition="'$(MSBuildProjectName.Contains('.Tests'))'"`.
+Build succeeds with zero warnings; all unit tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add Directory.Build.targets tests/
-git commit -m "build: centralize test project conventions in Directory.Build.targets"
+git add Directory.Build.props tests/
+git commit -m "build: centralize test project conventions in Directory.Build.props"
 ```
 
 ---

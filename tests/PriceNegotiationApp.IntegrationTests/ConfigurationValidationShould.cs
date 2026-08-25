@@ -1,4 +1,5 @@
 using PriceNegotiationApp.Api.Extensions;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Xunit;
 
@@ -25,9 +26,16 @@ public class ConfigurationValidationShould
             .Failed.ShouldBeTrue();
 
     [Fact]
-    public void Accept_well_formed_cors_origins() =>
-        Should.NotThrow(() => CorsOriginsGuard.EnsureValid(
-            ["https://app.example.com", "http://localhost:3000"]));
+    public void Accept_well_formed_cors_origins()
+    {
+        var origins = new[]
+        {
+            Fuzz.HttpsUrl(),
+            $"http://{Fuzz.NewFaker().Internet.DomainName()}",
+        };
+
+        Should.NotThrow(() => CorsOriginsGuard.EnsureValid(origins));
+    }
 
     [Fact]
     public void Tolerate_null_or_empty_cors_lists() =>

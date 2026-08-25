@@ -25,5 +25,5 @@ jobs:
         run: dotnet build -c Release --no-restore
 
       - name: Test
-        run: dotnet test PriceNegotiationApp.slnx -c Release --no-build --collect:"XPlat Code Coverage"
+        run: dotnet test --solution PriceNegotiationApp.slnx -c Release --no-build --coverage --coverage-output-format cobertura
 

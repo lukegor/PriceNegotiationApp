@@ -67,6 +67,19 @@ Rules:
   `Database:Modules:{Identity|Catalog|Negotiations}:ConnectionString` (falls back to
   `Database:ConnectionString`).
 
+### Tactical DDD laws
+
+- Module `DbContext`s are the unit of work; `DbSet<T>` is the aggregate's collection.
+  No repository/UoW abstractions (enforced by an architecture test).
+- Cross-aggregate invariants live at the persistence boundary (partial unique indexes)
+  with endpoint fast-paths for friendly errors — never inside a single aggregate.
+- Negotiation policy values are snapshotted onto the aggregate at creation; config changes
+  never rewrite in-flight negotiations.
+- Domain/integration events are intentionally absent until the first real subscriber
+  (deal-on-accept / notifications features). The pattern is pre-defined in
+  `docs/superpowers/specs/2026-08-25-ddd-audit-design.md` §F-04 and lands with that feature.
+- Money inside aggregates uses value objects; ratios/multipliers use plain decimals.
+
 ### Migrations
 
 Each module owns its migration stream (history tables live in the default schema):

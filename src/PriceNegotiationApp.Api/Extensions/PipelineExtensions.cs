@@ -68,7 +68,11 @@ public static class PipelineExtensions
     private static void MapModules(this WebApplication app)
     {
         app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
-        app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = r => r.Tags.Contains("ready") });
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions
+        {
+            Predicate = r => r.Tags.Contains("ready"),
+            ResponseWriter = ReadyHealthReport.WriteAsync,
+        });
         app.MapAuthEndpoints();
         app.MapCatalogEndpoints();
         app.MapNegotiationsEndpoints();

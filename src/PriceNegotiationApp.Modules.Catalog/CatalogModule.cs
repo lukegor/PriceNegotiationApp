@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PriceNegotiationApp.Modules.Catalog.Features.Products;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Catalog.Seeding;
 using PriceNegotiationApp.SharedKernel;
@@ -21,6 +22,11 @@ public static class CatalogModule
         services.AddOptions<CatalogSeedingOptions>()
             .Bind(configuration.GetSection(CatalogSeedingOptions.SectionName));
         services.AddHostedService<CatalogSeedingHostedService>();
+        services.AddScoped<CreateProductHandler>();
+        services.AddScoped<UpdateProductHandler>();
+        services.AddScoped<DeleteProductHandler>();
+        services.AddScoped<GetProductHandler>();
+        services.AddScoped<ListProductsHandler>();
         return services;
     }
 }

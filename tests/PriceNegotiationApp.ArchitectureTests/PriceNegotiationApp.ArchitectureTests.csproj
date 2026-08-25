@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="TngTech.ArchUnitNET" />
     <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />

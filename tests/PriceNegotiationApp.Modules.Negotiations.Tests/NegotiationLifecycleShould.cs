@@ -1,5 +1,6 @@
 using Bogus;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Xunit;
 
@@ -8,14 +9,18 @@ namespace PriceNegotiationApp.Modules.Negotiations.Tests;
 public class NegotiationLifecycleShould
 {
     private static readonly DefaultNegotiationPolicy Policy = new();
-    private readonly Faker _faker = new();
+    private readonly Faker _faker = Fuzz.NewFaker();
     private readonly Guid _productId = Guid.CreateVersion7();
 
     private const decimal BasePrice = 100m;
     private readonly DateTimeOffset _now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
-    private Negotiation StartValid() =>
-        Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _productId, BasePrice, 80m, _now, Policy);
+    private Negotiation StartValid()
+    {
+        var customerId = CustomerId.From(_faker.Random.Guid());
+        Fuzz.Dump("start-valid", new { customer = customerId.Value, product = _productId });
+        return Negotiation.Start(customerId, _productId, BasePrice, 80m, _now, Policy);
+    }
 
     [Fact]
     public void Start_records_initial_proposal_snapshots_policy_and_consumes_one_of_three_budgets()

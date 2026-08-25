@@ -16,6 +16,17 @@
 	<NuGetAuditMode>all</NuGetAuditMode>
 	<NuGetAuditLevel>moderate</NuGetAuditLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+  <!-- GitHub Actions exports CI=true; keep local builds byte-identical to today. -->
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
   <!-- Conventions for every test project; keeps individual test csprojs reference-only.
        Lives in props (not targets): must be visible to package-provided build checks
        (e.g. xunit.v3's executable-output requirement) that run before targets import. -->

@@ -1,7 +1,8 @@
-﻿using PriceNegotiationApp.IntegrationTests.Support;
+using PriceNegotiationApp.IntegrationTests.Support;
 using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
+using PriceNegotiationApp.TestKit;
 using System.Text.Json;
 using Xunit;
 
@@ -245,7 +246,7 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
     {
         var staff = await fixture.LoginAsStaffAsync();
         var response = await staff.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = $"NegProduct{Guid.NewGuid():N}"[..20], price = 100m }, TestContext.Current.CancellationToken);
+            new { name = Fuzz.NewFaker().ProductName(), price = 100m }, TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ProductResponse>(Json, TestContext.Current.CancellationToken))!;
     }

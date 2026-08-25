@@ -1,5 +1,6 @@
 using PriceNegotiationApp.IntegrationTests.Support;
 using System.Net.Http.Json;
+using PriceNegotiationApp.TestKit;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -30,14 +31,16 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     /// <summary>Registers and logs in a fresh customer; returns an authorized client session.</summary>
     public async Task<UserSession> CreateUserAsync()
     {
-        var email = $"customer.{Guid.NewGuid():N}@test.local";
-        var password = "Passw0rd!x";
+        var email = Fuzz.UniqueEmail();
+        var password = Fuzz.Password();
 
         var register = await Anonymous.PostAsJsonAsync("/api/v1/auth/register",
             new RegisterRequest { Email = email, Password = password });
         register.EnsureSuccessStatusCode();
 
-        return await LoginAsync(email, password);
+        var session = await LoginAsync(email, password);
+        Fuzz.Dump("user", new { email, password });
+        return session;
     }
 
     public async Task<UserSession> LoginAsync(string email, string password)
@@ -46,7 +49,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
             new LoginRequest { Email = email, Password = password });
         login.EnsureSuccessStatusCode();
         var content = await login.Content.ReadFromJsonAsync<LoginResponse>();
-        return new UserSession(Factory, email, content!.AccessToken);
+        return new UserSession(Factory, email, content!.AccessToken, password);
     }
 
     public Task<UserSession> LoginAsAdminAsync() =>

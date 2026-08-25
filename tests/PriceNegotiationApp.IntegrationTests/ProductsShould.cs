@@ -1,7 +1,8 @@
-﻿using PriceNegotiationApp.IntegrationTests.Support;
+using PriceNegotiationApp.IntegrationTests.Support;
 using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
+using PriceNegotiationApp.TestKit;
 using System.Text.Json;
 using Xunit;
 
@@ -16,7 +17,7 @@ public class ProductsShould(IntegrationTestFixture fixture)
     public async Task Anonymous_can_list_and_get_but_not_write()
     {
         var staff = await fixture.LoginAsStaffAsync();
-        var created = await CreateProductAsync(staff, "Anon Probe", 42m);
+        var created = await CreateProductAsync(staff);
 
         var list = await fixture.Anonymous.GetAsync("/api/v1/products?page=1&pageSize=10", TestContext.Current.CancellationToken);
         list.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -25,11 +26,11 @@ public class ProductsShould(IntegrationTestFixture fixture)
         single.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var post = await fixture.Anonymous.PostAsJsonAsync("/api/v1/products",
-            new { name = "X", price = 1m }, TestContext.Current.CancellationToken);
+            DenialPayload(1m), TestContext.Current.CancellationToken);
         post.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
         var put = await fixture.Anonymous.PutAsJsonAsync($"/api/v1/products/{created.Id}",
-            new { name = "X", price = 2m }, TestContext.Current.CancellationToken);
+            DenialPayload(2m), TestContext.Current.CancellationToken);
         put.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
         var delete = await fixture.Anonymous.DeleteAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
@@ -42,9 +43,9 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var customer = await fixture.CreateUserAsync();
 
         (await customer.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = "C", price = 1m }, TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            DenialPayload(1m), TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await customer.Client.PutAsJsonAsync($"/api/v1/products/{Guid.NewGuid()}",
-            new { name = "C", price = 1m }, TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            DenialPayload(1m), TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await customer.Client.DeleteAsync(
             $"/api/v1/products/{Guid.NewGuid()}", TestContext.Current.CancellationToken)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
@@ -57,7 +58,7 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var staff = await fixture.LoginAsStaffAsync();
 
         var put = await staff.Client.PutAsJsonAsync($"/api/v1/products/{created.Id}",
-            new { name = "Staff Updated", price = created.Price + 1 }, TestContext.Current.CancellationToken);
+            new { name = Fuzz.NewFaker().ProductName(), price = created.Price + 1 }, TestContext.Current.CancellationToken);
         put.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var delete = await staff.Client.DeleteAsync($"/api/v1/products/{created.Id}", TestContext.Current.CancellationToken);
@@ -94,13 +95,13 @@ public class ProductsShould(IntegrationTestFixture fixture)
         var staff = await fixture.LoginAsStaffAsync();
 
         var emptyName = await staff.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = string.Empty, price = 10m }, TestContext.Current.CancellationToken);
+            new { name = string.Empty, price = Fuzz.NewFaker().Price() }, TestContext.Current.CancellationToken);
         emptyName.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
         var emptyNameBody = await emptyName.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         emptyNameBody.ShouldContain("domain_rule_violated");
 
         var negativePrice = await staff.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = "Valid Name", price = -5m }, TestContext.Current.CancellationToken);
+            new { name = Fuzz.NewFaker().ProductName(), price = -5m }, TestContext.Current.CancellationToken);
         negativePrice.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
         var negativeBody = await negativePrice.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         negativeBody.ShouldContain("validation_failed");
@@ -152,12 +153,19 @@ public class ProductsShould(IntegrationTestFixture fixture)
         body!.Name.ShouldBe(created.Name);
     }
 
+    private static object DenialPayload(decimal price) => new
+    {
+        name = Fuzz.NewFaker().ProductName(),
+        price,
+    };
+
     private static async Task<ProductResponse> CreateProductAsync(UserSession session, string? name = null, decimal? price = null)
     {
         var response = await session.Client.PostAsJsonAsync("/api/v1/products",
-            new { name = name ?? "Matrix Product", price = price ?? 50m }, TestContext.Current.CancellationToken);
+            new { name = name ?? Fuzz.NewFaker().ProductName(), price = price ?? Fuzz.NewFaker().Price() }, TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ProductResponse>(Json, TestContext.Current.CancellationToken))!;
     }
 }
+
 

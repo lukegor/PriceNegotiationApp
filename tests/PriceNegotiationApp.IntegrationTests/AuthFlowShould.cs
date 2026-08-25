@@ -1,4 +1,5 @@
 using PriceNegotiationApp.IntegrationTests.Support;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
@@ -25,8 +26,9 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
     [Fact]
     public async Task Duplicate_registration_conflicts()
     {
-        var email = $"dup.{Guid.NewGuid():N}@test.local";
-        var body = new RegisterRequest { Email = email, Password = "Passw0rd!x" };
+        var email = Fuzz.UniqueEmail();
+        var password = Fuzz.Password();
+        var body = new RegisterRequest { Email = email, Password = password };
 
         var first = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/register", body, TestContext.Current.CancellationToken);
         var second = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/register", body, TestContext.Current.CancellationToken);
@@ -72,7 +74,7 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
 
         // Even the correct password is now rejected because of the lockout
         var retry = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/login",
-            new LoginRequest { Email = session.Email, Password = "Passw0rd!x" }, TestContext.Current.CancellationToken);
+            new LoginRequest { Email = session.Email, Password = session.Password }, TestContext.Current.CancellationToken);
 
         retry.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         var body = await retry.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);

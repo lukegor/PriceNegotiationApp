@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using PriceNegotiationApp.Modules.Identity.Features.Auth;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Xunit;
 
@@ -19,15 +21,17 @@ public class JwtManagerShould
         {
             Issuer = "test-issuer",
             Audience = "test-audience",
-            SecretKey = new string('k', 48),
+            SecretKey = new string('k', 48), // length is semantic; content irrelevant
             ExpiryMinutes = 30,
         });
         var clock = new FixedTimeProvider();
         var sut = new JwtManager(options, clock);
+        var email = Fuzz.Email();
 
-        var (token, expiresAtUtc) = sut.Generate(Guid.NewGuid(), "user@test.dev", ["Customer"]);
+        var (token, expiresAtUtc) = sut.Generate(Guid.NewGuid(), email, ["Customer"]);
 
-        token.ShouldNotBeNullOrWhiteSpace();
+        var payloadJson = Base64UrlEncoder.Decode(token.Split('.')[1]);
+        payloadJson.ShouldContain(email);
         token.Split('.').Length.ShouldBe(3);
         var expected = clock.GetUtcNow().AddMinutes(30);
         (expiresAtUtc - expected).Duration().ShouldBeLessThan(TimeSpan.FromSeconds(1));

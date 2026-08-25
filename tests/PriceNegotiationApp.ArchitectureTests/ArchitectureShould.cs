@@ -7,6 +7,7 @@ using PriceNegotiationApp.Modules.Catalog;
 using PriceNegotiationApp.Modules.Identity;
 using PriceNegotiationApp.Modules.Negotiations;
 using PriceNegotiationApp.SharedKernel;
+using Shouldly;
 using Xunit;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
@@ -52,6 +53,17 @@ public class ArchitectureShould
     private static readonly IObjectProvider<IType> EntityFramework =
         Types().That().ResideInNamespace(@"^Microsoft\.EntityFrameworkCore").As("EF Core");
 
+    private static readonly IObjectProvider<IType> CatalogDomain =
+        Types().That().ResideInNamespace($"{Catalog}.Domain").As("catalog domain");
+
+    private static readonly IObjectProvider<IType> NegotiationsDomain =
+        Types().That().ResideInNamespace($"{Negotiations}.Domain").As("negotiations domain");
+
+    private static readonly IObjectProvider<IType> PersistenceNamespaces =
+        Types().That().ResideInNamespace($"{Catalog}.Persistence")
+            .Or().ResideInNamespace($"{Negotiations}.Persistence")
+            .As("persistence namespaces");
+
     [Fact]
     public void Catalog_module_never_references_other_modules_or_the_composition_root() =>
         Types().That().Are(CatalogTypes)
@@ -79,12 +91,37 @@ public class ArchitectureShould
     [Fact]
     public void Domain_namespaces_stay_free_of_persistence_concerns()
     {
-        var catalogDomain = Types().That().ResideInNamespace($"{Catalog}.Domain").As("catalog domain");
-        var negotiationsDomain = Types().That().ResideInNamespace($"{Negotiations}.Domain").As("negotiations domain");
-
-        Types().That().Are(catalogDomain).Or().Are(negotiationsDomain)
+        Types().That().Are(CatalogDomain).Or().Are(NegotiationsDomain)
             .Should().NotDependOnAny(EntityFramework)
             .Check(Architecture);
+    }
+
+    [Fact]
+    public void Domain_namespaces_never_reach_into_persistence_namespaces() =>
+        Types().That().Are(CatalogDomain).Or().Are(NegotiationsDomain)
+            .Should().NotDependOnAny(PersistenceNamespaces)
+            .Check(Architecture);
+
+    [Fact]
+    public void Port_contracts_stay_persistence_free()
+    {
+        var catalogPorts = Types().That().ResideInNamespace($"{Catalog}.Ports").As("catalog ports");
+        var negotiationsPorts = Types().That().ResideInNamespace($"{Negotiations}.Ports").As("negotiations ports");
+
+        Types().That().Are(catalogPorts).Or().Are(negotiationsPorts)
+            .Should().NotDependOnAny(PersistenceNamespaces)
+            .Check(Architecture);
+    }
+
+    [Fact]
+    public void Repository_ceremony_stays_out_of_the_codebase()
+    {
+        // F-05 doctrine: module DbContext is the unit of work, DbSet<T> the aggregate
+        // collection. A repository layer re-introduces ceremony without payoff here.
+        var repositories = Types().That().HaveFullNameContaining("Repository");
+
+        repositories.GetObjects(Architecture).ShouldBeEmpty(
+            "repository-style types must not appear; use the module DbContext directly");
     }
 
     private static IObjectProvider<IType> AnyOf(params IObjectProvider<IType>[] sets)

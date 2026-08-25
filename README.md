@@ -69,6 +69,8 @@ Rules:
 
 ### Tactical DDD laws
 
+- Endpoints are transport adapters: routing, auth attributes and status shaping only.
+  Application logic lives in per-operation `*Handler` services under `Features/`.
 - Module `DbContext`s are the unit of work; `DbSet<T>` is the aggregate's collection.
   No repository/UoW abstractions (enforced by an architecture test).
 - Cross-aggregate invariants live at the persistence boundary (partial unique indexes)

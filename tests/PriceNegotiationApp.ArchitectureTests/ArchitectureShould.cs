@@ -124,6 +124,15 @@ public class ArchitectureShould
             "repository-style types must not appear; use the module DbContext directly");
     }
 
+    [Fact]
+    public void Endpoint_mapping_types_stay_transport_only()
+    {
+        var endpoints = Types().That().HaveFullNameEndingWith("Endpoints").As("endpoint mapping types");
+
+        endpoints.Should().NotDependOnAny(EntityFramework).Check(Architecture);
+        endpoints.Should().NotDependOnAny(PersistenceNamespaces).Check(Architecture);
+    }
+
     private static IObjectProvider<IType> AnyOf(params IObjectProvider<IType>[] sets)
     {
         var clause = Types().That().Are(sets[0]);

@@ -1,6 +1,5 @@
-using PriceNegotiationApp.SharedKernel;
-
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
+using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 

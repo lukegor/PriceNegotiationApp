@@ -2,6 +2,7 @@ using Bogus;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.TestKit;
 using Shouldly;
+using Vogen;
 using Xunit;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Tests;
@@ -31,7 +32,7 @@ public class NegotiationLifecycleShould
         negotiation.ProposalsUsed.ShouldBe(1);
         negotiation.MaxProposals.ShouldBe(3);
         negotiation.OfferMultiplierLimit.ShouldBe(2.0m);
-        negotiation.BasePrice.ShouldBe(100m);
+        negotiation.BasePrice.Value.ShouldBe(100m);
         negotiation.RemainingProposals().ShouldBe(2);
     }
 
@@ -40,12 +41,28 @@ public class NegotiationLifecycleShould
         Should.Throw<ProposalExceedsLimitException>(
             () => Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _productId, BasePrice, 201m, _now, Policy));
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Start_rejects_non_positive_base_price(decimal badBase) =>
+        Should.Throw<ValueObjectValidationException>(
+            () => Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _productId, badBase, 80m, _now, Policy));
+
+    [Fact]
+    public void CounterPropose_rejects_non_positive_offer()
+    {
+        var negotiation = StartValid();
+
+        Should.Throw<ValueObjectValidationException>(
+            () => negotiation.CounterPropose(0m, _now.AddMinutes(5)));
+    }
+
     [Fact]
     public void Start_accepts_offer_exactly_at_limit()
     {
         var negotiation = Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _productId, BasePrice, 200m, _now, Policy);
 
-        negotiation.CurrentOffer.ShouldBe(200m);
+        negotiation.CurrentOffer.Value.ShouldBe(200m);
     }
 
     [Fact]
@@ -56,7 +73,7 @@ public class NegotiationLifecycleShould
         var outcome = negotiation.CounterPropose(90m, _now.AddMinutes(5));
 
         outcome.ShouldBe(NegotiationOutcome.CounterProposed);
-        negotiation.CurrentOffer.ShouldBe(90m);
+        negotiation.CurrentOffer.Value.ShouldBe(90m);
         negotiation.ProposalsUsed.ShouldBe(2);
         negotiation.Status.ShouldBe(NegotiationStatus.Open);
     }
@@ -99,7 +116,7 @@ public class NegotiationLifecycleShould
         var outcome = negotiation.CounterPropose(92m, _now);
 
         outcome.ShouldBe(NegotiationOutcome.NoProposalsRemaining);
-        negotiation.CurrentOffer.ShouldNotBe(92m);
+        negotiation.CurrentOffer.Value.ShouldNotBe(92m);
         negotiation.Status.ShouldBe(NegotiationStatus.Open);
     }
 
@@ -137,7 +154,7 @@ public class NegotiationLifecycleShould
 
         negotiation.Status.ShouldBe(NegotiationStatus.Withdrawn);
         negotiation.DecidedAtUtc.ShouldNotBeNull();
-        negotiation.CurrentOffer.ShouldBe(90m); // history preserved
+        negotiation.CurrentOffer.Value.ShouldBe(90m); // history preserved
     }
 
     [Fact]

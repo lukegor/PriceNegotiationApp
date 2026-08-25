@@ -1,4 +1,5 @@
 using PriceNegotiationApp.Modules.Identity.Seeding;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Xunit;
 
@@ -8,40 +9,78 @@ public class SeedingOptionsValidatorShould
 {
     private readonly SeedingOptionsValidator _sut = new();
 
+    // Unspecified fields fall back to fresh Fuzz values, so every happy-path run
+    // exercises different-but-valid data. Invalid partitions stay inline.
     private static SeedingOptions Options(
-        string adminEmail = "admin@app.com",
-        string adminPassword = "Sup3rSecret!",
-        string staffEmail = "staff@app.com",
-        string staffPassword = "Sup3rSecret!") => new()
-        {
-            AdminEmail = adminEmail,
-            AdminPassword = adminPassword,
-            StaffEmail = staffEmail,
-            StaffPassword = staffPassword,
-        };
+        string? adminEmail = null,
+        string? adminPassword = null,
+        string? staffEmail = null,
+        string? staffPassword = null) => new()
+    {
+        AdminEmail = adminEmail ?? Fuzz.Email(),
+        AdminPassword = adminPassword ?? Fuzz.Password(),
+        StaffEmail = staffEmail ?? Fuzz.Email(),
+        StaffPassword = staffPassword ?? Fuzz.Password(),
+    };
 
     [Fact]
-    public void Accept_a_complete_configuration() =>
-        _sut.Validate(null, Options()).Succeeded.ShouldBeTrue();
+    public void Accept_a_complete_configuration_with_generated_values()
+    {
+        var options = Options();
+        Fuzz.Dump("seeding-options", options);
 
+        _sut.Validate(null, options).Succeeded.ShouldBeTrue();
+    }
+
+    // Null must be passed as an explicit object-initializer branch: the ?? fallback in
+    // Options() would otherwise generate a valid value and silently skip the case.
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
+    [InlineData("   ")]
     [InlineData("not-an-email")]
-    public void Reject_invalid_admin_email(string? email) =>
-        _sut.Validate(null, Options(adminEmail: email!)).Failed.ShouldBeTrue();
+    public void Reject_invalid_admin_email(string email) =>
+        _sut.Validate(null, Options(adminEmail: email)).Failed.ShouldBeTrue();
 
     [Theory]
-    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("not-an-email")]
+    public void Reject_invalid_staff_email(string email) =>
+        _sut.Validate(null, Options(staffEmail: email)).Failed.ShouldBeTrue();
+
+    [Fact]
+    public void Reject_null_admin_email()
+    {
+        var options = new SeedingOptions
+        {
+            AdminEmail = null!,
+            AdminPassword = Fuzz.Password(),
+            StaffEmail = Fuzz.Email(),
+            StaffPassword = Fuzz.Password(),
+        };
+
+        _sut.Validate(null, options).Failed.ShouldBeTrue();
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("short")]
-    public void Reject_admin_password_shorter_than_identity_floor(string? password) =>
-        _sut.Validate(null, Options(adminPassword: password!)).Failed.ShouldBeTrue();
+    public void Reject_admin_password_shorter_than_identity_floor(string password)
+    {
+        var options = new SeedingOptions
+        {
+            AdminEmail = Fuzz.Email(),
+            AdminPassword = password,
+            StaffEmail = Fuzz.Email(),
+            StaffPassword = Fuzz.Password(),
+        };
+
+        _sut.Validate(null, options).Failed.ShouldBeTrue();
+    }
 
     [Fact]
     public void Aggregate_every_violation_in_one_result()
     {
-        // Defaults supply valid emails; only both passwords violate.
         var result = _sut.Validate(null, new SeedingOptions());
 
         result.Failed.ShouldBeTrue();

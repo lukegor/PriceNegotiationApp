@@ -1,6 +1,5 @@
 using Bogus;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.SharedKernel;
 using Shouldly;
 using Xunit;
 
@@ -19,14 +18,16 @@ public class NegotiationLifecycleShould
         Negotiation.Start(CustomerId.From(_faker.Random.Guid()), _productId, BasePrice, 80m, _now, Policy);
 
     [Fact]
-    public void Start_records_initial_proposal_and_consumes_one_of_three_budgets()
+    public void Start_records_initial_proposal_snapshots_policy_and_consumes_one_of_three_budgets()
     {
         var negotiation = StartValid();
 
         negotiation.Status.ShouldBe(NegotiationStatus.Open);
         negotiation.ProposalsUsed.ShouldBe(1);
+        negotiation.MaxProposals.ShouldBe(3);
+        negotiation.OfferMultiplierLimit.ShouldBe(2.0m);
         negotiation.BasePrice.ShouldBe(100m);
-        negotiation.RemainingProposals(Policy).ShouldBe(2);
+        negotiation.RemainingProposals().ShouldBe(2);
     }
 
     [Fact]
@@ -47,7 +48,7 @@ public class NegotiationLifecycleShould
     {
         var negotiation = StartValid();
 
-        var outcome = negotiation.CounterPropose(90m, _now.AddMinutes(5), Policy);
+        var outcome = negotiation.CounterPropose(90m, _now.AddMinutes(5));
 
         outcome.ShouldBe(NegotiationOutcome.CounterProposed);
         negotiation.CurrentOffer.ShouldBe(90m);
@@ -60,21 +61,37 @@ public class NegotiationLifecycleShould
     {
         var negotiation = StartValid();
 
-        var outcome = negotiation.CounterPropose(500m, _now.AddMinutes(5), Policy);
+        var outcome = negotiation.CounterPropose(500m, _now.AddMinutes(5));
 
         outcome.ShouldBe(NegotiationOutcome.AutoRejected);
-        negotiation.Status.ShouldBe(NegotiationStatus.Declined);
+        negotiation.Status.ShouldBe(NegotiationStatus.Rejected);
         negotiation.DecidedAtUtc.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void CounterPropose_uses_limits_snapshotted_at_creation_not_current_config()
+    {
+        var generousPolicy = new StaticPolicy(maxProposals: 5, multiplierLimit: 3.0m);
+        var negotiation = Negotiation.Start(
+            CustomerId.From(_faker.Random.Guid()), _productId, BasePrice, 80m, _now, generousPolicy);
+
+        // The DI container now hands out the default (stricter) policy; the aggregate
+        // must still obey the rules it was created under.
+        var outcome = negotiation.CounterPropose(250m, _now.AddMinutes(5));
+
+        outcome.ShouldBe(NegotiationOutcome.CounterProposed); // legal under 3.0x, illegal under 2.0x
+        negotiation.ProposalsUsed.ShouldBe(2);
+        negotiation.RemainingProposals().ShouldBe(3);
     }
 
     [Fact]
     public void CounterPropose_after_budget_exhaustion_returns_NoProposalsRemaining()
     {
         var negotiation = StartValid();
-        negotiation.CounterPropose(90m, _now, Policy);
-        negotiation.CounterPropose(91m, _now, Policy);
+        negotiation.CounterPropose(90m, _now);
+        negotiation.CounterPropose(91m, _now);
 
-        var outcome = negotiation.CounterPropose(92m, _now, Policy);
+        var outcome = negotiation.CounterPropose(92m, _now);
 
         outcome.ShouldBe(NegotiationOutcome.NoProposalsRemaining);
         negotiation.CurrentOffer.ShouldNotBe(92m);
@@ -93,25 +110,54 @@ public class NegotiationLifecycleShould
     }
 
     [Fact]
-    public void Decline_keeps_open_so_customer_can_counter()
+    public void RejectCurrentOffer_keeps_open_and_stamps_staff_action_without_touching_budget()
     {
         var negotiation = StartValid();
 
-        negotiation.Decline();
+        negotiation.RejectCurrentOffer(_now.AddMinutes(10));
 
         negotiation.Status.ShouldBe(NegotiationStatus.Open);
+        negotiation.LastStaffActionAtUtc.ShouldBe(_now.AddMinutes(10));
+        negotiation.ProposalsUsed.ShouldBe(1);
+        negotiation.DecidedAtUtc.ShouldBeNull();
+    }
+
+    [Fact]
+    public void Withdraw_moves_open_negotiation_to_terminal_Withdrawn()
+    {
+        var negotiation = StartValid();
+        negotiation.CounterPropose(90m, _now);
+
+        negotiation.Withdraw(_now.AddHours(1));
+
+        negotiation.Status.ShouldBe(NegotiationStatus.Withdrawn);
+        negotiation.DecidedAtUtc.ShouldNotBeNull();
+        negotiation.CurrentOffer.ShouldBe(90m); // history preserved
     }
 
     [Fact]
     public void Terminal_negotiations_refuse_further_operations()
     {
-        var negotiation = StartValid();
-        negotiation.Accept(_now);
+        var withdrawn = StartValid();
+        withdrawn.Withdraw(_now);
+        var accepted = StartValid();
+        accepted.Accept(_now);
+        var rejected = StartValid();
+        rejected.CounterPropose(500m, _now);
 
-        Should.Throw<ClosedNegotiationException>(() => negotiation.CounterPropose(50m, _now, Policy));
-        Should.Throw<ClosedNegotiationException>(() => negotiation.Accept(_now));
-        Should.Throw<ClosedNegotiationException>(() => negotiation.Decline());
+        foreach (var terminal in new[] { withdrawn, accepted, rejected })
+        {
+            Should.Throw<ClosedNegotiationException>(() => terminal.CounterPropose(50m, _now));
+            Should.Throw<ClosedNegotiationException>(() => terminal.Accept(_now));
+            Should.Throw<ClosedNegotiationException>(() => terminal.RejectCurrentOffer(_now));
+            Should.Throw<ClosedNegotiationException>(() => terminal.Withdraw(_now));
+        }
+    }
+
+    private sealed class StaticPolicy(int maxProposals, decimal multiplierLimit) : INegotiationPolicy
+    {
+        public int MaxProposalsPerNegotiation { get; } = maxProposals;
+
+        public decimal ProposalMultiplierLimit { get; } = multiplierLimit;
     }
 }
-
-

@@ -17,9 +17,11 @@ internal sealed class NegotiationConfiguration : IEntityTypeConfiguration<Negoti
         builder.Property(n => n.CustomerId).HasConversion(id => id.Value, value => CustomerId.From(value));
         builder.Property(n => n.BasePrice).HasColumnType("numeric(18,2)");
         builder.Property(n => n.CurrentOffer).HasColumnType("numeric(18,2)");
+        builder.Property(n => n.OfferMultiplierLimit).HasColumnType("numeric(5,2)");
         builder.Property(n => n.Status).HasConversion<int>();
         builder.HasOne<Customer>().WithMany().HasForeignKey(n => n.CustomerId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(n => new { n.ProductId, n.CustomerId })
+            .HasDatabaseName("uq_negotiations_open_product_customer")
             .IsUnique()
             .HasFilter($"status = {(int)NegotiationStatus.Open}");
         builder.Property(n => n.Version).IsRowVersion();

@@ -13,21 +13,28 @@ internal static class Withdraw
     internal static void MapWithdraw(this RouteGroupBuilder group)
     {
         group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal principal, NegotiationsDbContext db,
-                CancellationToken ct) =>
+                TimeProvider clock, CancellationToken ct) =>
             {
                 var caller = principal.ToCallerContext();
                 var negotiation = await NegotiationAccess.RequireAsync(db, id, ct);
-                if (!caller.IsInRole(UserRoles.Admin)
-                    && !await NegotiationAccess.IsOwnerAsync(db, caller.UserId, negotiation, ct))
+
+                if (caller.IsInRole(UserRoles.Admin))
                 {
-                    throw new ForbiddenAccessException();
+                    db.Negotiations.Remove(negotiation);
+                }
+                else
+                {
+                    if (!await NegotiationAccess.IsOwnerAsync(db, caller.UserId, negotiation, ct))
+                    {
+                        throw new ForbiddenAccessException();
+                    }
+
+                    negotiation.Withdraw(clock.GetUtcNow());
                 }
 
-                db.Negotiations.Remove(negotiation);
                 await db.SaveChangesAsync(ct);
                 return TypedResults.NoContent();
             })
         .RequireAuthorization();
     }
 }
-

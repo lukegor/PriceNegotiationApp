@@ -14,13 +14,13 @@ internal static class CounterPropose
     internal static void MapCounterPropose(this RouteGroupBuilder group)
     {
         group.MapPatch("/{id:guid}/proposals", async (Guid id, CounterProposalRequest request,
-                ClaimsPrincipal principal, NegotiationsDbContext db, INegotiationPolicy policy,
+                ClaimsPrincipal principal, NegotiationsDbContext db,
                 TimeProvider clock, CancellationToken ct) =>
             {
                 var caller = principal.ToCallerContext();
                 var negotiation = await NegotiationAccess.RequireOwnedAsync(db, caller, id, ct);
 
-                var outcome = negotiation.CounterPropose(request.ProposedPrice, clock.GetUtcNow(), policy);
+                var outcome = negotiation.CounterPropose(request.ProposedPrice, clock.GetUtcNow());
                 if (outcome == NegotiationOutcome.NoProposalsRemaining)
                 {
                     throw new ConflictException(NegotiationErrorCodes.NoProposalsRemaining,
@@ -29,9 +29,8 @@ internal static class CounterPropose
 
                 await db.SaveChangesAsync(ct);
                 return TypedResults.Ok(new CounterProposalOutcome(outcome.ToString(),
-                    NegotiationResponses.ToResponse(negotiation, policy)));
+                    NegotiationResponses.ToResponse(negotiation)));
             })
         .RequireAuthorization();
     }
 }
-

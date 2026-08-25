@@ -39,6 +39,8 @@ public static class IdentityModule
         services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<JwtManager>();
+        services.AddScoped<RegisterUserHandler>();
+        services.AddScoped<LoginUserHandler>();
 
         services.AddOptions<SeedingOptions>()
             .Bind(configuration.GetSection(SeedingOptions.SectionName))

@@ -160,8 +160,19 @@ No secrets are committed: use user-secrets locally and environment variables in 
 ## Health & telemetry
 
 - `GET /health/live` — process liveness
-- `GET /health/ready` — database connectivity
+- `GET /health/ready` — database connectivity (JSON body names each dependency)
 - OpenTelemetry traces/metrics export via standard `OTEL_*` environment variables.
+
+### Local telemetry dashboard
+
+```bash
+docker compose -f docker-compose.yml -f compose.observability.yml up --build
+```
+
+Aspire Dashboard UI: http://127.0.0.1:18888 — live traces, metrics and logs for every request.
+For `dotnet run` development, start just the dashboard
+(`docker compose -f docker-compose.yml -f compose.observability.yml up aspire-dashboard`)
+and set the user secret `OTEL_EXPORTER_OTLP_ENDPOINT` to `http://localhost:18889`.
 
 ## CI
 

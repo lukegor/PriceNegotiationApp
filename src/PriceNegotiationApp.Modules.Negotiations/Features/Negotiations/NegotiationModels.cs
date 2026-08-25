@@ -43,7 +43,7 @@ internal static class NegotiationErrorCodes
 internal static class NegotiationResponses
 {
     internal static NegotiationResponse ToResponse(Negotiation n) =>
-        new(n.Id.Value, n.ProductId, n.BasePrice, n.CurrentOffer, n.Status.ToString(),
+        new(n.Id.Value, n.ProductId, n.BasePrice.Value, n.CurrentOffer.Value, n.Status.ToString(),
             n.ProposalsUsed, n.RemainingProposals(), n.CreatedAtUtc, n.LastProposalAtUtc, n.DecidedAtUtc);
 }
 

@@ -15,8 +15,10 @@ internal sealed class NegotiationConfiguration : IEntityTypeConfiguration<Negoti
         // Plain Guid key: product_id has NO FK by design (separate schemas/modules).
         // Existence is validated at creation; negotiations survive deletion on snapshots.
         builder.Property(n => n.CustomerId).HasConversion(id => id.Value, value => CustomerId.From(value));
-        builder.Property(n => n.BasePrice).HasColumnType("numeric(18,2)");
-        builder.Property(n => n.CurrentOffer).HasColumnType("numeric(18,2)");
+        builder.Property(n => n.BasePrice).HasConversion(
+            price => price.Value, value => Domain.Price.From(value)).HasColumnType("numeric(18,2)");
+        builder.Property(n => n.CurrentOffer).HasConversion(
+            price => price.Value, value => Domain.Price.From(value)).HasColumnType("numeric(18,2)");
         builder.Property(n => n.OfferMultiplierLimit).HasColumnType("numeric(5,2)");
         builder.Property(n => n.Status).HasConversion<int>();
         builder.HasOne<Customer>().WithMany().HasForeignKey(n => n.CustomerId).OnDelete(DeleteBehavior.Cascade);

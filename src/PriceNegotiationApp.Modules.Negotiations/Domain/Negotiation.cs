@@ -2,10 +2,16 @@ namespace PriceNegotiationApp.Modules.Negotiations.Domain;
 
 internal sealed class Negotiation
 {
+    /// <summary>
+    /// Cross-aggregate invariant "at most one Open negotiation per (product, customer)"
+    /// cannot live here: it spans aggregates. Enforcement stack is intentional —
+    /// partial unique index uq_negotiations_open_product_customer (authoritative),
+    /// endpoint pre-check (friendly fast-path 409). Do NOT move it into this class.
+    /// </summary>
     /// <summary>Base price snapshot taken at creation; protects ongoing negotiations from later product price changes.</summary>
-    public decimal BasePrice { get; private set; }
+    public Price BasePrice { get; private set; }
 
-    public decimal CurrentOffer { get; private set; }
+    public Price CurrentOffer { get; private set; }
 
     public NegotiationId Id { get; private set; }
 
@@ -40,7 +46,7 @@ internal sealed class Negotiation
     }
 
     private Negotiation(
-        NegotiationId id, Guid productId, CustomerId customerId, decimal basePrice, decimal initialOffer,
+        NegotiationId id, Guid productId, CustomerId customerId, Price basePrice, Price initialOffer,
         INegotiationPolicy policy, DateTimeOffset createdAtUtc)
     {
         Id = id;
@@ -60,31 +66,36 @@ internal sealed class Negotiation
         CustomerId customerId, Guid productId, decimal basePriceSnapshot, decimal initialOffer,
         DateTimeOffset now, INegotiationPolicy policy)
     {
-        EnsureWithinLimit(basePriceSnapshot, initialOffer, policy.ProposalMultiplierLimit);
+        var basePrice = Price.From(basePriceSnapshot);
+        var offer = Price.From(initialOffer);
+        var limit = decimal.Round(basePrice.Value * policy.ProposalMultiplierLimit, 2);
+        if (offer.Value > limit)
+        {
+            throw new ProposalExceedsLimitException(limit);
+        }
+
         return new Negotiation(NegotiationId.From(Guid.CreateVersion7()), productId, customerId,
-            basePriceSnapshot, initialOffer, policy, now);
+            basePrice, offer, policy, now);
     }
 
     public NegotiationOutcome CounterPropose(decimal offer, DateTimeOffset now)
     {
         EnsureOpen();
+        var candidate = Price.From(offer);
         if (ProposalsUsed >= MaxProposals)
         {
             return NegotiationOutcome.NoProposalsRemaining;
         }
 
-        try
-        {
-            EnsureWithinLimit(BasePrice, offer, OfferMultiplierLimit);
-        }
-        catch (ProposalExceedsLimitException)
+        var limit = decimal.Round(BasePrice.Value * OfferMultiplierLimit, 2);
+        if (candidate.Value > limit)
         {
             Status = NegotiationStatus.Rejected;
             DecidedAtUtc = now;
             return NegotiationOutcome.AutoRejected;
         }
 
-        CurrentOffer = offer;
+        CurrentOffer = candidate;
         ProposalsUsed++;
         LastProposalAtUtc = now;
         return NegotiationOutcome.CounterProposed;
@@ -120,16 +131,6 @@ internal sealed class Negotiation
         if (Status != NegotiationStatus.Open)
         {
             throw new ClosedNegotiationException();
-        }
-    }
-
-    private static void EnsureWithinLimit(decimal basePrice, decimal offer, decimal multiplierLimit)
-    {
-        var limit = decimal.Round(basePrice * multiplierLimit, 2);
-        Price.From(offer);
-        if (offer > limit)
-        {
-            throw new ProposalExceedsLimitException(limit);
         }
     }
 }

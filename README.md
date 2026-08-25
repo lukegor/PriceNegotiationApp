@@ -169,11 +169,13 @@ No secrets are committed: use user-secrets locally and environment variables in 
 docker compose -f docker-compose.yml -f compose.observability.yml up --build
 ```
 
-The dashboard is **token-protected** (it displays request payloads and logs). Login at
-http://127.0.0.1:18888/login?t=<ASPIRE_DASHBOARD_TOKEN> — set that value in your `.env`.
-For `dotnet run` development, start just the dashboard
+The dashboard is **token-protected** (it displays request payloads and logs), and its
+telemetry ingestion endpoint requires an **API key** — untrusted apps cannot inject or
+spoof telemetry. Login at http://127.0.0.1:18888/login?t=<ASPIRE_DASHBOARD_TOKEN>; both
+values live in your `.env`. For `dotnet run` development, start just the dashboard
 (`docker compose -f docker-compose.yml -f compose.observability.yml up aspire-dashboard`)
-and set the user secret `OTEL_EXPORTER_OTLP_ENDPOINT` to `http://localhost:18889`.
+and set the user secrets `OTEL_EXPORTER_OTLP_ENDPOINT` (`http://localhost:18889`) and
+`OTEL_EXPORTER_OTLP_HEADERS` (`x-otlp-api-key=<ASPIRE_OTLP_API_KEY>`).
 
 ## Testing
 

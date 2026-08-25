@@ -101,15 +101,22 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddOpenApi();
 
-        builder.Services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource.AddService("PriceNegotiationApp.Api"))
-            .WithTracing(tracing => tracing
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation())
-            .WithMetrics(metrics => metrics
-                .AddAspNetCoreInstrumentation()
-                .AddRuntimeInstrumentation())
-            .UseOtlpExporter();
+        // Telemetry ships only when a consumer is configured (Aspire dashboard overlay,
+        // Grafana stack, or any OTLP endpoint). Prevents endless export retries against
+        // localhost:4317 where nothing listens.
+        var otlpEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+        if (!string.IsNullOrEmpty(otlpEndpoint))
+        {
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(resource => resource.AddService("PriceNegotiationApp.Api"))
+                .WithTracing(tracing => tracing
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation())
+                .WithMetrics(metrics => metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddRuntimeInstrumentation())
+                .UseOtlpExporter();
+        }
 
         return builder;
     }

@@ -2,6 +2,7 @@ services:
   api:
     environment:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_HEADERS: x-otlp-api-key=${ASPIRE_OTLP_API_KEY}
 
   aspire-dashboard:
     image: mcr.microsoft.com/dotnet/aspire-dashboard:9.4
@@ -11,5 +12,9 @@ services:
       # Login: http://127.0.0.1:18888/login?t=<ASPIRE_DASHBOARD_TOKEN>
       DASHBOARD__FRONTEND__AUTHMODE: BrowserToken
       DASHBOARD__FRONTEND__BROWSERTOKEN: ${ASPIRE_DASHBOARD_TOKEN:?set ASPIRE_DASHBOARD_TOKEN}
+      # API-key auth on ingestion: untrusted apps can no longer inject or spoof
+      # telemetry (the UI's "unsecured telemetry endpoint" warning disappears).
+      DASHBOARD__OTLP__AUTHMODE: ApiKey
+      DASHBOARD__OTLP__PRIMARYAPIKEY: ${ASPIRE_OTLP_API_KEY:?set ASPIRE_OTLP_API_KEY}
     ports:
       - "127.0.0.1:18888:18888"

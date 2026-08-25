@@ -693,17 +693,20 @@ public class SeedingOptionsValidatorShould
     [Fact]
     public void Aggregate_every_violation_in_one_result()
     {
+        // Defaults supply valid emails; only both passwords violate.
         var result = _sut.Validate(null, new SeedingOptions());
 
         result.Failed.ShouldBeTrue();
-        result.Failures.Count.ShouldBe(4);
+        result.Failures.Count().ShouldBe(2);
+        result.Failures.ShouldContain(f => f.Contains("AdminPassword"));
+        result.Failures.ShouldContain(f => f.Contains("StaffPassword"));
     }
 }
 ```
 
-(`SeedingOptions` has `init`-only properties and is internal — visible here via
-InternalsVisibleTo. The `Options(...)` helper sidesteps the fact that plain classes
-do not support `with` expressions.)
+(`SeedingOptions` has `init`-only properties, internal-visible to this project; its class
+defaults already satisfy the two email rules, so the all-defaults instance yields exactly
+the two password failures. `Failures` is `IEnumerable<string>` → use `.Count()`.)
 
 - [ ] **Step 6: Unit tests — Api validators**
 

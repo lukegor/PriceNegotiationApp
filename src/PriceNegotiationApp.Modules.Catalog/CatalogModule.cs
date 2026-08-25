@@ -16,6 +16,8 @@ public static class CatalogModule
             .UseNpgsql(DbConnections.Resolve(configuration, "Catalog"),
                 npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory_Catalog"))
             .UseSnakeCaseNamingConvention());
+        // Deliberately unvalidated: CatalogSeedingOptions is a single optional bool
+        // with no meaningful validation surface (engineering-hardening spec §7).
         services.AddOptions<CatalogSeedingOptions>()
             .Bind(configuration.GetSection(CatalogSeedingOptions.SectionName));
         services.AddHostedService<CatalogSeedingHostedService>();

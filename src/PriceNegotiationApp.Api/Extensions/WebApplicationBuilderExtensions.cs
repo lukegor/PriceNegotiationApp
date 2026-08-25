@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -70,6 +71,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddAuthorization();
 
         var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+        CorsOriginsGuard.EnsureValid(origins);
         if (origins.Length > 0)
         {
             builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
@@ -78,6 +80,11 @@ public static class WebApplicationBuilderExtensions
 
         var rateLimits = configuration.GetSection(RateLimitingOptions.SectionName).Get<RateLimitingOptions>()
                          ?? new RateLimitingOptions();
+        builder.Services.AddOptions<RateLimitingOptions>()
+            .Bind(configuration.GetSection(RateLimitingOptions.SectionName))
+            .ValidateOnStart();
+        builder.Services.AddSingleton<IValidateOptions<RateLimitingOptions>,
+            RateLimitingOptionsValidator>();
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

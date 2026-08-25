@@ -41,7 +41,9 @@ public static class IdentityModule
         services.AddSingleton<JwtManager>();
 
         services.AddOptions<SeedingOptions>()
-            .Bind(configuration.GetSection(SeedingOptions.SectionName));
+            .Bind(configuration.GetSection(SeedingOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<SeedingOptions>, SeedingOptionsValidator>();
         services.AddHostedService<IdentitySeedingHostedService>();
 
         return services;

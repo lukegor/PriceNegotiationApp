@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.SharedKernel;
 
@@ -18,6 +19,11 @@ public static class NegotiationsModule
             .UseSnakeCaseNamingConvention());
         services.AddSingleton<INegotiationPolicy, DefaultNegotiationPolicy>();
         services.AddSingleton(TimeProvider.System);
+        services.AddScoped<CreateNegotiationHandler>();
+        services.AddScoped<CounterProposeHandler>();
+        services.AddScoped<AcceptHandler>();
+        services.AddScoped<RejectCurrentOfferHandler>();
+        services.AddScoped<WithdrawHandler>();
         return services;
     }
 }

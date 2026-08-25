@@ -4,6 +4,7 @@
     <NoWarn>$(NoWarn);CA1707;S1118</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
     <ProjectReference Include="..\..\src\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\PriceNegotiationApp.Modules.Catalog\PriceNegotiationApp.Modules.Catalog.csproj" />
     <ProjectReference Include="..\..\src\PriceNegotiationApp.Modules.Identity\PriceNegotiationApp.Modules.Identity.csproj" />
@@ -11,8 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="NetArchTest.Rules" />
     <PackageReference Include="Shouldly" />
+    <PackageReference Include="TngTech.ArchUnitNET" />
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 </Project>

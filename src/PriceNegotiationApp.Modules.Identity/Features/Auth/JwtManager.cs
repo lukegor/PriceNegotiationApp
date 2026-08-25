@@ -9,7 +9,7 @@ namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
 internal sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider clock)
 {
-    public Task<(string Token, DateTimeOffset ExpiresAtUtc)> GenerateAsync(Guid userId, string email, IReadOnlyCollection<string> roles)
+    public (string Token, DateTimeOffset ExpiresAtUtc) Generate(Guid userId, string email, IReadOnlyCollection<string> roles)
     {
         var settings = options.Value;
         var now = clock.GetUtcNow();
@@ -35,7 +35,7 @@ internal sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider cloc
             expires: expiresAtUtc.UtcDateTime,
             signingCredentials: credentials);
 
-        return Task.FromResult((new JwtSecurityTokenHandler().WriteToken(token), expiresAtUtc));
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAtUtc);
     }
 }
 

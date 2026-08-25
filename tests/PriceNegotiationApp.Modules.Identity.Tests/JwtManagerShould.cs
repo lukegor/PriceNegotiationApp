@@ -13,7 +13,7 @@ public class JwtManagerShould
     }
 
     [Fact]
-    public async Task Generate_token_with_sub_email_role_and_expiry()
+    public void Generate_token_with_sub_email_role_and_expiry()
     {
         var options = Options.Create(new JwtOptions
         {
@@ -25,7 +25,7 @@ public class JwtManagerShould
         var clock = new FixedTimeProvider();
         var sut = new JwtManager(options, clock);
 
-        var (token, expiresAtUtc) = await sut.GenerateAsync(Guid.NewGuid(), "user@test.dev", ["Customer"]);
+        var (token, expiresAtUtc) = sut.Generate(Guid.NewGuid(), "user@test.dev", ["Customer"]);
 
         token.ShouldNotBeNullOrWhiteSpace();
         token.Split('.').Length.ShouldBe(3);

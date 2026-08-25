@@ -1,6 +1,6 @@
-using Bogus;
 using PriceNegotiationApp.Modules.Catalog.Domain;
 using PriceNegotiationApp.SharedKernel;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Vogen;
 using Xunit;
@@ -9,57 +9,72 @@ namespace PriceNegotiationApp.Modules.Catalog.Tests;
 
 public class ProductRulesShould
 {
-    private readonly Faker _faker = new();
-
+    // Semantic partitions stay inline: null/empty/whitespace and zero/negative are
+    // distinct validation branches; 'x' x201 is the length boundary.
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_rejects_null_or_whitespace_name(string? name) =>
-        Should.Throw<DomainException>(() => Product.Create(name!, 10m));
+        Should.Throw<DomainException>(() => Product.Create(name!, Fuzz.NewFaker().Price()));
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
     public void Create_rejects_non_positive_price(decimal price) =>
-        Should.Throw<ValueObjectValidationException>(() => Product.Create("Thing", price));
+        Should.Throw<ValueObjectValidationException>(
+            () => Product.Create(Fuzz.NewFaker().ProductName(), price));
 
     [Fact]
     public void Create_rejects_name_over_200_characters() =>
-        Should.Throw<DomainException>(() => Product.Create(new string('x', 201), 10m));
+        Should.Throw<DomainException>(() => Product.Create(new string('x', 201), Fuzz.NewFaker().Price()));
 
     [Fact]
-    public void Create_trims_name_and_assigns_id()
+    public void Create_trims_surrounding_whitespace_and_assigns_id_and_price()
     {
-        var product = Product.Create("  Keyboard  ", 99.5m);
+        var faker = Fuzz.NewFaker();
+        var rawName = $"  {faker.ProductName()}  ";
+        var price = faker.Price();
 
-        product.Name.ShouldBe("Keyboard");
+        var product = Product.Create(rawName, price);
+
+        product.Name.ShouldBe(rawName.Trim());
         product.Id.Value.ShouldNotBe(Guid.Empty);
-        product.Price.ShouldBe(99.5m);
+        product.Price.ShouldBe(price);
     }
 
     [Fact]
     public void Update_returns_true_and_applies_changes_when_changed()
     {
-        var product = Product.Create("Old", 10m);
+        var faker = Fuzz.NewFaker();
+        var originalName = faker.ProductName();
+        var originalPrice = faker.Price();
+        var product = Product.Create(originalName, originalPrice);
+        var newName = faker.ProductName();
+        var newPrice = faker.Price();
+        Fuzz.Dump("update-pair", new { originalName, originalPrice, newName, newPrice });
 
-        var changed = product.Update("New", 20m);
+        // Collision-immune: Bogus could legitimately generate identical values.
+        var expectedChanged =
+            !string.Equals(originalName, newName, StringComparison.Ordinal) || originalPrice != newPrice;
 
-        changed.ShouldBeTrue();
-        product.Name.ShouldBe("New");
-        product.Price.ShouldBe(20m);
+        var changed = product.Update(newName, newPrice);
+
+        changed.ShouldBe(expectedChanged);
+        product.Name.ShouldBe(newName);
+        product.Price.ShouldBe(newPrice);
     }
 
     [Fact]
     public void Update_returns_false_when_identical()
     {
-        var product = Product.Create("Same", 10m);
+        var faker = Fuzz.NewFaker();
+        var name = faker.ProductName();
+        var price = faker.Price();
+        var product = Product.Create(name, price);
 
-        var changed = product.Update("Same", 10m);
+        var changed = product.Update(name, price);
 
         changed.ShouldBeFalse();
     }
 }
-
-
-

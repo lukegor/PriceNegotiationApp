@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.SharedKernel;
 using System.Security.Claims;
 
@@ -14,23 +11,8 @@ internal static class CounterPropose
     internal static void MapCounterPropose(this RouteGroupBuilder group)
     {
         group.MapPatch("/{id:guid}/proposals", async (Guid id, CounterProposalRequest request,
-                ClaimsPrincipal principal, NegotiationsDbContext db,
-                TimeProvider clock, CancellationToken ct) =>
-            {
-                var caller = principal.ToCallerContext();
-                var negotiation = await NegotiationAccess.RequireOwnedAsync(db, caller, id, ct);
-
-                var outcome = negotiation.CounterPropose(request.ProposedPrice, clock.GetUtcNow());
-                if (outcome == NegotiationOutcome.NoProposalsRemaining)
-                {
-                    throw new ConflictException(NegotiationErrorCodes.NoProposalsRemaining,
-                        "No proposals remain for this negotiation.");
-                }
-
-                await db.SaveChangesAsync(ct);
-                return TypedResults.Ok(new CounterProposalOutcome(outcome.ToString(),
-                    NegotiationResponses.ToResponse(negotiation)));
-            })
+                ClaimsPrincipal principal, CounterProposeHandler handler, CancellationToken ct) =>
+            TypedResults.Ok(await handler.HandleAsync(id, request, principal.ToCallerContext(), ct)))
         .RequireAuthorization();
     }
 }

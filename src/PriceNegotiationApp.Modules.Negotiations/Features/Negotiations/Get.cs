@@ -1,10 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.SharedKernel;
 using System.Security.Claims;
 
@@ -14,18 +10,9 @@ internal static class Get
 {
     internal static void MapGetOne(this RouteGroupBuilder group)
     {
-        group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal principal, NegotiationsDbContext db,
-                CancellationToken ct) =>
-            {
-                var caller = principal.ToCallerContext();
-                var negotiation = await NegotiationAccess.RequireReadOnlyAsync(db, id, ct);
-                if (!await NegotiationAccess.CanAccessAsync(db, caller, negotiation, ct))
-                {
-                    throw new ForbiddenAccessException();
-                }
-
-                return TypedResults.Ok(NegotiationResponses.ToResponse(negotiation));
-            })
+        group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal principal,
+                GetNegotiationHandler handler, CancellationToken ct) =>
+            TypedResults.Ok(await handler.HandleAsync(id, principal.ToCallerContext(), ct)))
         .RequireAuthorization();
     }
 }

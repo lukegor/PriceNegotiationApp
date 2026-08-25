@@ -24,6 +24,9 @@ public static class NegotiationsModule
         services.AddScoped<AcceptHandler>();
         services.AddScoped<RejectCurrentOfferHandler>();
         services.AddScoped<WithdrawHandler>();
+        services.AddScoped<GetNegotiationHandler>();
+        services.AddScoped<ListNegotiationsHandler>();
+        services.AddScoped<ListMyNegotiationsHandler>();
         return services;
     }
 }

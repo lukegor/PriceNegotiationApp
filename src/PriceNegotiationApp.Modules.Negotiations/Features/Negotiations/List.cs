@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
@@ -12,21 +9,9 @@ internal static class List
 {
     internal static void MapList(this RouteGroupBuilder group)
     {
-        group.MapGet("/", async (NegotiationsDbContext db,
-                CancellationToken ct, int page = 1, int pageSize = 20) =>
-            {
-                var query = new PageQuery(page, pageSize);
-                var q = db.Negotiations.AsNoTracking();
-                var total = await q.LongCountAsync(ct);
-                var items = await q.OrderByDescending(n => n.CreatedAtUtc)
-                    .Skip(query.Skip).Take(query.SafePageSize)
-                    .ToListAsync(ct);
-                return TypedResults.Ok(new PagedResult<NegotiationResponse>(
-                    items.Select(NegotiationResponses.ToResponse).ToList(),
-                    query.SafePage, query.SafePageSize, total));
-            })
+        group.MapGet("/", async (ListNegotiationsHandler handler, CancellationToken ct,
+                int page = 1, int pageSize = 20) =>
+            TypedResults.Ok(await handler.HandleAsync(new PageQuery(page, pageSize), ct)))
         .RequireRoles(UserRoles.Admin, UserRoles.Staff);
     }
 }
-
-

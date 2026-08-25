@@ -1,8 +1,8 @@
 using PriceNegotiationApp.IntegrationTests.Support;
+using PriceNegotiationApp.TestKit;
 using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
-using PriceNegotiationApp.TestKit;
 using System.Text.Json;
 using Xunit;
 

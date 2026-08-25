@@ -1,5 +1,5 @@
-using System.Runtime.CompilerServices;
 using PriceNegotiationApp.TestKit;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace PriceNegotiationApp.Modules.Identity.Tests;

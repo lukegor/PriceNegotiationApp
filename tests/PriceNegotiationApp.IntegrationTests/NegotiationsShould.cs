@@ -65,8 +65,12 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
     {
         var (customer, staff, negotiationId) = await StartOpenNegotiationAsync();
 
-        // Round 1: staff declines (stays open), customer counters
-        await StaffDecideAsync(staff, negotiationId, decline: true);
+        // Round 1: staff rejects the current offer (stays open), customer counters
+        var decline1 = await staff.Client.PostAsJsonAsync($"/api/v1/negotiations/{negotiationId}/decline", new { }, TestContext.Current.CancellationToken);
+        decline1.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var decision1 = await decline1.Content.ReadFromJsonAsync<StaffAction>(Json, TestContext.Current.CancellationToken);
+        decision1!.Outcome.ShouldBe("current_offer_rejected");
+        decision1.Negotiation.Status.ShouldBe("Open");
         (await CounterProposeAsync(customer, negotiationId, 90m)).StatusCode.ShouldBe(HttpStatusCode.OK);
 
         // Round 2: staff declines again, customer uses the last proposal
@@ -76,6 +80,8 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         // Staff accepts the final offer
         var accept = await staff.Client.PostAsJsonAsync($"/api/v1/negotiations/{negotiationId}/accept", new { }, TestContext.Current.CancellationToken);
         accept.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var accepted = await accept.Content.ReadFromJsonAsync<StaffAction>(Json, TestContext.Current.CancellationToken);
+        accepted!.Outcome.ShouldBe("accepted");
 
         var view = await GetNegotiationAsync(staff, negotiationId);
         view.Status.ShouldBe("Accepted");
@@ -137,11 +143,62 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         (await admin.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
             .StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        // Only owner can withdraw; admin can delete anything
+        // Owner withdraw soft-closes; admin hard-deletes
         (await stranger.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
             .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await owner.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
             .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task Owner_withdraw_closes_but_preserves_history_admin_delete_destroys()
+    {
+        var (customer, _, negotiationId) = await StartOpenNegotiationAsync();
+
+        var withdraw = await customer.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken);
+        withdraw.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var view = await GetNegotiationAsync(customer, negotiationId);
+        view.Status.ShouldBe("Withdrawn");
+        view.DecidedAtUtc.ShouldNotBeNull();
+        view.BasePrice.ShouldBe(100m); // snapshot history intact
+
+        // Withdrawn is terminal
+        var counter = await CounterProposeAsync(customer, negotiationId, 50m);
+        counter.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+
+        // Only an admin can hard-delete; afterwards it is gone
+        var admin = await fixture.LoginAsAdminAsync();
+        (await admin.Client.DeleteAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await admin.Client.GetAsync($"/api/v1/negotiations/{negotiationId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Customer_cannot_hard_delete_another_users_negotiation()
+    {
+        var (_, _, otherId) = await StartOpenNegotiationAsync();
+        var stranger = await fixture.CreateUserAsync();
+
+        // stranger is a customer who owns no negotiation here;
+        // DELETE must be forbidden, not silently withdraw someone else's deal
+        (await stranger.Client.DeleteAsync($"/api/v1/negotiations/{otherId}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Concurrent_creates_produce_single_winner_and_conflicts_never_500()
+    {
+        var product = await CreateProductAsync();
+        var customer = await fixture.CreateUserAsync();
+
+        var attempts = await Task.WhenAll(Enumerable.Range(0, 6).Select(_ =>
+            customer.Client.PostAsJsonAsync("/api/v1/negotiations",
+                new { productId = product.Id, proposedPrice = 80m }, TestContext.Current.CancellationToken)));
+
+        attempts.Count(r => r.StatusCode == HttpStatusCode.Created).ShouldBe(1);
+        attempts.Count(r => r.StatusCode == HttpStatusCode.Conflict).ShouldBe(5);
     }
 
     [Fact]
@@ -174,6 +231,8 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
     }
 
     private sealed record CounterOutcome(string Outcome, NegotiationView Negotiation);
+
+    private sealed record StaffAction(string Outcome, NegotiationView Negotiation);
 
     private sealed record NegotiationView(
         Guid Id, Guid ProductId, decimal BasePrice, decimal CurrentOffer, string Status,

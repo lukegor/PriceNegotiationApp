@@ -104,12 +104,15 @@ Swagger UI (Scalar) is available at `/scalar` in Development.
 
 1. A customer opens a negotiation on a product with an initial proposal — this consumes
    proposal 1 of 3.
-2. Staff **accept** (terminal `Accepted`) or **decline**. Declining keeps the negotiation
-   open so the customer can counter with a remaining proposal.
-3. A counter-proposal above 2× the snapshotted base price immediately closes the
-   negotiation as `Declined` (auto-rejection).
-4. When the proposal budget is spent, further counter-proposals are refused (`409`).
-5. The owner can withdraw an open negotiation at any time; admins may delete any.
+2. Staff **accept** (terminal `Accepted`) or **reject the current offer** (`POST .../decline`);
+   rejecting keeps the negotiation open so the customer can spend a remaining proposal and
+   does not consume budget.
+3. A counter-proposal above the snapshotted offer-multiplier limit (default 2× base price,
+   frozen at creation time) immediately closes the negotiation as terminal `Rejected`
+   (auto-rejection).
+4. When the snapshotted proposal budget is spent, further counter-proposals are refused (`409`).
+5. The owner can withdraw an open negotiation at any time — this soft-closes it as terminal
+   `Withdrawn` and preserves history; only admins hard-delete rows.
 6. Deleting a product does not delete or block its negotiations — they keep their
    price snapshot (product existence is only validated when a negotiation is created).
 
@@ -133,6 +136,10 @@ Swagger UI (Scalar) is available at `/scalar` in Development.
 | POST | `/api/v1/negotiations/{id}/accept` | Admin, Staff |
 | POST | `/api/v1/negotiations/{id}/decline` | Admin, Staff |
 | DELETE | `/api/v1/negotiations/{id}` | owner or Admin |
+
+Status vocabulary: `Open | Accepted | Rejected | Withdrawn`. `Rejected` is terminal
+auto-rejection; staff decline responses carry `"outcome":"current_offer_rejected"`
+while the status stays `Open`.
 
 Errors use RFC 7807 ProblemDetails with a stable machine-readable `code` extension
 (e.g. `product_not_found`, `negotiation_already_open`, `no_proposals_remaining`).

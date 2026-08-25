@@ -1,8 +1,8 @@
+using Bogus;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Bogus;
 
 namespace PriceNegotiationApp.TestKit;
 

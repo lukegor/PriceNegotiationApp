@@ -174,6 +174,23 @@ For `dotnet run` development, start just the dashboard
 (`docker compose -f docker-compose.yml -f compose.observability.yml up aspire-dashboard`)
 and set the user secret `OTEL_EXPORTER_OTLP_ENDPOINT` to `http://localhost:18889`.
 
+## Testing
+
+```bash
+dotnet test --solution PriceNegotiationApp.slnx                        # everything (Docker needed)
+dotnet test --project tests/PriceNegotiationApp.Modules.Catalog.Tests  # one project
+```
+
+Every run also writes `TestResults/*.trx` and `TestResults/*.cobertura.xml`.
+Generated test data comes from Bogus through a shared `TestKit`:
+
+- Data is deterministic per call site — re-running the same command replays it.
+- A failure prints a `fuzz run-seed=…` banner plus the arranged values; replay it with:
+
+```bash
+$env:TEST_SEED='<seed from the failure>'; dotnet test --filter <same filter>
+```
+
 ## CI
 
 GitHub Actions runs restore → `dotnet format` check → Release build → unit tests →

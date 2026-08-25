@@ -16,12 +16,12 @@ public class SeedingOptionsValidatorShould
         string? adminPassword = null,
         string? staffEmail = null,
         string? staffPassword = null) => new()
-    {
-        AdminEmail = adminEmail ?? Fuzz.Email(),
-        AdminPassword = adminPassword ?? Fuzz.Password(),
-        StaffEmail = staffEmail ?? Fuzz.Email(),
-        StaffPassword = staffPassword ?? Fuzz.Password(),
-    };
+        {
+            AdminEmail = adminEmail ?? Fuzz.Email(),
+            AdminPassword = adminPassword ?? Fuzz.Password(),
+            StaffEmail = staffEmail ?? Fuzz.Email(),
+            StaffPassword = staffPassword ?? Fuzz.Password(),
+        };
 
     [Fact]
     public void Accept_a_complete_configuration_with_generated_values()

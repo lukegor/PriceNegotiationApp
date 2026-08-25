@@ -1,6 +1,6 @@
 using PriceNegotiationApp.IntegrationTests.Support;
-using System.Net.Http.Json;
 using PriceNegotiationApp.TestKit;
+using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Xunit;
 

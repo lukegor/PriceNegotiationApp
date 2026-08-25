@@ -224,11 +224,13 @@ Add the helper at the bottom of the class:
 
 ```csharp
     private static bool IsInfrastructurePath(PathString path) =>
-        path.StartsWithSegments("/health") ||
-        path.StartsWithSegments("/scalar") ||
-        path.StartsWithSegments("/openapi") ||
-        path.StartsWithSegments("/favicon");
+        path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/scalar", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/favicon", StringComparison.OrdinalIgnoreCase);
 ```
+
+(The `StringComparison` argument satisfies Meziantou.Analyzer rule MA0074.)
 
 Extend the file's usings with:
 

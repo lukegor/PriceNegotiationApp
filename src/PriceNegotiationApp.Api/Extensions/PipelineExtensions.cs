@@ -60,10 +60,10 @@ public static class PipelineExtensions
     }
 
     private static bool IsInfrastructurePath(PathString path) =>
-        path.StartsWithSegments("/health") ||
-        path.StartsWithSegments("/scalar") ||
-        path.StartsWithSegments("/openapi") ||
-        path.StartsWithSegments("/favicon");
+        path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/scalar", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/favicon", StringComparison.OrdinalIgnoreCase);
 
     private static void MapModules(this WebApplication app)
     {

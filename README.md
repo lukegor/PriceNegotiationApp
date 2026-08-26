@@ -13,7 +13,7 @@ offer plus two counters). Any proposal above **2× the product's base price** is
 | API | ASP.NET Core minimal APIs, built-in request validation |
 | Domain | Vogen value objects, business-rule pattern |
 | Persistence | EF Core 10 + Npgsql (PostgreSQL 17), snake_case schema, xmin concurrency |
-| Identity | ASP.NET Core Identity + JWT Bearer (strict issuer/audience/lifetime validation) |
+| Identity | ASP.NET Core Identity + JWT Bearer (ES256 signing, strict issuer/audience/lifetime validation) |
 | Observability | Serilog (console/file), OpenTelemetry (OTLP), `/health/live`, `/health/ready` |
 | Tests | xUnit v3 on Microsoft.Testing.Platform (MTP code coverage), Bogus, Shouldly, ArchUnitNET boundary tests, Testcontainers (real Postgres) |
 | Platform | Docker multi-stage image, docker-compose, GitHub Actions CI, Dependabot |
@@ -103,8 +103,20 @@ The API listens on http://localhost:8080. Migrations run automatically on startu
 
 ### Local .NET run
 
+Generate an ES256 signing key once (openssl, or the PowerShell-native equivalent below),
+then register it with user-secrets:
+
 ```bash
-dotnet user-secrets set "Jwt:SecretKey" "dev-only-secret-key-change-me-32-chars-min!!" --project src/PriceNegotiationApp.Api
+openssl ecparam -name prime256v1 -genkey -noout -out jwt-es256.pem
+dotnet user-secrets set "Jwt:PrivateKey" "(Get-Content -Raw jwt-es256.pem)" --project src/PriceNegotiationApp.Api
+```
+
+```powershell
+$ec = [System.Security.Cryptography.ECDsa]::Create([System.Security.Cryptography.ECCurve]::NamedCurves.nistP256)
+[IO.File]::WriteAllText("$PWD/jwt-es256.pem", $ec.ExportPkcs8PrivateKeyPem())
+```
+
+```bash
 dotnet user-secrets set "Jwt:Issuer"      "https://localhost:5185" --project src/PriceNegotiationApp.Api
 dotnet user-secrets set "Jwt:Audience"    "price-negotiation-api" --project src/PriceNegotiationApp.Api
 dotnet user-secrets set "Database:ConnectionString" "Host=localhost;Port=5432;Database=pricenego_dev;Username=postgres;Password=postgres" --project src/PriceNegotiationApp.Api
@@ -165,7 +177,7 @@ Errors use RFC 7807 ProblemDetails with a stable machine-readable `code` extensi
 | Key | Purpose |
 |---|---|
 | `Database:ConnectionString` | PostgreSQL connection string |
-| `Jwt:Issuer` / `Jwt:Audience` / `Jwt:SecretKey` (≥32 chars) / `Jwt:ExpiryMinutes` | token settings — validated at startup |
+| `Jwt:Issuer` / `Jwt:Audience` / `Jwt:PrivateKey` (ES256 PKCS#8 PEM) / `Jwt:ExpiryMinutes` | token settings — validated at startup; public half published at `/.well-known/jwks.json` |
 | `Seeding:{AdminEmail,AdminPassword,StaffEmail,StaffPassword,SeedSampleProducts}` | startup seed data |
 | `RateLimiting:AuthPermitLimit` | per-IP requests/minute on auth endpoints (default 30) |
 | `Cors:AllowedOrigins` | cross-origin allow-list |

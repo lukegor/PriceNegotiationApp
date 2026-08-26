@@ -1,13 +1,11 @@
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 
 namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
-internal sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider clock)
+internal sealed class JwtManager(IOptions<JwtOptions> options, EcSigningKey signingKey, TimeProvider clock)
 {
     public (string Token, DateTimeOffset ExpiresAtUtc) Generate(Guid userId, string email, IReadOnlyCollection<string> roles)
     {
@@ -23,9 +21,16 @@ internal sealed class JwtManager(IOptions<JwtOptions> options, TimeProvider cloc
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+        // Each call owns a fresh ECDsa, so provider caching must stay off: the
+        // default cache would hand request #2 a provider wrapping request #1's
+        // already-disposed key instance (both share the same Kid).
+        using var ecdsa = signingKey.CreatePrivateEcdsa();
         var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey)),
-            SecurityAlgorithms.HmacSha256);
+            new ECDsaSecurityKey(ecdsa) { KeyId = signingKey.Kid },
+            EcSigningKey.Algorithm)
+        {
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false },
+        };
 
         var token = new JwtSecurityToken(
             issuer: settings.Issuer,

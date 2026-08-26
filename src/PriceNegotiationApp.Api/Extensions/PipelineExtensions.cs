@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Routing;
 using PriceNegotiationApp.Modules.Catalog;
 using PriceNegotiationApp.Modules.Identity;
+using PriceNegotiationApp.Modules.Identity.Features.Auth;
 using PriceNegotiationApp.Modules.Negotiations;
 using Scalar.AspNetCore;
 using Serilog;
@@ -63,10 +64,26 @@ public static class PipelineExtensions
         path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/scalar", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/.well-known", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/favicon", StringComparison.OrdinalIgnoreCase);
+
+    internal sealed record JwksResponse(IReadOnlyList<JwkKey> Keys);
+
+    // Deliberate DTO: serializes exactly the five public fields, so private material
+    // can never leak even if JsonWebKey grows properties later.
+    internal sealed record JwkKey(string Kty, string Crv, string X, string Y, string Kid);
 
     private static void MapModules(this WebApplication app)
     {
+        app.MapGet("/.well-known/jwks.json", (EcSigningKey signingKey) => TypedResults.Json(
+                new JwksResponse([new JwkKey(
+                    signingKey.PublicJwk.Kty,
+                    signingKey.PublicJwk.Crv,
+                    signingKey.PublicJwk.X,
+                    signingKey.PublicJwk.Y,
+                    signingKey.Kid)])))
+            .AllowAnonymous();
+
         app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
         app.MapHealthChecks("/health/ready", new HealthCheckOptions
         {

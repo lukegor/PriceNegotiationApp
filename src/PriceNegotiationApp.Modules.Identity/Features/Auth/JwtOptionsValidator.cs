@@ -7,9 +7,9 @@ internal sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
     public ValidateOptionsResult Validate(string? name, JwtOptions options)
     {
         var failures = new List<string>();
-        if (options.SecretKey.Length < 32)
+        if (string.IsNullOrWhiteSpace(options.PrivateKey))
         {
-            failures.Add("Jwt:SecretKey must be at least 32 characters.");
+            failures.Add("Jwt:PrivateKey is required (ES256 PKCS#8 PEM; malformed keys fail at startup with generation instructions).");
         }
 
         if (string.IsNullOrWhiteSpace(options.Issuer))

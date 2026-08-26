@@ -23,6 +23,9 @@ internal sealed class CreateNegotiationHandler(
                 "An open negotiation already exists for this product.");
         }
 
+        // Provisioning the customer row and inserting the negotiation commit together:
+        // a failed insert must not strand a permanent customer row (one commit point).
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
         var customerId = await NegotiationAccess.GetOrCreateCustomerIdAsync(db, caller.UserId, ct);
         var negotiation = Negotiation.Start(customerId, snapshot.ProductId, snapshot.Price,
             command.ProposedPrice, clock.GetUtcNow(), policy);
@@ -33,6 +36,7 @@ internal sealed class CreateNegotiationHandler(
         await db.SaveOrConflictAsync(
             _ => new ConflictException(NegotiationErrorCodes.NegotiationAlreadyOpen,
                 "An open negotiation already exists for this product."), ct);
+        await tx.CommitAsync(ct);
 
         return NegotiationResponses.ToResponse(negotiation);
     }

@@ -6,7 +6,5 @@ public static class IdentityErrorCodes
 
     public const string InvalidCredentials = "invalid_credentials";
 
-    public const string AccountLocked = "account_locked";
-
     public const string RegistrationInvalid = "registration_invalid";
 }

@@ -3,6 +3,7 @@ using PriceNegotiationApp.TestKit;
 using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace PriceNegotiationApp.IntegrationTests;
@@ -62,7 +63,7 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
     }
 
     [Fact]
-    public async Task Five_failed_attempts_lock_account()
+    public async Task Locked_account_reports_invalid_credentials_like_any_failure()
     {
         var session = await fixture.CreateUserAsync();
 
@@ -78,7 +79,28 @@ public class AuthFlowShould(IntegrationTestFixture fixture)
 
         retry.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         var body = await retry.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        body.ShouldContain("account_locked");
+        CodeOf(body).ShouldBe("invalid_credentials");
+    }
+
+    [Fact]
+    public async Task Unknown_email_and_wrong_password_are_indistinguishable()
+    {
+        var session = await fixture.CreateUserAsync();
+
+        var unknown = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/login",
+            new LoginRequest { Email = Fuzz.UniqueEmail(), Password = "Whatever1!" }, TestContext.Current.CancellationToken);
+        var wrongPassword = await fixture.Anonymous.PostAsJsonAsync("/api/v1/auth/login",
+            new LoginRequest { Email = session.Email, Password = "WrongPass1!" }, TestContext.Current.CancellationToken);
+
+        unknown.StatusCode.ShouldBe(wrongPassword.StatusCode);
+        CodeOf(await unknown.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))
+            .ShouldBe(CodeOf(await wrongPassword.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)));
+    }
+
+    private static string CodeOf(string problemDetails)
+    {
+        using var document = JsonDocument.Parse(problemDetails);
+        return document.RootElement.GetProperty("code").GetString()!;
     }
 
     [Fact]

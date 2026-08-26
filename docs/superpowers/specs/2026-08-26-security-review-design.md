@@ -40,6 +40,7 @@ decisions rather than oversights.
 | F4 | Rate limiting is fixed-window per raw `RemoteIpAddress`; no forwarded-header story behind a reverse proxy | `WebApplicationBuilderExtensions.cs:88-97` | Document posture in README; keep YAGNI unless a proxy deployment is in scope |
 | F5 | `JwtSettings` (Api) duplicates `JwtOptions` (Identity) with weaker validation coverage (no expiry check) | `src/PriceNegotiationApp.Api/Extensions/JwtSettings.cs` vs `JwtOptions.cs` + validators | Single source of truth: Api binds the Identity module's validated options |
 | F6 | Authenticated write endpoints have no rate limit beyond auth endpoints | `Login.cs`, `Register.cs` only call `RequireRateLimiting` | Evaluate global partitioned limiter during execution; add only if cheap, else document |
+| F7 | Symmetric HMAC signing key: every replica that validates tokens can also mint them, and there is no path to split issuance from validation when Identity extracts into a dedicated service | `WebApplicationBuilderExtensions.cs:66`, `JwtManager.cs:26-28` | Switch to ES256 (ECDSA P-256): private key signs on issuance, public key validates, JWKS endpoint publishes the public key so future resource servers never hold signing material |
 
 ## Fix batches
 
@@ -48,8 +49,13 @@ decisions rather than oversights.
 - **B2 — Config foolproofness** (F3, F5): seed password validator hardening, example
   placeholder churn, JWT options de-duplication. Tests: validator unit tests,
   startup-validation integration test.
-- **B3 — Documentation & report** (F4, F6 disposition, trade-offs, findings table):
-  README security notes, final findings table committed here.
+- **B3 — Asymmetric token signing** (F7): ES256 key pair via PEM config, `kid` header
+  (RFC 7638 thumbprint), `/.well-known/jwks.json` endpoint. Config accepts native or
+  `\n`-escaped PEM; startup validator rejects unparseable keys; `Jwt:SecretKey` removed
+  (single path, no dual HMAC/EC support). Tests: token signed with correct key validates,
+  wrong-key/tampered tokens rejected, JWKS matches the signing key id.
+- **B4 — Documentation & report** (F4, F6 disposition, trade-offs, findings table):
+  README security notes + key-generation one-liner, final findings table committed here.
 
 ## Verification
 
@@ -64,7 +70,8 @@ decisions rather than oversights.
   no sensitive writes beyond demo scope.
 - No forwarded-headers middleware: app is deployed directly exposed (compose), not
   behind a proxy.
-- Symmetric HMAC JWT signing key: single-service issuance/validation; asymmetric keys
-  add key-distribution complexity without a second consumer.
+- Single issuer with manual key rotation support (`kid` in JWKS) but no automated
+  rotation machinery; every replica holds the private key because login runs on each —
+  the JWKS endpoint is the extraction path when issuance centralizes.
 - Registration/login email-enumeration via register-conflict responses: standard UX
   trade-off; login path is being made uniform under B1.

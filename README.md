@@ -108,8 +108,8 @@ dotnet user-secrets set "Jwt:SecretKey" "dev-only-secret-key-change-me-32-chars-
 dotnet user-secrets set "Jwt:Issuer"      "https://localhost:5185" --project src/PriceNegotiationApp.Api
 dotnet user-secrets set "Jwt:Audience"    "price-negotiation-api" --project src/PriceNegotiationApp.Api
 dotnet user-secrets set "Database:ConnectionString" "Host=localhost;Port=5432;Database=pricenego_dev;Username=postgres;Password=postgres" --project src/PriceNegotiationApp.Api
-dotnet user-secrets set "Seeding:AdminPassword" "Admin123!" --project src/PriceNegotiationApp.Api
-dotnet user-secrets set "Seeding:StaffPassword" "Staff123!" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Seeding:AdminPassword" "<your own random 12+ char mixed secret>" --project src/PriceNegotiationApp.Api
+dotnet user-secrets set "Seeding:StaffPassword" "<your own random 12+ char mixed secret>" --project src/PriceNegotiationApp.Api
 
 dotnet run --project src/PriceNegotiationApp.Api
 ```

@@ -29,7 +29,7 @@ internal sealed class IdentitySeedingHostedService(
         logger.LogInformation("Identity seed data ensured.");
     }
 
-    private static async Task EnsureUserAsync(
+    private async Task EnsureUserAsync(
         UserManager<ApplicationUser> userManager, string email, string password, string role)
     {
         if (string.IsNullOrWhiteSpace(password)
@@ -43,6 +43,11 @@ internal sealed class IdentitySeedingHostedService(
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(user, role);
+        }
+        else
+        {
+            logger.LogError("Seeded user {Email} could not be created: {Errors}",
+                email, string.Join("; ", result.Errors.Select(e => $"{e.Code} {e.Description}")));
         }
     }
 }

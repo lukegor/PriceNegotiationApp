@@ -64,8 +64,13 @@ public class SeedingOptionsValidatorShould
 
     [Theory]
     [InlineData("")]
+    [InlineData("   ")]
     [InlineData("short")]
-    public void Reject_admin_password_shorter_than_identity_floor(string password)
+    [InlineData("alllowercase123!")]
+    [InlineData("ALLUPPERCASE123!")]
+    [InlineData("NoDigitsHereOnly!!")]
+    [InlineData("NoSymbols12345xY")]
+    public void Reject_admin_password_below_strength_floor(string password)
     {
         var options = new SeedingOptions
         {
@@ -76,6 +81,22 @@ public class SeedingOptionsValidatorShould
         };
 
         _sut.Validate(null, options).Failed.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("Seed123!Apricot!")]
+    [InlineData("Str0ng-Passphrase!42")]
+    public void Accept_strong_admin_passwords(string password)
+    {
+        var options = new SeedingOptions
+        {
+            AdminEmail = Fuzz.Email(),
+            AdminPassword = password,
+            StaffEmail = Fuzz.Email(),
+            StaffPassword = Fuzz.Password(),
+        };
+
+        _sut.Validate(null, options).Succeeded.ShouldBeTrue();
     }
 
     [Fact]

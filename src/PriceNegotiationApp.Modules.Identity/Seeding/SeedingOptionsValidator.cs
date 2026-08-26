@@ -18,16 +18,23 @@ internal sealed class SeedingOptionsValidator : IValidateOptions<SeedingOptions>
             failures.Add("Seeding:StaffEmail must be a non-empty email address.");
         }
 
-        if (string.IsNullOrWhiteSpace(options.AdminPassword) || options.AdminPassword.Length < 8)
+        if (string.IsNullOrWhiteSpace(options.AdminPassword) || !IsStrong(options.AdminPassword))
         {
-            failures.Add("Seeding:AdminPassword must be at least 8 characters.");
+            failures.Add("Seeding:AdminPassword must be at least 12 characters and mix upper-case, lower-case, digit and symbol characters.");
         }
 
-        if (string.IsNullOrWhiteSpace(options.StaffPassword) || options.StaffPassword.Length < 8)
+        if (string.IsNullOrWhiteSpace(options.StaffPassword) || !IsStrong(options.StaffPassword))
         {
-            failures.Add("Seeding:StaffPassword must be at least 8 characters.");
+            failures.Add("Seeding:StaffPassword must be at least 12 characters and mix upper-case, lower-case, digit and symbol characters.");
         }
 
         return failures.Count > 0 ? ValidateOptionsResult.Fail(failures) : ValidateOptionsResult.Success;
     }
+
+    private static bool IsStrong(string password) =>
+        password.Length >= 12
+        && password.Any(char.IsUpper)
+        && password.Any(char.IsLower)
+        && password.Any(char.IsDigit)
+        && password.Any(c => !char.IsLetterOrDigit(c));
 }

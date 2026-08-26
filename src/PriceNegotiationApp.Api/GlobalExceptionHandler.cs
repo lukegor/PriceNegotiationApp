@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 using PriceNegotiationApp.SharedKernel;
@@ -37,6 +38,9 @@ public sealed class GlobalExceptionHandler(
             // 409 Conflict — request collides with current persistent state
             ConflictException conflict => (StatusCodes.Status409Conflict, "Conflict", conflict.Code),
             ClosedNegotiationException => (StatusCodes.Status409Conflict, "Business rule violated", NegotiationErrorCodes.NegotiationClosed),
+
+            // 409 — another writer committed this aggregate first (xmin token fired)
+            DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Resource changed meanwhile", ErrorCodes.ConcurrencyConflict),
 
             // remaining domain exceptions are input-validation failures
             DomainException => (StatusCodes.Status422UnprocessableEntity, "Business rule violated", ErrorCodes.DomainRuleViolated),

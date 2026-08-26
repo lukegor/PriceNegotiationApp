@@ -184,6 +184,10 @@ Errors use RFC 7807 ProblemDetails with a stable machine-readable `code` extensi
 
 No secrets are committed: use user-secrets locally and environment variables in production.
 
+Rate limiting applies a per-IP fixed window to the auth endpoints (default 30/min) and
+assumes direct exposure as deployed by docker-compose; when placing the API behind a
+reverse proxy, add forwarded-header handling so client IPs resolve correctly.
+
 ## Health & telemetry
 
 - `GET /health/live` — process liveness

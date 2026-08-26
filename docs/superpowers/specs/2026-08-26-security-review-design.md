@@ -75,3 +75,31 @@ decisions rather than oversights.
   the JWKS endpoint is the extraction path when issuance centralizes.
 - Registration/login email-enumeration via register-conflict responses: standard UX
   trade-off; login path is being made uniform under B1.
+
+## Executed findings (2026-08-26)
+
+Supply-chain scan (`dotnet list package --vulnerable --include-transitive`): clean across
+all 11 projects against nuget.org at execution time.
+
+| ID | Severity | Finding | Resolution |
+|---|---|---|---|
+| F1 | Medium | Anonymous `/health/ready` returned unhealthy-check `description`/exception text, leaking dependency internals | Fixed: detail logged server-side only; body entries are always `{status, durationMs}` (`ReadyHealthReport.cs`) |
+| F2 | Low | Login answered locked accounts with `account_locked` vs `invalid_credentials` — account enumeration oracle | Fixed: every authentication failure returns 401 + `invalid_credentials`; lockout mechanics unchanged internally |
+| F3 | Medium | Seed credentials accepted any ≥8-char password; examples shipped `Admin123!`, so a deployed demo could run guessable admin creds | Fixed: validator requires ≥12 chars with upper/lower/digit/symbol; seed-user creation failures now log instead of silently skipping; example placeholders fail startup if deployed verbatim |
+| F4 | Info | Per-IP fixed-window rate limit assumes direct exposure (no forwarded-header handling) | Accepted: proxy posture documented in README |
+| F5 | Low | Api duplicated the JWT config contract as `JwtSettings`, bypassing validation (expiry never checked on that copy) | Fixed: deleted; bearer options configured from the module's validated `JwtOptions` via the options pattern |
+| F6 | Info | No limiter on authenticated write endpoints | Accepted: revisit with a real traffic/deployment profile; auth endpoints remain limited |
+| F7 | High | Symmetric HMAC secret made every replica a token minter with no issuance/validation split; shared-secret sprawl grows with scale | Fixed: ES256 key pair — private PEM signs (per-call ECDsa, non-cached provider), public JWK validates, `kid` (RFC 7638 thumbprint) published at anonymous `/.well-known/jwks.json`; malformed keys fail startup with generation instructions |
+
+## Deliberate trade-offs
+
+- Short-lived access tokens only; no refresh/revocation machinery until multi-device
+  sessions or sensitive long-lived grants exist.
+- Every replica holds the private key because login runs everywhere; JWKS is the
+  extraction path when issuance centralizes into a dedicated identity service.
+- Key rotation is supported by design (`kid` in JWKS) but manual — no automated rotation.
+- Registration conflict responses still confirm existing emails (standard UX trade-off);
+  the login path itself is uniform. A timing side-channel between unknown-email and
+  wrong-password paths remains (one PBKDF2 evaluation) — accepted at portfolio threat level.
+- Readiness failure detail lives in server logs, not the anonymous HTTP body.
+

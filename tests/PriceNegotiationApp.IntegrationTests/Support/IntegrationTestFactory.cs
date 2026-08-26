@@ -9,7 +9,7 @@ public sealed class IntegrationTestFactory(string connectionString) : WebApplica
 
     public const string StaffEmail = "staff@test.local";
 
-    public const string SeedPassword = "Seed123!a";
+    public const string SeedPassword = "Seed123!Apricot!";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

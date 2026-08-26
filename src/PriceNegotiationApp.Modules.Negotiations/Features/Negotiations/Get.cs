@@ -12,7 +12,6 @@ internal static class Get
     {
         group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal principal,
                 GetNegotiationHandler handler, CancellationToken ct) =>
-            TypedResults.Ok(await handler.HandleAsync(id, principal.ToCallerContext(), ct)))
-        .RequireAuthorization();
+            TypedResults.Ok(await handler.HandleAsync(id, principal.ToCallerContext(), ct)));
     }
 }

@@ -9,7 +9,9 @@ public static class NegotiationEndpoints
 {
     public static IEndpointRouteBuilder MapNegotiationsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/negotiations").WithTags("Negotiations");
+        var group = app.MapGroup("/api/v1/negotiations")
+            .WithTags("Negotiations")
+            .RequireAuthorization();
         group.MapCreate();
         group.MapListMine();
         group.MapList();

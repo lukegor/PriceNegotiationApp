@@ -9,7 +9,9 @@ public static class IdentityEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/auth").WithTags("Auth");
+        var group = app.MapGroup("/api/v1/auth")
+            .WithTags("Auth")
+            .RequireAuthorization();
         group.MapRegister();
         group.MapLogin();
         group.MapMe();

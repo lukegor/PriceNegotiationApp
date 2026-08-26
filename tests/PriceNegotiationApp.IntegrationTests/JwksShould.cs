@@ -1,7 +1,7 @@
-using System.Net;
-using System.Text.Json;
 using PriceNegotiationApp.IntegrationTests.Support;
 using Shouldly;
+using System.Net;
+using System.Text.Json;
 using Xunit;
 
 namespace PriceNegotiationApp.IntegrationTests;
@@ -34,8 +34,12 @@ public class JwksShould(IntegrationTestFixture fixture)
         var padded = base64Url.Replace('-', '+').Replace('_', '/');
         switch (padded.Length % 4)
         {
-            case 2: padded += "=="; break;
-            case 3: padded += "="; break;
+            case 2:
+                padded += "==";
+                break;
+            case 3:
+                padded += "=";
+                break;
         }
 
         return JsonSerializer.Deserialize<JsonElement>(Convert.FromBase64String(padded));

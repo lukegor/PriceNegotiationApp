@@ -92,8 +92,12 @@ public class JwtManagerShould
         var padded = base64Url.Replace('-', '+').Replace('_', '/');
         switch (padded.Length % 4)
         {
-            case 2: padded += "=="; break;
-            case 3: padded += "="; break;
+            case 2:
+                padded += "==";
+                break;
+            case 3:
+                padded += "=";
+                break;
         }
 
         return JsonSerializer.Deserialize<JsonElement>(Convert.FromBase64String(padded));

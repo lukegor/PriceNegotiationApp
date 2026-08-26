@@ -10,23 +10,18 @@ internal sealed class LoginUserHandler(UserManager<ApplicationUser> userManager,
     public async Task<AuthResponse> HandleAsync(LoginRequest request)
     {
         var user = await userManager.FindByNameAsync(request.Email)
-                   ?? throw new UnauthorizedException(
-                       IdentityErrorCodes.InvalidCredentials, "Invalid credentials.");
+                   ?? throw Unauthorized();
 
+        // Lockout keeps enforcing internally but reads identically to any other failure.
         if (await userManager.IsLockedOutAsync(user))
         {
-            throw new UnauthorizedException(IdentityErrorCodes.AccountLocked,
-                "Account temporarily locked.");
+            throw Unauthorized();
         }
 
         if (!await userManager.CheckPasswordAsync(user, request.Password))
         {
             await userManager.AccessFailedAsync(user);
-            throw await userManager.IsLockedOutAsync(user)
-                ? new UnauthorizedException(IdentityErrorCodes.AccountLocked,
-                    "Account temporarily locked.")
-                : new UnauthorizedException(IdentityErrorCodes.InvalidCredentials,
-                    "Invalid credentials.");
+            throw Unauthorized();
         }
 
         await userManager.ResetAccessFailedCountAsync(user);
@@ -35,4 +30,7 @@ internal sealed class LoginUserHandler(UserManager<ApplicationUser> userManager,
         var (token, expiresAtUtc) = jwt.Generate(user.Id, request.Email, roles);
         return new AuthResponse(token, expiresAtUtc, request.Email, roles);
     }
+
+    private static UnauthorizedException Unauthorized() =>
+        new(IdentityErrorCodes.InvalidCredentials, "Invalid credentials.");
 }

@@ -133,6 +133,41 @@ public class ArchitectureShould
         endpoints.Should().NotDependOnAny(PersistenceNamespaces).Check(Architecture);
     }
 
+    [Fact]
+    public void Only_handlers_seeding_and_the_write_guard_commit_the_unit_of_work()
+    {
+        // F-05 doctrine, enforcement side: the single commit point lives in the
+        // owning handler (or the seeding services / write guard / provisioning
+        // helper inside the create-flow transaction). Nothing else may flush.
+        var suffixAllowList = new[] { "Handler.cs", "SeedingHostedService.cs" };
+        var nameAllowList = new[] { "DbWriteGuard.cs", "NegotiationAccess.cs" };
+
+        var offenders = Directory
+            .EnumerateFiles(Path.Combine(FindRepoRoot(), "src"), "*.cs", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
+                           && !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                           && File.ReadAllText(path).Contains(".SaveChangesAsync(", StringComparison.Ordinal)
+                           && !suffixAllowList.Any(path.EndsWith)
+                           && !nameAllowList.Contains(Path.GetFileName(path)))
+            .Select(path => Path.GetRelativePath(FindRepoRoot(), path))
+            .ToList();
+
+        offenders.ShouldBeEmpty(
+            "SaveChangesAsync commits belong to feature handlers, seeding services, " +
+            "DbWriteGuard, or NegotiationAccess provisioning");
+    }
+
+    private static string FindRepoRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PriceNegotiationApp.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory!.FullName;
+    }
+
     private static IObjectProvider<IType> AnyOf(params IObjectProvider<IType>[] sets)
     {
         var clause = Types().That().Are(sets[0]);

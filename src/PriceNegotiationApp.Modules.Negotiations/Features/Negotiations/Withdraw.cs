@@ -15,7 +15,6 @@ internal static class Withdraw
         {
             await handler.HandleAsync(id, principal.ToCallerContext(), ct);
             return TypedResults.NoContent();
-        })
-        .RequireAuthorization();
+        });
     }
 }

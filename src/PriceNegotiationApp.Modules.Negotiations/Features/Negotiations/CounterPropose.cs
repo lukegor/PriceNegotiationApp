@@ -12,7 +12,6 @@ internal static class CounterPropose
     {
         group.MapPatch("/{id:guid}/proposals", async (Guid id, CounterProposalRequest request,
                 ClaimsPrincipal principal, CounterProposeHandler handler, CancellationToken ct) =>
-            TypedResults.Ok(await handler.HandleAsync(id, request, principal.ToCallerContext(), ct)))
-        .RequireAuthorization();
+            TypedResults.Ok(await handler.HandleAsync(id, request, principal.ToCallerContext(), ct)));
     }
 }

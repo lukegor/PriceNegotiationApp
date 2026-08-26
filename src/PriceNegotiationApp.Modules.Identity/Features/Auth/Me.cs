@@ -14,7 +14,6 @@ internal static class Me
             {
                 var caller = principal.ToCallerContext();
                 return TypedResults.Ok(new CurrentUserResponse(caller.UserId, caller.Email, caller.Roles.ToList()));
-            })
-        .RequireAuthorization();
+            });
     }
 }

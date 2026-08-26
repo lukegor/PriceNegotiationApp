@@ -9,7 +9,9 @@ public static class CatalogEndpoints
 {
     public static IEndpointRouteBuilder MapCatalogEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/products").WithTags("Products");
+        var group = app.MapGroup("/api/v1/products")
+            .WithTags("Products")
+            .RequireAuthorization();
         group.MapList();
         group.MapGetOne();
         group.MapCreate();

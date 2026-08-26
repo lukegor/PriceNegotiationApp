@@ -55,7 +55,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer();
         builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IOptions<JwtOptions>>((bearer, jwt) =>
+            .Configure<IOptions<JwtOptions>, EcSigningKey>((bearer, jwt, signingKey) =>
             {
                 bearer.MapInboundClaims = true;
                 bearer.TokenValidationParameters = new TokenValidationParameters
@@ -65,7 +65,8 @@ public static class WebApplicationBuilderExtensions
                     ValidateAudience = true,
                     ValidAudience = jwt.Value.Audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Value.SecretKey)),
+                    IssuerSigningKey = signingKey.PublicJwk,
+                    ValidAlgorithms = [EcSigningKey.Algorithm],
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromMinutes(1),
                 };

@@ -8,7 +8,8 @@ internal sealed class JwtOptions
 
     public required string Audience { get; init; }
 
-    public required string SecretKey { get; init; }
+    /// <summary>EC P-256 private key, PKCS#8 PEM; newlines may be literal or \n-escaped.</summary>
+    public required string PrivateKey { get; init; }
 
     public int ExpiryMinutes { get; init; } = 60;
 }

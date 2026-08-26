@@ -38,6 +38,7 @@ public static class IdentityModule
             .ValidateOnStart();
         services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<EcSigningKey>();
         services.AddSingleton<JwtManager>();
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginUserHandler>();

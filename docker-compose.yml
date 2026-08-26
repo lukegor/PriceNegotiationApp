@@ -9,7 +9,7 @@ services:
       Database__ConnectionString: Host=postgres;Port=5432;Database=pricenego;Username=postgres;Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
       Jwt__Issuer: ${JWT_ISSUER:-price-negotiation-app}
       Jwt__Audience: ${JWT_AUDIENCE:-price-negotiation-api}
-      Jwt__SecretKey: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY (min 32 chars)}
+      Jwt__PrivateKey: ${JWT_PRIVATE_KEY:?set JWT_PRIVATE_KEY (ES256 PKCS#8 PEM, see README)}
       Jwt__ExpiryMinutes: "60"
       Seeding__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@app.com}
       Seeding__AdminPassword: ${SEED_ADMIN_PASSWORD:?set SEED_ADMIN_PASSWORD}

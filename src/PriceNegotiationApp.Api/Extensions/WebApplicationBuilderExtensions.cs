@@ -73,13 +73,19 @@ public static class WebApplicationBuilderExtensions
             });
         builder.Services.AddAuthorization();
 
-        var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-        CorsOriginsGuard.EnsureValid(origins);
-        if (origins.Length > 0)
+        // Accepts all configuration shapes: JSON array, indexed keys
+        // ("Cors:AllowedOrigins:0"), or one flat comma-separated value.
+        var corsOrigins = configuration.GetSection("Cors:AllowedOrigins");
+        var origins = corsOrigins.GetChildren().Select(child => child.Value).OfType<string>().ToList();
+        if (origins.Count == 0 && corsOrigins.Value is { } flatValue)
         {
-            builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
-                policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
+            origins.AddRange(flatValue.Split(',',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         }
+
+        CorsOriginsGuard.EnsureValid(origins);
+        builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
+            policy.WithOrigins([.. origins]).AllowAnyHeader().AllowAnyMethod()));
 
         var rateLimits = configuration.GetSection(RateLimitingOptions.SectionName).Get<RateLimitingOptions>()
                          ?? new RateLimitingOptions();
@@ -101,7 +107,8 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddOutputCache(options => options.AddPolicy(Policies.ShortCachePolicy,
             policy => policy.Expire(TimeSpan.FromSeconds(30))
-                .SetVaryByQuery("search", "minPrice", "maxPrice", "sortBy", "sortDesc", "page", "pageSize")));
+                .SetVaryByQuery("search", "minPrice", "maxPrice", "sortBy", "sortDesc", "page", "pageSize")
+                .SetVaryByHeader("Origin")));
 
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])

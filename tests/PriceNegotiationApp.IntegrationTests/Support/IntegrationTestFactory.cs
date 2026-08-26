@@ -34,5 +34,6 @@ public sealed class IntegrationTestFactory(string connectionString) : WebApplica
         builder.UseSetting("Seeding:StaffPassword", SeedPassword);
         builder.UseSetting("Seeding:SeedSampleProducts", "true");
         builder.UseSetting("RateLimiting:AuthPermitLimit", "1000");
+        builder.UseSetting("Cors:AllowedOrigins", "https://app.test.local");
     }
 }

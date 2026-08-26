@@ -44,6 +44,8 @@ public static class PipelineExtensions
 
         app.UseHttpsRedirection();
 
+        app.UseCors(WebApplicationBuilderExtensions.CorsPolicy);
+
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();

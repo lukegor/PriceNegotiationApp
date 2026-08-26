@@ -4,7 +4,7 @@ public static class ErrorCodes
 {
     public const string Forbidden = "forbidden";
 
-    public const string ConcurrencyConflict = "conflict";
+    public const string ConcurrencyConflict = "concurrency_conflict";
 
     public const string ValidationFailed = "validation_failed";
 

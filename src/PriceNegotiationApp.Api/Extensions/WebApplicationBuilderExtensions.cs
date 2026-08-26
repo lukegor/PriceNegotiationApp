@@ -12,6 +12,7 @@ using OpenTelemetry.Trace;
 using PriceNegotiationApp.Modules.Catalog;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Identity;
+using PriceNegotiationApp.Modules.Identity.Features.Auth;
 using PriceNegotiationApp.Modules.Identity.Persistence;
 using PriceNegotiationApp.Modules.Negotiations;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
@@ -52,18 +53,19 @@ public static class WebApplicationBuilderExtensions
             .AddExceptionHandler<GlobalExceptionHandler>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            .AddJwtBearer();
+        builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<JwtOptions>>((bearer, jwt) =>
             {
-                var jwt = configuration.GetSection("Jwt").Get<JwtSettings>()!;
-                options.MapInboundClaims = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+                bearer.MapInboundClaims = true;
+                bearer.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = jwt.Issuer,
+                    ValidIssuer = jwt.Value.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = jwt.Audience,
+                    ValidAudience = jwt.Value.Audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SecretKey)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Value.SecretKey)),
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromMinutes(1),
                 };

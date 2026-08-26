@@ -12,7 +12,7 @@ offer plus two counters). Any proposal above **2× the product's base price** is
 | Runtime | .NET 10, C# (nullable + warnings-as-errors) |
 | API | ASP.NET Core minimal APIs, built-in request validation |
 | Domain | Vogen value objects, business-rule pattern |
-| Persistence | EF Core 10 + Npgsql (PostgreSQL 17), snake_case schema, xmin concurrency |
+| Persistence | EF Core 10 + Npgsql (PostgreSQL 17), snake_case schema, xmin concurrency (conflicts surface as 409) |
 | Identity | ASP.NET Core Identity + JWT Bearer (ES256 signing, strict issuer/audience/lifetime validation) |
 | Observability | Serilog (console/file), OpenTelemetry (OTLP), `/health/live`, `/health/ready` |
 | Tests | xUnit v3 on Microsoft.Testing.Platform (MTP code coverage), Bogus, Shouldly, ArchUnitNET boundary tests, Testcontainers (real Postgres) |

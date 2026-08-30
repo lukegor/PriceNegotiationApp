@@ -16,7 +16,7 @@ public class ConcurrencyShould(IntegrationTestFixture fixture)
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     private static readonly string EntityTypeName =
-        "PriceNegotiationApp.Modules.Negotiations.Domain.Negotiation, PriceNegotiationApp.Modules.Negotiations";
+        "PriceNegotiationApp.Modules.Negotiations.Domain.Negotiation, PriceNegotiationApp.Modules.Negotiations.Domain";
 
     [Fact]
     public async Task Second_writer_of_one_negotiation_gets_a_concurrency_exception()
@@ -76,14 +76,14 @@ public class ConcurrencyShould(IntegrationTestFixture fixture)
     private static DbContext ResolveContext(AsyncServiceScope scope)
     {
         var contextType = Type.GetType(
-            "PriceNegotiationApp.Modules.Negotiations.Persistence.NegotiationsDbContext, "
-            + "PriceNegotiationApp.Modules.Negotiations")!;
+            "PriceNegotiationApp.Modules.Negotiations.Infrastructure.Persistence.NegotiationsDbContext, "
+            + "PriceNegotiationApp.Modules.Negotiations.Infrastructure")!;
         return (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
     }
 
     private static object PriceOf(decimal value) =>
         Type.GetType("PriceNegotiationApp.Modules.Negotiations.Domain.Price, "
-                     + "PriceNegotiationApp.Modules.Negotiations")!
+                     + "PriceNegotiationApp.Modules.Negotiations.Domain")!
             .GetMethod("From", [typeof(decimal)])!
             .Invoke(null, [value])!;
 

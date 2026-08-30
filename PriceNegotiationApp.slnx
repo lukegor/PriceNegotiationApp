@@ -6,9 +6,17 @@
   <Folder Name="/src/">
     <Project Path="src/PriceNegotiationApp.Api/PriceNegotiationApp.Api.csproj" />
     <Project Path="src/PriceNegotiationApp.SharedKernel/PriceNegotiationApp.SharedKernel.csproj" />
-    <Project Path="src/Modules/PriceNegotiationApp.Modules.Catalog/PriceNegotiationApp.Modules.Catalog.csproj" />
-    <Project Path="src/Modules/PriceNegotiationApp.Modules.Identity/PriceNegotiationApp.Modules.Identity.csproj" />
-    <Project Path="src/Modules/PriceNegotiationApp.Modules.Negotiations/PriceNegotiationApp.Modules.Negotiations.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Catalog.Domain/PriceNegotiationApp.Modules.Catalog.Domain.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Catalog.Application/PriceNegotiationApp.Modules.Catalog.Application.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Catalog.Infrastructure/PriceNegotiationApp.Modules.Catalog.Infrastructure.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Catalog.Contracts/PriceNegotiationApp.Modules.Catalog.Contracts.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Negotiations.Domain/PriceNegotiationApp.Modules.Negotiations.Domain.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Negotiations.Application/PriceNegotiationApp.Modules.Negotiations.Application.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Negotiations.Infrastructure/PriceNegotiationApp.Modules.Negotiations.Infrastructure.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Negotiations.Contracts/PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Identity.Application/PriceNegotiationApp.Modules.Identity.Application.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Identity.Infrastructure/PriceNegotiationApp.Modules.Identity.Infrastructure.csproj" />
+    <Project Path="src/Modules/PriceNegotiationApp.Modules.Identity.Contracts/PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PriceNegotiationApp.ArchitectureTests/PriceNegotiationApp.ArchitectureTests.csproj" />

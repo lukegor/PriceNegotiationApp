@@ -1,6 +1,7 @@
+using PriceNegotiationApp.Modules.Identity.Infrastructure;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using PriceNegotiationApp.Modules.Identity.Features.Auth;
+using PriceNegotiationApp.Modules.Identity.Contracts;
 using PriceNegotiationApp.TestKit;
 using Shouldly;
 using System.IdentityModel.Tokens.Jwt;

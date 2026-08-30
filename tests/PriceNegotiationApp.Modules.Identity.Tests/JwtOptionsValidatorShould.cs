@@ -1,4 +1,5 @@
-using PriceNegotiationApp.Modules.Identity.Features.Auth;
+using PriceNegotiationApp.Modules.Identity.Infrastructure;
+using PriceNegotiationApp.Modules.Identity.Contracts;
 using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Xunit;

@@ -9,13 +9,13 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using PriceNegotiationApp.Modules.Catalog;
-using PriceNegotiationApp.Modules.Catalog.Persistence;
-using PriceNegotiationApp.Modules.Identity;
-using PriceNegotiationApp.Modules.Identity.Features.Auth;
-using PriceNegotiationApp.Modules.Identity.Persistence;
-using PriceNegotiationApp.Modules.Negotiations;
-using PriceNegotiationApp.Modules.Negotiations.Persistence;
+using PriceNegotiationApp.Modules.Catalog.Infrastructure;
+using PriceNegotiationApp.Modules.Catalog.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Identity.Infrastructure;
+using PriceNegotiationApp.Modules.Identity.Contracts;
+using PriceNegotiationApp.Modules.Identity.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure.Persistence;
 using PriceNegotiationApp.SharedKernel;
 using Scalar.AspNetCore;
 using Serilog;
@@ -44,8 +44,8 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddIdentityModule(configuration);
         builder.Services.AddCatalogModule(configuration);
         builder.Services.AddNegotiationsModule(configuration);
-        builder.Services.AddScoped<PriceNegotiationApp.Modules.Catalog.Ports.IProductPriceProvider,
-            PriceNegotiationApp.Modules.Catalog.Adapters.ProductPriceProvider>();
+        builder.Services.AddScoped<PriceNegotiationApp.Modules.Catalog.Contracts.IProductPriceProvider,
+            PriceNegotiationApp.Modules.Catalog.Infrastructure.ProductPriceProvider>();
 
         builder.Services.AddProblemDetails(options =>
                 options.CustomizeProblemDetails = context =>

@@ -2,8 +2,17 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\PriceNegotiationApp.Api\PriceNegotiationApp.Api.csproj" />
     <ProjectReference Include="..\..\src\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
-    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Catalog\PriceNegotiationApp.Modules.Catalog.csproj" />
-    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity\PriceNegotiationApp.Modules.Identity.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Catalog.Domain\PriceNegotiationApp.Modules.Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Catalog.Application\PriceNegotiationApp.Modules.Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Catalog.Infrastructure\PriceNegotiationApp.Modules.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Catalog.Contracts\PriceNegotiationApp.Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity.Application\PriceNegotiationApp.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity.Infrastructure\PriceNegotiationApp.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Domain\PriceNegotiationApp.Modules.Negotiations.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Application\PriceNegotiationApp.Modules.Negotiations.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Infrastructure\PriceNegotiationApp.Modules.Negotiations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />

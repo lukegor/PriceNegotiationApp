@@ -1,8 +1,9 @@
+using PriceNegotiationApp.Modules.Catalog.Infrastructure.Create;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using PriceNegotiationApp.Api;
-using PriceNegotiationApp.Modules.Catalog.Features.Products.Create;
+using PriceNegotiationApp.Modules.Catalog.Application.Create;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Api.Endpoints.Catalog.Create;

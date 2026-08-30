@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Get;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure.Get;
 using PriceNegotiationApp.SharedKernel;
 using System.Security.Claims;
 

@@ -1,8 +1,9 @@
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure.Create;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using PriceNegotiationApp.Api;
-using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Create;
+using PriceNegotiationApp.Modules.Negotiations.Application.Create;
 using PriceNegotiationApp.SharedKernel;
 using System.Security.Claims;
 

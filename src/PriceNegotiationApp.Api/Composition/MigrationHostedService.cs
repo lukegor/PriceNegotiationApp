@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using PriceNegotiationApp.Modules.Catalog.Persistence;
-using PriceNegotiationApp.Modules.Identity.Persistence;
-using PriceNegotiationApp.Modules.Negotiations.Persistence;
+using PriceNegotiationApp.Modules.Catalog.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Identity.Infrastructure.Persistence;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure.Persistence;
 
 namespace PriceNegotiationApp.Api.Composition;
 

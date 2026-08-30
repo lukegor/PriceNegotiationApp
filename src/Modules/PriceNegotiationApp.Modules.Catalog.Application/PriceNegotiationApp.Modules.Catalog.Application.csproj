@@ -9,6 +9,9 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Infrastructure" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Tests" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.ArchitectureTests" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Api" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" />

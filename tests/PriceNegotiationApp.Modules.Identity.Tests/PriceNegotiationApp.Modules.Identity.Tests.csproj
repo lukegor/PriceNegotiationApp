@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity\PriceNegotiationApp.Modules.Identity.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity.Application\PriceNegotiationApp.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity.Infrastructure\PriceNegotiationApp.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.TestKit\PriceNegotiationApp.TestKit.csproj" />
   </ItemGroup>
   <ItemGroup>

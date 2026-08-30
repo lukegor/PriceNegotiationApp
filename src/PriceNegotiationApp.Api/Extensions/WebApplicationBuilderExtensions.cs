@@ -44,8 +44,8 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddIdentityModule(configuration);
         builder.Services.AddCatalogModule(configuration);
         builder.Services.AddNegotiationsModule(configuration);
-        builder.Services.AddScoped<PriceNegotiationApp.Modules.Negotiations.Ports.IProductPriceProvider,
-            Composition.CatalogToNegotiations>();
+        builder.Services.AddScoped<PriceNegotiationApp.Modules.Catalog.Ports.IProductPriceProvider,
+            PriceNegotiationApp.Modules.Catalog.Adapters.ProductPriceProvider>();
 
         builder.Services.AddProblemDetails(options =>
                 options.CustomizeProblemDetails = context =>

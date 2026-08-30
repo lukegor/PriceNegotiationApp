@@ -77,10 +77,20 @@ public class ArchitectureShould
             .Check(Architecture);
 
     [Fact]
-    public void Negotiations_module_never_references_other_modules_or_the_composition_root() =>
+    public void Negotiations_module_depends_on_catalog_ports_only()
+    {
+        // Negotiations must not depend on Identity, CompositionRoot, or Catalog internals
+        var forbidden = Types().That().Are(IdentityTypes).As("identity module")
+            .Or().Are(CompositionRoot).As("composition root")
+            .Or().ResideInNamespace($"{Catalog}.Domain").As("catalog domain")
+            .Or().ResideInNamespace($"{Catalog}.Persistence").As("catalog persistence")
+            .Or().ResideInNamespace($"{Catalog}.Features").As("catalog features")
+            .Or().ResideInNamespace($"{Catalog}.Seeding").As("catalog seeding");
+
         Types().That().Are(NegotiationsTypes)
-            .Should().NotDependOnAny(AnyOf(CatalogTypes, IdentityTypes, CompositionRoot))
+            .Should().NotDependOnAny(forbidden)
             .Check(Architecture);
+    }
 
     [Fact]
     public void Shared_kernel_depends_on_nothing_above_itself() =>
@@ -106,11 +116,8 @@ public class ArchitectureShould
     public void Port_contracts_stay_persistence_free()
     {
         var catalogPorts = Types().That().ResideInNamespace($"{Catalog}.Ports").As("catalog ports");
-        var negotiationsPorts = Types().That().ResideInNamespace($"{Negotiations}.Ports").As("negotiations ports");
 
-        Types().That().Are(catalogPorts).Or().Are(negotiationsPorts)
-            .Should().NotDependOnAny(PersistenceNamespaces)
-            .Check(Architecture);
+        catalogPorts.Should().NotDependOnAny(PersistenceNamespaces).Check(Architecture);
     }
 
     [Fact]

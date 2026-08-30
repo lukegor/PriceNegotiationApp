@@ -1,7 +1,7 @@
+using PriceNegotiationApp.Modules.Catalog.Ports;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
 using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
-using PriceNegotiationApp.Modules.Negotiations.Ports;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Create;

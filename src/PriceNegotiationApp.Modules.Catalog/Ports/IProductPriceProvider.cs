@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Modules.Negotiations.Ports;
+namespace PriceNegotiationApp.Modules.Catalog.Ports;
 
 public interface IProductPriceProvider
 {

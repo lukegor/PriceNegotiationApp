@@ -3,12 +3,13 @@
     <NoWarn>$(NoWarn);MA0182</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Domain\PriceNegotiationApp.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
     <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Identity.Infrastructure" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.ArchitectureTests" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Api" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" />

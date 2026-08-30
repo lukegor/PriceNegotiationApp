@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.RejectCurrentOffer;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure.RejectCurrentOffer;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Api.Endpoints.Negotiations.RejectCurrentOffer;

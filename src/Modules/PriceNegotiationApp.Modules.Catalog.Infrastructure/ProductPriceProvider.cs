@@ -3,7 +3,7 @@ using PriceNegotiationApp.Modules.Catalog.Domain;
 using PriceNegotiationApp.Modules.Catalog.Infrastructure.Persistence;
 using PriceNegotiationApp.Modules.Catalog.Contracts;
 
-namespace PriceNegotiationApp.Modules.Catalog.Adapters;
+namespace PriceNegotiationApp.Modules.Catalog.Infrastructure;
 
 // MA0182: used via DI registration (AddScoped<IProductPriceProvider, ProductPriceProvider>), invisible to static analysis.
 #pragma warning disable MA0182

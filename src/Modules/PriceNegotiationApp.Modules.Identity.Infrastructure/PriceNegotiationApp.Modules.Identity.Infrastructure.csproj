@@ -5,7 +5,6 @@
   <ItemGroup>
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Application\PriceNegotiationApp.Modules.Identity.Application.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
-    <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Domain\PriceNegotiationApp.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>

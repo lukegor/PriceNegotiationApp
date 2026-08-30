@@ -1,9 +1,10 @@
+using PriceNegotiationApp.Modules.Negotiations.Contracts;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
+using PriceNegotiationApp.Modules.Negotiations.Application;
 using PriceNegotiationApp.SharedKernel;
 using Vogen;
 

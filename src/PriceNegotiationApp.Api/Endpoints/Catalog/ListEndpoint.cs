@@ -1,10 +1,10 @@
+using PriceNegotiationApp.Modules.Catalog.Infrastructure.List;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using PriceNegotiationApp.Modules.Catalog.Features.Products;
-using PriceNegotiationApp.Modules.Catalog.Features.Products.List;
+using PriceNegotiationApp.Modules.Catalog.Application;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Api.Endpoints.Catalog.List;

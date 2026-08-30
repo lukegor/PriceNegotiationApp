@@ -1,8 +1,9 @@
+using PriceNegotiationApp.Modules.Identity.Infrastructure.Register;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using PriceNegotiationApp.Api;
-using PriceNegotiationApp.Modules.Identity.Features.Auth.Register;
+using PriceNegotiationApp.Modules.Identity.Application.Register;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Api.Endpoints.Identity.Register;

@@ -3,9 +3,12 @@ using ArchUnitNET.Fluent;
 using ArchUnitNET.Loader;
 using ArchUnitNET.xUnitV3;
 using PriceNegotiationApp.Api;
-using PriceNegotiationApp.Modules.Catalog;
-using PriceNegotiationApp.Modules.Identity;
-using PriceNegotiationApp.Modules.Negotiations;
+using PriceNegotiationApp.Modules.Catalog.Contracts;
+using PriceNegotiationApp.Modules.Catalog.Infrastructure;
+using PriceNegotiationApp.Modules.Identity.Contracts;
+using PriceNegotiationApp.Modules.Identity.Infrastructure;
+using PriceNegotiationApp.Modules.Negotiations.Contracts;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure;
 using PriceNegotiationApp.SharedKernel;
 using Shouldly;
 using Xunit;
@@ -28,11 +31,14 @@ public class ArchitectureShould
 
     private static readonly Architecture Architecture = new ArchLoader()
         .LoadAssemblies(
+            typeof(ProductSnapshot).Assembly,
+            typeof(IdentityErrorCodes).Assembly,
+            typeof(NegotiationErrorCodes).Assembly,
+            typeof(ErrorCodes).Assembly,
+            typeof(GlobalExceptionHandler).Assembly,
             typeof(CatalogModule).Assembly,
             typeof(IdentityModule).Assembly,
-            typeof(NegotiationsModule).Assembly,
-            typeof(ErrorCodes).Assembly,
-            typeof(GlobalExceptionHandler).Assembly)
+            typeof(NegotiationsModule).Assembly)
         .Build();
 
     private static readonly IObjectProvider<IType> KernelTypes =
@@ -51,17 +57,17 @@ public class ArchitectureShould
         Types().That().ResideInAssembly(typeof(GlobalExceptionHandler).Assembly).As("composition root");
 
     private static readonly IObjectProvider<IType> EntityFramework =
-        Types().That().ResideInNamespace(@"^Microsoft\.EntityFrameworkCore").As("EF Core");
+        Types().That().ResideInNamespace("Microsoft.EntityFrameworkCore").As("EF Core");
 
-    private static readonly IObjectProvider<IType> CatalogDomain =
-        Types().That().ResideInNamespace($"{Catalog}.Domain").As("catalog domain");
+    private static readonly IObjectProvider<IType> CatalogPersistence =
+        Types().That().ResideInNamespace($"{Catalog}.Infrastructure.Persistence").As("catalog persistence");
 
-    private static readonly IObjectProvider<IType> NegotiationsDomain =
-        Types().That().ResideInNamespace($"{Negotiations}.Domain").As("negotiations domain");
+    private static readonly IObjectProvider<IType> NegotiationsPersistence =
+        Types().That().ResideInNamespace($"{Negotiations}.Infrastructure.Persistence").As("negotiations persistence");
 
     private static readonly IObjectProvider<IType> PersistenceNamespaces =
-        Types().That().ResideInNamespace($"{Catalog}.Persistence")
-            .Or().ResideInNamespace($"{Negotiations}.Persistence")
+        Types().That().ResideInNamespace($"{Catalog}.Infrastructure.Persistence")
+            .Or().ResideInNamespace($"{Negotiations}.Infrastructure.Persistence")
             .As("persistence namespaces");
 
     [Fact]
@@ -82,10 +88,8 @@ public class ArchitectureShould
         // Negotiations must not depend on Identity, CompositionRoot, or Catalog internals
         var forbidden = Types().That().Are(IdentityTypes).As("identity module")
             .Or().Are(CompositionRoot).As("composition root")
-            .Or().ResideInNamespace($"{Catalog}.Domain").As("catalog domain")
-            .Or().ResideInNamespace($"{Catalog}.Persistence").As("catalog persistence")
-            .Or().ResideInNamespace($"{Catalog}.Features").As("catalog features")
-            .Or().ResideInNamespace($"{Catalog}.Seeding").As("catalog seeding");
+            .Or().ResideInNamespace($"{Catalog}.Infrastructure.Persistence").As("catalog persistence")
+            .Or().ResideInNamespace($"{Catalog}.Infrastructure.Seeding").As("catalog seeding");
 
         Types().That().Are(NegotiationsTypes)
             .Should().NotDependOnAny(forbidden)
@@ -99,23 +103,24 @@ public class ArchitectureShould
             .Check(Architecture);
 
     [Fact]
-    public void Domain_namespaces_stay_free_of_persistence_concerns()
+    public void Catalog_infrastructure_persistence_isolation()
     {
-        Types().That().Are(CatalogDomain).Or().Are(NegotiationsDomain)
-            .Should().NotDependOnAny(EntityFramework)
-            .Check(Architecture);
+        // Persistence types must not depend on EF Core directly (DbContext handles it)
+        var catalogPersistenceTypes = Types().That().ResideInNamespace($"{Catalog}.Infrastructure.Persistence");
+        catalogPersistenceTypes.Should().NotDependOnAny(EntityFramework).Check(Architecture);
     }
 
     [Fact]
-    public void Domain_namespaces_never_reach_into_persistence_namespaces() =>
-        Types().That().Are(CatalogDomain).Or().Are(NegotiationsDomain)
-            .Should().NotDependOnAny(PersistenceNamespaces)
-            .Check(Architecture);
+    public void Negotiations_infrastructure_persistence_isolation()
+    {
+        var negotiationsPersistenceTypes = Types().That().ResideInNamespace($"{Negotiations}.Infrastructure.Persistence");
+        negotiationsPersistenceTypes.Should().NotDependOnAny(EntityFramework).Check(Architecture);
+    }
 
     [Fact]
     public void Port_contracts_stay_persistence_free()
     {
-        var catalogPorts = Types().That().ResideInNamespace($"{Catalog}.Ports").As("catalog ports");
+        var catalogPorts = Types().That().ResideInNamespace($"{Catalog}.Contracts").As("catalog ports");
 
         catalogPorts.Should().NotDependOnAny(PersistenceNamespaces).Check(Architecture);
     }

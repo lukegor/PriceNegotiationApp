@@ -1,4 +1,5 @@
-using PriceNegotiationApp.Modules.Identity.Seeding;
+using PriceNegotiationApp.Modules.Identity.Infrastructure;
+using PriceNegotiationApp.Modules.Identity.Infrastructure.Seeding;
 using PriceNegotiationApp.TestKit;
 using Shouldly;
 using Xunit;

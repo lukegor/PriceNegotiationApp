@@ -8,6 +8,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Application" />
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Infrastructure" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Tests" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.ArchitectureTests" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Vogen" />

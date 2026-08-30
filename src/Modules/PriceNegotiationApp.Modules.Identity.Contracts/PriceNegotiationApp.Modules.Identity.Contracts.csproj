@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);MA0182</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

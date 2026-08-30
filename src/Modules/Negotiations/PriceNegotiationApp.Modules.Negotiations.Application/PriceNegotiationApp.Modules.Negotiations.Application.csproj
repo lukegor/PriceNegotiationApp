@@ -5,7 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations.Domain\PriceNegotiationApp.Modules.Negotiations.Domain.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
-    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Negotiations.Infrastructure" />

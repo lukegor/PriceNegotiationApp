@@ -33,7 +33,7 @@ internal sealed class CreateNegotiationHandler(
         var customerId = await NegotiationAccess.GetOrCreateCustomerIdAsync(db, caller.UserId, ct);
         var negotiation = Negotiation.Start(customerId, snapshot.ProductId, snapshot.Price,
             command.ProposedPrice, clock.GetUtcNow(), policy);
-        await db.Negotiations.AddAsync(negotiation, ct);
+        db.Negotiations.Add(negotiation);
 
         // The partial unique index is the real guard; a race that slipped past the
         // pre-check above surfaces here as a 409 instead of a 500.

@@ -6,8 +6,8 @@
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations.Application\PriceNegotiationApp.Modules.Negotiations.Application.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Negotiations.Domain\PriceNegotiationApp.Modules.Negotiations.Domain.csproj" />
-    <ProjectReference Include="..\PriceNegotiationApp.Modules.Catalog.Contracts\PriceNegotiationApp.Modules.Catalog.Contracts.csproj" />
-    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Catalog\PriceNegotiationApp.Modules.Catalog.Contracts\PriceNegotiationApp.Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" />

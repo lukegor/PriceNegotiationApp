@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
-    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Identity.Infrastructure" />

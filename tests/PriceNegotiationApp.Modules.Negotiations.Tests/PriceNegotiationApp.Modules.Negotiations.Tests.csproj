@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Application\PriceNegotiationApp.Modules.Negotiations.Application.csproj" />
-    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Infrastructure\PriceNegotiationApp.Modules.Negotiations.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Negotiations\PriceNegotiationApp.Modules.Negotiations.Application\PriceNegotiationApp.Modules.Negotiations.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Negotiations\PriceNegotiationApp.Modules.Negotiations.Infrastructure\PriceNegotiationApp.Modules.Negotiations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Negotiations\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
     <ProjectReference Include="..\..\src\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
     <ProjectReference Include="..\PriceNegotiationApp.TestKit\PriceNegotiationApp.TestKit.csproj" />
   </ItemGroup>

@@ -1,12 +1,11 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using PriceNegotiationApp.Modules.Identity.Features.Auth;
+using PriceNegotiationApp.Modules.Identity.Features.Auth.Login;
+using PriceNegotiationApp.Modules.Identity.Features.Auth.Register;
 using PriceNegotiationApp.Modules.Identity.Persistence;
 using PriceNegotiationApp.Modules.Identity.Seeding;
 using PriceNegotiationApp.SharedKernel;

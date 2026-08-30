@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Routing;
-using PriceNegotiationApp.Modules.Catalog;
-using PriceNegotiationApp.Modules.Identity;
+using PriceNegotiationApp.Api.Endpoints.Catalog;
+using PriceNegotiationApp.Api.Endpoints.Identity;
 using PriceNegotiationApp.Modules.Identity.Features.Auth;
-using PriceNegotiationApp.Modules.Negotiations;
+using PriceNegotiationApp.Api.Endpoints.Negotiations;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;

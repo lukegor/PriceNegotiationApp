@@ -1,8 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\src\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>

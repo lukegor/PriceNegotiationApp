@@ -2,7 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PriceNegotiationApp.Modules.Negotiations.Domain;
-using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Accept;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.CounterPropose;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Create;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Get;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.List;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.ListMine;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.RejectCurrentOffer;
+using PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Withdraw;
 using PriceNegotiationApp.Modules.Negotiations.Persistence;
 using PriceNegotiationApp.SharedKernel;
 

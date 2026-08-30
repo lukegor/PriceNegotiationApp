@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);MA0182</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Application\PriceNegotiationApp.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\PriceNegotiationApp.Modules.Identity.Domain\PriceNegotiationApp.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PriceNegotiationApp.Api" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Identity.Tests" />
+  </ItemGroup>
+</Project>

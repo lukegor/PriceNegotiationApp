@@ -120,7 +120,7 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         var response = await CounterProposeAsync(customer, negotiationId, 500m);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var outcome = await response.Content.ReadFromJsonAsync<CounterOutcome>(Json, TestContext.Current.CancellationToken);
+        var outcome = await response.Content.ReadFromJsonAsync<CounterResponse>(Json, TestContext.Current.CancellationToken);
         outcome!.Outcome.ShouldBe("AutoRejected");
         outcome.Negotiation.Status.ShouldBe("Rejected");
         outcome.Negotiation.DecidedAtUtc.ShouldNotBeNull();
@@ -231,7 +231,7 @@ public class NegotiationsShould(IntegrationTestFixture fixture)
         (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ShouldContain("Healthy");
     }
 
-    private sealed record CounterOutcome(string Outcome, NegotiationView Negotiation);
+    private sealed record CounterResponse(string Outcome, NegotiationView Negotiation);
 
     private sealed record StaffAction(string Outcome, NegotiationView Negotiation);
 

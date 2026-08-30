@@ -1,92 +1,50 @@
 # Optimized Architecture Design
 
 **Date:** 2026-08-30
-**Status:** Approved
+**Status:** Approved (v2 — Clean Architecture multi-project per module)
+
+## Design Rationale
+
+Single project per module with folder-based layers is sufficient for small projects. However, this project assumes growth to a large codebase with multiple developers. Multi-project per module provides:
+
+1. **Compile-time boundary enforcement** — Compiler prevents dependency violations, not just ArchUnitNET tests
+2. **Clearer code ownership** — Each team owns specific projects, not folders
+3. **Better onboarding** — Project structure teaches architecture to new developers
+4. **Future-proofing** — Module extraction to services is already prepared
 
 ## Project Structure
 
 ```
 PriceNegotiationApp.sln
 ├── src/
-│   ├── PriceNegotiationApp.SharedKernel/
-│   │   ├── CallerContext.cs
-│   │   ├── DbConnections.cs
-│   │   ├── DbWriteGuard.cs
-│   │   ├── ErrorCodes.cs
-│   │   ├── Exceptions.cs
-│   │   ├── PagedResult.cs
-│   │   ├── PageQuery.cs
-│   │   ├── Policies.cs
-│   │   ├── UserRoles.cs
-│   │   └── ModuleSeedingHostedServiceBase.cs
-│   └── Modules/
-│       ├── PriceNegotiationApp.Modules.Catalog/
-│       │   ├── Domain/
-│       │   │   ├── Product.cs
-│       │   │   ├── ProductId.cs
-│       │   │   └── Price.cs
-│       │   ├── Features/
-│       │   │   └── Products/
-│       │   │       ├── Create/
-│       │   │       │   ├── CreateProductRequest.cs
-│       │   │       │   ├── CreateProductRequestValidator.cs
-│       │   │       │   └── CreateProductHandler.cs
-│       │   │       ├── Update/
-│       │   │       ├── Delete/
-│       │   │       ├── Get/
-│       │   │       ├── List/
-│       │   │       └── ProductModels.cs
-│       │   ├── Persistence/
-│       │   │   ├── CatalogDbContext.cs
-│       │   │   ├── Configurations/
-│       │   │   └── Migrations/
-│       │   ├── Ports/
-│       │   │   └── IProductPriceProvider.cs
-│       │   ├── Adapters/
-│       │   │   └── ProductPriceProvider.cs
-│       │   ├── Seeding/
-│       │   └── CatalogModule.cs
-│       ├── PriceNegotiationApp.Modules.Negotiations/
-│       │   ├── Domain/
-│       │   │   ├── Negotiation.cs
-│       │   │   ├── Customer.cs
-│       │   │   ├── NegotiationStatus.cs
-│       │   │   ├── NegotiationOutcome.cs
-│       │   │   └── INegotiationPolicy.cs
-│       │   ├── Features/
-│       │   │   └── Negotiations/
-│       │   │       ├── Create/
-│       │   │       ├── CounterPropose/
-│       │   │       ├── Accept/
-│       │   │       ├── RejectCurrentOffer/
-│       │   │       ├── Withdraw/
-│       │   │       ├── Get/
-│       │   │       ├── List/
-│       │   │       ├── ListMine/
-│       │   │       ├── NegotiationAccess.cs
-│       │   │       └── NegotiationModels.cs
-│       │   ├── Persistence/
-│       │   ├── Seeding/
-│       │   └── NegotiationsModule.cs
-│       ├── PriceNegotiationApp.Modules.Identity/
-│       │   ├── Domain/
-│       │   ├── Features/
-│       │   │   └── Auth/
-│       │   │       ├── Login/
-│       │   │       ├── Register/
-│       │   │       └── AuthModels.cs
-│       │   ├── Persistence/
-│       │   ├── Seeding/
-│       │   └── IdentityModule.cs
-│       └── PriceNegotiationApp.Api/
-│           ├── Endpoints/
-│           │   ├── Catalog/
-│           │   ├── Negotiations/
-│           │   └── Identity/
-│           ├── Extensions/
-│           ├── Composition/
-│           ├── ValidateRequestFilter.cs
-│           └── GlobalExceptionHandler.cs
+│   ├── PriceNegotiationApp.SharedKernel/                    # Domain primitives, exceptions, utilities
+│   │
+│   ├── Modules/
+│   │   ├── PriceNegotiationApp.Modules.Catalog.Domain/      # Pure domain: entities, value objects
+│   │   ├── PriceNegotiationApp.Modules.Catalog.Application/ # Use cases: handlers, DTOs, validators
+│   │   ├── PriceNegotiationApp.Modules.Catalog.Infrastructure/ # Implementation: persistence, adapters, seeding
+│   │   ├── PriceNegotiationApp.Modules.Catalog.Contracts/   # Public API: port interfaces, shared DTOs
+│   │   │
+│   │   ├── PriceNegotiationApp.Modules.Negotiations.Domain/
+│   │   ├── PriceNegotiationApp.Modules.Negotiations.Application/
+│   │   ├── PriceNegotiationApp.Modules.Negotiations.Infrastructure/
+│   │   ├── PriceNegotiationApp.Modules.Negotiations.Contracts/
+│   │   │
+│   │   ├── PriceNegotiationApp.Modules.Identity.Domain/     # Empty — Identity uses framework entities
+│   │   ├── PriceNegotiationApp.Modules.Identity.Application/
+│   │   ├── PriceNegotiationApp.Modules.Identity.Infrastructure/
+│   │   └── PriceNegotiationApp.Modules.Identity.Contracts/
+│   │
+│   └── PriceNegotiationApp.Api/                             # Shared host (composition root)
+│       ├── Endpoints/
+│       │   ├── Catalog/
+│       │   ├── Negotiations/
+│       │   └── Identity/
+│       ├── Extensions/
+│       ├── Composition/
+│       ├── ValidateRequestFilter.cs
+│       └── GlobalExceptionHandler.cs
+│
 └── tests/
     ├── PriceNegotiationApp.ArchitectureTests/
     ├── PriceNegotiationApp.IntegrationTests/
@@ -96,43 +54,109 @@ PriceNegotiationApp.sln
     └── PriceNegotiationApp.TestKit/
 ```
 
+## Layer Responsibilities
+
+| Layer | Project | Contains | Dependencies |
+|-------|---------|----------|--------------|
+| **Domain** | `*.Domain` | Entities, value objects, domain events, domain interfaces, domain exceptions | SharedKernel only |
+| **Application** | `*.Application` | Handlers, request/response DTOs, validators, use-case logic | Domain |
+| **Infrastructure** | `*.Infrastructure` | DbContext, EF configs, migrations, adapters, seeding, external services, module composition root | Application + Domain + Contracts |
+| **Contracts** | `*.Contracts` | Port interfaces, shared DTOs, error codes (public API surface) | Domain (minimal) |
+
 ## Dependency Rules
 
 ```
 SharedKernel → nothing (pure domain primitives)
 
-Module.Domain → nothing (pure domain)
-Module.Features → Module.Domain
-Module.Persistence → Module.Features, Module.Domain
-Module.Ports → nothing (pure interfaces + DTOs)
-Module.Adapters → Module.Ports, Module.Persistence
-Module.Seeding → Module.Persistence
+Module.Domain → SharedKernel
+Module.Application → Module.Domain, SharedKernel
+Module.Contracts → Module.Domain, SharedKernel
+Module.Infrastructure → Module.Application, Module.Contracts, Module.Domain, SharedKernel
 
-Host → all Modules, SharedKernel
-Other Modules → only target Module.Ports
+Host → all Modules.Infrastructure, all Modules.Contracts, SharedKernel
+Other Modules → only target Module.Contracts
 Tests → target Module + Host
 ```
 
-**Enforcement:** ArchUnitNET tests verify all dependency rules at build time.
+**Enforcement:** ArchUnitNET tests verify all dependency rules at build time. Compiler enforces project references.
+
+## Module File Mapping
+
+### Catalog Module
+
+| File | Layer | Project |
+|------|-------|---------|
+| `Product.cs`, `ProductId.cs`, `Price.cs` | Domain | Catalog.Domain |
+| `ProductModels.cs`, `ProductQuery.cs` | Application | Catalog.Application |
+| `Create/CreateProductHandler.cs`, `Create/CreateProductRequest.cs`, `Create/CreateProductRequestValidator.cs` | Application | Catalog.Application |
+| `Update/UpdateProductHandler.cs`, `Update/UpdateProductRequest.cs`, `Update/UpdateProductRequestValidator.cs` | Application | Catalog.Application |
+| `Delete/DeleteProductHandler.cs` | Application | Catalog.Application |
+| `Get/GetProductHandler.cs` | Application | Catalog.Application |
+| `List/ListProductsHandler.cs` | Application | Catalog.Application |
+| `CatalogDbContext.cs`, `DesignTimeDbContextFactory.cs` | Infrastructure | Catalog.Infrastructure |
+| `Configurations/ProductConfiguration.cs` | Infrastructure | Catalog.Infrastructure |
+| `Migrations/*` | Infrastructure | Catalog.Infrastructure |
+| `ProductPriceProvider.cs` | Infrastructure | Catalog.Infrastructure |
+| `Seeding/*` | Infrastructure | Catalog.Infrastructure |
+| `CatalogModule.cs` | Infrastructure | Catalog.Infrastructure |
+| `IProductPriceProvider.cs`, `ProductSnapshot` | Contracts | Catalog.Contracts |
+
+### Negotiations Module
+
+| File | Layer | Project |
+|------|-------|---------|
+| `Negotiation.cs`, `NegotiationId.cs`, `NegotiationStatus.cs`, `NegotiationOutcome.cs` | Domain | Negotiations.Domain |
+| `Customer.cs`, `CustomerId.cs` | Domain | Negotiations.Domain |
+| `Price.cs` | Domain | Negotiations.Domain |
+| `INegotiationPolicy.cs`, `DefaultNegotiationPolicy.cs` | Domain | Negotiations.Domain |
+| `ClosedNegotiationException.cs`, `ProposalExceedsLimitException.cs` | Domain | Negotiations.Domain |
+| `NegotiationModels.cs` | Application | Negotiations.Application |
+| `Create/CreateNegotiationHandler.cs`, `Create/CreateNegotiationRequest.cs`, `Create/CreateNegotiationRequestValidator.cs` | Application | Negotiations.Application |
+| `CounterPropose/*` | Application | Negotiations.Application |
+| `Accept/AcceptHandler.cs` | Application | Negotiations.Application |
+| `RejectCurrentOffer/RejectCurrentOfferHandler.cs` | Application | Negotiations.Application |
+| `Withdraw/WithdrawHandler.cs` | Application | Negotiations.Application |
+| `Get/GetNegotiationHandler.cs` | Application | Negotiations.Application |
+| `List/ListNegotiationsHandler.cs` | Application | Negotiations.Application |
+| `ListMine/ListMyNegotiationsHandler.cs` | Application | Negotiations.Application |
+| `NegotiationsDbContext.cs`, `DesignTimeDbContextFactory.cs` | Infrastructure | Negotiations.Infrastructure |
+| `Configurations/*` | Infrastructure | Negotiations.Infrastructure |
+| `Migrations/*` | Infrastructure | Negotiations.Infrastructure |
+| `NegotiationAccess.cs` | Infrastructure | Negotiations.Infrastructure |
+| `NegotiationsModule.cs` | Infrastructure | Negotiations.Infrastructure |
+| `NegotiationErrorCodes.cs` | Contracts | Negotiations.Contracts |
+
+### Identity Module
+
+| File | Layer | Project |
+|------|-------|---------|
+| _(empty — no pure domain types)_ | Domain | Identity.Domain |
+| `AuthModels.cs` | Contracts | Identity.Contracts |
+| `IdentityErrorCodes.cs` | Contracts | Identity.Contracts |
+| `Register/*` | Application | Identity.Application |
+| `Login/*` | Application | Identity.Application |
+| `IdentityModuleDbContext.cs`, `ApplicationUser.cs`, `DesignTimeDbContextFactory.cs` | Infrastructure | Identity.Infrastructure |
+| `Migrations/*` | Infrastructure | Identity.Infrastructure |
+| `JwtManager.cs`, `EcSigningKey.cs`, `JwtOptions.cs`, `JwtOptionsValidator.cs` | Infrastructure | Identity.Infrastructure |
+| `Seeding/*` | Infrastructure | Identity.Infrastructure |
+| `IdentityModule.cs` | Infrastructure | Identity.Infrastructure |
 
 ## Inter-Module Communication
 
-**Pattern:** Provider-owned Ports & Adapters
+**Pattern:** Provider-owned Contracts
 
 | Component | Location | Owner |
 |-----------|----------|-------|
-| Port interface | `{Provider}/Ports/` | Provider module |
-| Port DTOs | `{Provider}/Ports/` | Provider module |
-| Adapter | `{Provider}/Adapters/` | Provider module |
-| Consumer dependency | `{Provider}.Ports` namespace only | Consumer module |
+| Port interface | `{Provider}.Contracts` | Provider module |
+| Port DTOs | `{Provider}.Contracts` | Provider module |
+| Adapter | `{Provider}.Infrastructure` | Provider module |
+| Consumer dependency | `{Provider}.Contracts` only | Consumer module |
 | DI wiring | `WebApplicationBuilderExtensions.cs` | Host |
 
-**Adding a new edge:**
-1. Provider defines port in `Ports/`
-2. Provider implements adapter in `Adapters/`
-3. Consumer references provider's `Ports` namespace
-4. Host registers adapter behind port interface
-5. Update architecture test
+**Cross-module reference example:**
+```
+Negotiations.Application → Catalog.Contracts (for IProductPriceProvider, ProductSnapshot)
+```
 
 ## Request Validation
 
@@ -140,12 +164,12 @@ Tests → target Module + Host
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| Request DTO | `Features/{Entity}/{UseCase}/` | Defines request shape |
-| Validator | `Features/{Entity}/{UseCase}/` | Validates request before handler |
-| Handler | `Features/{Entity}/{UseCase}/` | Business logic |
-| Response DTO | `Features/{Entity}/{Entity}Models.cs` | Shared response types |
+| Request DTO | `Application/{Entity}/{UseCase}/` | Defines request shape |
+| Validator | `Application/{Entity}/{UseCase}/` | Validates request before handler |
+| Handler | `Application/{Entity}/{UseCase}/` | Business logic |
+| Response DTO | `Application/{Entity}/{Entity}Models.cs` | Shared response types |
 
-**Registration:** `AddValidatorsFromAssemblyContaining<T>()` in each module's DI registration.
+**Registration:** `AddValidatorsFromAssemblyContaining<T>()` in each module's Infrastructure composition root.
 
 **Filter:** `ValidateRequestFilter<TRequest>` added to each endpoint via `.AddEndpointFilter<>()`.
 
@@ -163,6 +187,10 @@ Tests → target Module + Host
 | Endpoint | `{Action}Endpoint` | `CreateEndpoint` |
 | Port | `I{Capability}Provider` | `IProductPriceProvider` |
 | Adapter | `{Capability}Provider` | `ProductPriceProvider` |
+| Domain entity | `{Name}` | `Product`, `Negotiation` |
+| Value object | `{Name}` | `Price`, `ProductId` |
+| Domain exception | `{Name}Exception` | `DomainException` |
+| DbContext | `{Module}DbContext` | `CatalogDbContext` |
 
 ## Error Handling
 
@@ -187,10 +215,17 @@ Stays in Negotiations module. It's a Negotiations-specific reference row that ma
 
 The shared host is the composition root. It:
 - Configures ASP.NET Core pipeline (auth, CORS, rate limiting, health checks)
-- Registers all modules via `AddXxxModule()`
+- Registers all modules via `AddXxxModule()` from each module's Infrastructure project
 - Wires cross-module adapters behind port interfaces
 - Maps module handlers to HTTP endpoints
 - Handles global exception processing
 - Runs database migrations
 
 Host contains zero business logic. Endpoints are thin HTTP mappings to handler calls.
+Host references `*.Infrastructure` projects (for DI registration) and `*.Contracts` projects (for types in endpoint signatures).
+
+## Future Considerations
+
+1. **Repository pattern** — Extract `IProductRepository`, `INegotiationRepository` interfaces into Domain/Contracts to remove direct DbContext injection in handlers
+2. **Identity.Domain** — Create `IUserContext` domain interface when custom user logic is needed
+3. **Module extraction** — If a module needs to become a separate service, the Contracts project becomes the API contract and the Infrastructure project contains all implementation details

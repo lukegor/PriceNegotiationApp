@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public static class NegotiationsModule
             .UseSnakeCaseNamingConvention());
         services.AddSingleton<INegotiationPolicy, DefaultNegotiationPolicy>();
         services.AddSingleton(TimeProvider.System);
+        services.AddValidatorsFromAssemblyContaining<CreateNegotiationRequest>();
         services.AddScoped<CreateNegotiationHandler>();
         services.AddScoped<CounterProposeHandler>();
         services.AddScoped<AcceptHandler>();

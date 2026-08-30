@@ -13,6 +13,7 @@ internal static class GetEndpoint
     {
         group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal principal,
                 GetNegotiationHandler handler, CancellationToken ct) =>
-            TypedResults.Ok(await handler.HandleAsync(id, principal.ToCallerContext(), ct)));
+            TypedResults.Ok(await handler.HandleAsync(id, principal.ToCallerContext(), ct)))
+            .WithName("GetNegotiationById");
     }
 }

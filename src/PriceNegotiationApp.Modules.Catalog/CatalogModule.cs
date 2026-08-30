@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PriceNegotiationApp.Modules.Catalog.Features.Products;
+using PriceNegotiationApp.Modules.Catalog.Features.Products.Create;
+using PriceNegotiationApp.Modules.Catalog.Features.Products.Delete;
+using PriceNegotiationApp.Modules.Catalog.Features.Products.Get;
+using PriceNegotiationApp.Modules.Catalog.Features.Products.List;
+using PriceNegotiationApp.Modules.Catalog.Features.Products.Update;
 using PriceNegotiationApp.Modules.Catalog.Persistence;
 using PriceNegotiationApp.Modules.Catalog.Seeding;
 using PriceNegotiationApp.SharedKernel;

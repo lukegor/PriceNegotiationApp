@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public static class CatalogModule
         services.AddOptions<CatalogSeedingOptions>()
             .Bind(configuration.GetSection(CatalogSeedingOptions.SectionName));
         services.AddHostedService<CatalogSeedingHostedService>();
+        services.AddValidatorsFromAssemblyContaining<CreateProductRequest>();
         services.AddScoped<CreateProductHandler>();
         services.AddScoped<UpdateProductHandler>();
         services.AddScoped<DeleteProductHandler>();

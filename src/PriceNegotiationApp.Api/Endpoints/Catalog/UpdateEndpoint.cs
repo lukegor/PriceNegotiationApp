@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using PriceNegotiationApp.Api;
 using PriceNegotiationApp.Modules.Catalog.Features.Products.Update;
 using PriceNegotiationApp.SharedKernel;
 
@@ -13,6 +14,7 @@ internal static class UpdateEndpoint
         group.MapPut("/{id:guid}", async (Guid id, UpdateProductRequest request,
                 UpdateProductHandler handler, CancellationToken ct) =>
             TypedResults.Ok(await handler.HandleAsync(id, request, ct)))
+        .AddEndpointFilter<ValidateRequestFilter<UpdateProductRequest>>()
         .RequireRoles(UserRoles.Admin, UserRoles.Staff);
     }
 }

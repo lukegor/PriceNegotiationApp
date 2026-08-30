@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +38,7 @@ public static class IdentityModule
             .ValidateOnStart();
         services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
         services.AddSingleton(TimeProvider.System);
+        services.AddValidatorsFromAssemblyContaining<LoginRequest>();
         services.AddSingleton<EcSigningKey>();
         services.AddSingleton<JwtManager>();
         services.AddScoped<RegisterUserHandler>();

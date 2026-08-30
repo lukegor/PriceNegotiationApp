@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using PriceNegotiationApp.Api;
 using PriceNegotiationApp.Modules.Identity.Features.Auth.Login;
 using PriceNegotiationApp.SharedKernel;
 
@@ -13,6 +14,7 @@ internal static class LoginEndpoint
         group.MapPost("/login", async (LoginRequest request, LoginUserHandler handler,
                 CancellationToken ct) =>
             TypedResults.Ok(await handler.HandleAsync(request)))
+        .AddEndpointFilter<ValidateRequestFilter<LoginRequest>>()
         .RequireRateLimiting(Policies.AuthRateLimitPolicy)
         .AllowAnonymous()
         .WithName("Login")

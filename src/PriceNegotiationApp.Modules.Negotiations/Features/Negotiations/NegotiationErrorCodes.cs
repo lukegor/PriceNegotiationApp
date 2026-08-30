@@ -1,5 +1,6 @@
 namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations;
 
+/// <summary>Machine-readable error codes owned by this feature (frozen contract).</summary>
 internal static class NegotiationErrorCodes
 {
     public const string NegotiationClosed = "negotiation_closed";

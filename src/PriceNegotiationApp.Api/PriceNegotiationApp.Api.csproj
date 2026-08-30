@@ -10,12 +10,12 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
-    <ProjectReference Include="..\Modules\PriceNegotiationApp.Modules.Catalog.Infrastructure\PriceNegotiationApp.Modules.Catalog.Infrastructure.csproj" />
-    <ProjectReference Include="..\Modules\PriceNegotiationApp.Modules.Catalog.Contracts\PriceNegotiationApp.Modules.Catalog.Contracts.csproj" />
-    <ProjectReference Include="..\Modules\PriceNegotiationApp.Modules.Identity.Infrastructure\PriceNegotiationApp.Modules.Identity.Infrastructure.csproj" />
-    <ProjectReference Include="..\Modules\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
-    <ProjectReference Include="..\Modules\PriceNegotiationApp.Modules.Negotiations.Infrastructure\PriceNegotiationApp.Modules.Negotiations.Infrastructure.csproj" />
-    <ProjectReference Include="..\Modules\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Catalog\PriceNegotiationApp.Modules.Catalog.Infrastructure\PriceNegotiationApp.Modules.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Catalog\PriceNegotiationApp.Modules.Catalog.Contracts\PriceNegotiationApp.Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Identity\PriceNegotiationApp.Modules.Identity.Infrastructure\PriceNegotiationApp.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Identity\PriceNegotiationApp.Modules.Identity.Contracts\PriceNegotiationApp.Modules.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Negotiations\PriceNegotiationApp.Modules.Negotiations.Infrastructure\PriceNegotiationApp.Modules.Negotiations.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Negotiations\PriceNegotiationApp.Modules.Negotiations.Contracts\PriceNegotiationApp.Modules.Negotiations.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />

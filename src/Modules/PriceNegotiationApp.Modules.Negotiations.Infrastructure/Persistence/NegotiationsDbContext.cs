@@ -1,0 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+using PriceNegotiationApp.Modules.Negotiations.Domain;
+using PriceNegotiationApp.Modules.Negotiations.Infrastructure.Persistence.Configurations;
+using PriceNegotiationApp.SharedKernel;
+
+namespace PriceNegotiationApp.Modules.Negotiations.Infrastructure.Persistence;
+
+internal sealed class NegotiationsDbContext(DbContextOptions<NegotiationsDbContext> options) : DbContext(options)
+{
+    public DbSet<Customer> Customers => Set<Customer>();
+
+    public DbSet<Negotiation> Negotiations => Set<Negotiation>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.HasDefaultSchema("negotiations");
+        modelBuilder.ApplyConfiguration(new CustomerConfiguration());
+        modelBuilder.ApplyConfiguration(new NegotiationConfiguration());
+    }
+}
+
+

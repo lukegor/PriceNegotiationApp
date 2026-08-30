@@ -7,6 +7,3 @@ var app = builder.Build();
 app.UsePipeline();
 
 await app.RunAsync();
-
-public partial class Program;
-

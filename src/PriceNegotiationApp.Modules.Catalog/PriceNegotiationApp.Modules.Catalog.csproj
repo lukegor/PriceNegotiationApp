@@ -20,5 +20,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="PriceNegotiationApp.Api" />
     <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Catalog.Tests" />
+    <InternalsVisibleTo Include="PriceNegotiationApp.Modules.Negotiations" />
   </ItemGroup>
 </Project>

@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using PriceNegotiationApp.Modules.Identity.Features.Auth;
 using PriceNegotiationApp.Modules.Identity.Persistence;
-using PriceNegotiationApp.Modules.Identity.Public;
 using PriceNegotiationApp.SharedKernel;
 
 namespace PriceNegotiationApp.Modules.Identity.Features.Auth.Register;

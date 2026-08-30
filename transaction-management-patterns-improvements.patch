@@ -1,0 +1,186 @@
+diff --git a/docs/transaction-management-patterns.md b/docs/transaction-management-patterns.md
+index 40f3042..03782f0 100644
+--- a/docs/transaction-management-patterns.md
++++ b/docs/transaction-management-patterns.md
+@@ -174,6 +174,10 @@ await tx.CommitAsync(ct);                 // BOTH saves become permanent togethe
+ ```
+ 
+ > **The invariant, stated honestly:** any number of `SaveChanges` calls are safe as long as they share one transaction and none commits alone. What's forbidden is letting an intermediate save become permanent while later steps can still fail — that's Option 1 again.
++>
++> **Named gray zone — idempotent provisioning saves.** A save whose row has independent meaning and fails safe (an idempotently-created customer/profile/shadow record) leaves, on later failure, at worst a *benign orphan*. Strict atomicity is still the default — wrapping such saves costs one `BeginTransactionAsync` — but recognize you are buying polish, not correctness, there. What stays indefensible is letting a save commit alone when later steps carry business consequences.
++
++> **⚠ Interplay with connection resiliency:** if the context enables `EnableRetryOnFailure` (execution strategy), EF Core refuses user-initiated `BeginTransactionAsync` unless the whole unit runs inside the strategy: `var strategy = db.Database.CreateExecutionStrategy(); await strategy.ExecuteAsync(async () => { /* begin, save(s), commit */ });` — or disable automatic retries for such flows. This is among the most common "worked until I added a transaction" runtime exceptions in real deployments, and none of the patterns below work without accounting for it.
+ 
+ Two closing notes: if you own the schema, prefer fixing Case B at the root by switching keys to client-generated GUIDs rather than carrying two-save patterns forever. And if the "later step" is an *external* call that merely wants an ID (charge card with booking reference), that call doesn't belong mid-command at all — move it behind after-commit events/outbox (Option 5).
+ 
+@@ -218,6 +222,30 @@ Rules of thumb when escalating:
+ 2. **Every escalated command needs a retry loop.** SQL Server throws deadlock (error 1205)/update conflict; PostgreSQL's SERIALIZABLE aborts with serialization failure (40001). These are normal traffic under contention — translate to HTTP 409/503 + retry, don't log them as bugs.
+ 3. **Before escalating, check the cheaper alternatives**: an optimistic token on the contested aggregate, or one atomic conditional statement (`UPDATE Events SET SeatsAvailable -= @n WHERE Id = @id AND SeatsAvailable >= @n`) achieves most SERIALIZABLE guarantees at READ COMMITTED prices. Escalation is the last tool, not the first.
+ 
++And the retry policy itself — aborts under escalation are normal traffic, not errors:
++
++```csharp
++for (var attempt = 1; ; attempt++)
++{
++    try
++    {
++        return await RunCommandAsync(ct);
++    }
++    catch (Exception ex) when (attempt < 3 && IsTransientSerializationFailure(ex))
++    {
++        // debug-log; optional jittered back-off; loop retries
++    }
++}
++
++static bool IsTransientSerializationFailure(Exception ex) =>
++    ex is DbUpdateConcurrencyException
++    || (ex is PostgresException pg
++        && pg.SqlState is PostgresErrorCodes.SerializationFailure
++                        or PostgresErrorCodes.DeadlockDetected)
++    || (ex is SqlException sql
++        && sql.Number is 1205 or 41301 or 41305);
++```
++
+ | Criterion | Score |
+ |---|---|
+ | Simplicity | 90 |
+@@ -232,7 +260,7 @@ Rules of thumb when escalating:
+ 
+ **Popularity: ~28%** — the default style of serious modern EF Core codebases.
+ 
+-**Strengths:** zero ceremony; change tracker accumulates work cheaply in memory, one short transaction at the end holds locks briefly (great under concurrency); trivially testable (real context + testcontainers/SQLite); scales linearly to modular/DDD designs — N modules simply means N independent contexts.
++**Strengths:** zero ceremony; change tracker accumulates work cheaply in memory, one short transaction at the end holds locks briefly (great under concurrency); trivially testable against a real database (Testcontainers) — SQLite is fine for CRUD-only tests, but optimistic-concurrency tests need the real provider (SQLite does not implement rowversion/xmin semantics, so `DbUpdateConcurrencyException` tests written against it lie); scales linearly to modular/DDD designs — N modules simply means N independent contexts.
+ 
+ **Weakness:** correctness relies on **discipline** — nothing mechanically stops a developer from calling `SaveChanges` where no enclosing transaction exists (the exact bug from Option 1). That gap is what Option 4 closes.
+ 
+@@ -266,18 +294,13 @@ public sealed class TransactionBehavior<TRequest, TResponse>(
+             return await next();
+ 
+         await using var tx = await db.Database.BeginTransactionAsync(ct);
+-        try
+-        {
+-            var response = await next();
+-            await db.SaveChangesAsync(ct);                 // the ONLY save for this use case — unless the handler flushed mid-flow; then this is a no-op
+-            await tx.CommitAsync(ct);
+-            return response;
+-        }
+-        catch
+-        {
+-            await tx.RollbackAsync(ct);
+-            throw;
+-        }
++        var response = await next();
++        await db.SaveChangesAsync(ct);                 // the ONLY save for this use case — unless the handler flushed mid-flow; then this is a no-op
++        await tx.CommitAsync(ct);
++        return response;
++
++        // No catch/rollback needed: disposing without commit rolls everything back
++        // (the same rule Option 6 relies on).
+     }
+ }
+ ```
+@@ -317,7 +340,11 @@ public sealed class BookTicketHandler(BookingDbContext db)
+ - Mid-flow saves are also the natural place to notice an external side effect trying to sneak inside your transaction — treat that as a signal to move it behind events/outbox instead.
+ - **Never let one handler commit two module contexts** — that would be a distributed transaction in disguise. Cross-module workflows go through events/outbox (playbook below).
+ 
+-**Verdict:** best-in-class when paired with Option 3 — 3 defines the shape, 4 enforces it.
++#### Enforcement alternative — doctrine test instead of a behavior
++
++When a codebase has no mediator pipeline (handlers own persistence directly), importing MediatR *solely* for commit enforcement is ceremony. A cheaper mechanical gate with the same guarantee: an architecture/source test asserting `SaveChangesAsync` is invoked only by `*Handler` types, seeding services, and sanctioned helpers — any other caller fails the build. It checks structure rather than wrapping execution, so it also catches stray commits in non-pipeline code paths (hosted services, background jobs) that a behavior would never see.
++
++**Verdict:** best-in-class when paired with Option 3 — 3 defines the shape, 4 enforces it. Where a behavior doesn't fit the architecture, enforce 3 with a build-time doctrine test instead.
+ 
+ ---
+ 
+@@ -358,8 +385,6 @@ await db.SaveChangesAsync(ct);          // state + event are atomic together
+ 
+ ---
+ 
+----
+-
+ ### Option 6 — One transaction per HTTP request (action filter / middleware)
+ 
+ **What it is:** infrastructure opens a transaction at the start of every mutating HTTP request and commits when the response turns out successful (2xx); rolls back otherwise. Usually an `IAsyncActionFilter` attribute on controllers or middleware around minimal-API endpoints. Services just use the scoped context — nobody calls `BeginTransaction` explicitly, and the HTTP layer owns atomicity.
+@@ -410,6 +435,7 @@ public IActionResult Book(BookTicketCommand cmd) { ... }   // zero save ceremony
+ - **Transaction scope = request scope.** A bulk endpoint performing several independent logical operations shares one transaction; one failure nukes all of them even when most succeeded legitimately.
+ - **Only exists for HTTP.** Background jobs, message consumers, hosted services don't pass through the filter — you'll reinvent Option 4 there anyway, so you end up maintaining two commit mechanisms.
+ - Encourages "one request = one use case" thinking that breaks as endpoints grow.
++- **Result-shape coupling:** the sample only inspects `ObjectResult`; `StatusCodeResult`, redirects carrying errors, and results rewritten by later filters bypass the check — commit decisions silently diverge from what clients actually see.
+ 
+ **Verdict:** acceptable default for small MVC CRUD apps and admin panels; becomes structurally wrong once requests do more than one logical thing.
+ 
+@@ -529,28 +555,6 @@ Three local transactions, zero distributed ones, each independently retryable 
+ 
+ ---
+ 
+-### Microservices: which option wins there?
+-
+-The options above were described for monolith/modular monolith, but microservices neither add a new kind of option nor remove one — they **collapse the choice**:
+-
+-- **Inside each service: Options 3 + 4, unchanged.** Each service is one bounded context owning its own `DbContext` and its own database; commands still get exactly one commit point, enforced by the pipeline behavior. If one service feels it needs two internal contexts, question its boundaries first.
+-- **Between services: Option 5 stops being an optimization and becomes *the architecture*.** Database-per-service means a cross-service transaction cannot exist even in principle — 2PC/distributed transactions are effectively dead in modern practice — so every workflow spanning services is a **saga** (choreographed or orchestrated) built on outbox + message broker.
+-
+-What changes versus the modular-monolith playbook is mostly transport and failure semantics, not the unit-of-work model:
+-
+-| Concern | Modular monolith | Microservices |
+-|---|---|---|
+-| Event transport | in-process dispatcher / Worker over shared infra | message broker (RabbitMQ / Kafka / Azure Service Bus) |
+-| Delivery guarantees | effectively once | at-least-once → consumers **must be idempotent** |
+-| Workflow failures | local retry, rarely visible | saga compensation ("cancel booking when payment fails") |
+-| Consistency visibility | usually hidden from users | often user-visible → APIs designed for pending states (`202 Accepted` + status endpoint) |
+-
+-What does **not** change: ad-hoc saves are still broken; a global UoW goes from anti-pattern to *physical impossibility* (no shared process, no shared database); optimistic concurrency remains per-aggregate inside each service; and the intra-service invariant stays *one commit point per command*.
+-
+-**Stated plainly — go-to baseline for microservices:** Options 3+4 inside every service, Option 5 (outbox + sagas) as the inter-service contract. Nothing else survives contact with distributed reality.
+-
+----
+-
+ ## 2. Master comparison
+ 
+ Scores 1–100. Popularity figures are rough estimates of production ASP.NET + EF Core codebases (styles overlap, so they don't sum to 100).
+@@ -610,7 +614,15 @@ catch (DbUpdateConcurrencyException)
+ }
+ ```
+ 
+-This converts silent corruption into a detectable conflict (map to HTTP 409 / retry). For extreme hot spots (single counter row hammered by hundreds of requests), prefer making the decrement itself atomic — `UPDATE ... SET SeatsAvailable -= @n WHERE Id = @id AND SeatsAvailable >= @n` — or serializable isolation scoped to that one command. Bigger/longer transactions are *never* the fix. In a multi-module system these tokens live on aggregates inside their **owning** context; cross-module write races don't exist by design, because modules never write each other's tables.
++This converts silent corruption into a detectable conflict (map to HTTP 409 / retry). For extreme hot spots (single counter row hammered by hundreds of requests), prefer making the decrement itself atomic. In EF Core 7+ that is `ExecuteUpdateAsync` — type-safe, single round-trip, compiles to the classic conditional statement:
++
++```csharp
++await db.Events
++    .Where(e => e.Id == eventId && e.SeatsAvailable > 0)
++    .ExecuteUpdateAsync(s => s.SetProperty(e => e.SeatsAvailable, v => v - seats), ct);
++```
++
++(equivalent SQL: `UPDATE ... SET SeatsAvailable = SeatsAvailable - @n WHERE Id = @id AND SeatsAvailable > 0`), or serializable isolation scoped to that one command. Bigger/longer transactions are *never* the fix. In a multi-module system these tokens live on aggregates inside their **owning** context; cross-module write races don't exist by design, because modules never write each other's tables.
+ 
+ ---
+ 
+@@ -624,6 +636,28 @@ This converts silent corruption into a detectable conflict (map to HTTP 409 / re
+ - **External side effects** (payments, emails): out of the handler's transaction; trigger via after-commit events/outbox so a rollback can't strand them.
+ - **Never:** `IUnitOfWork` wrapping `DbContext`, repositories that merely re-expose `DbSet`, a UoW injected into every module "so they share transactions," or `TransactionScope` spanning two module contexts (Option 7).
+ 
++---
++
++## 5. Microservices: which option wins there?
++
++Microservices neither add a new kind of option nor remove one — they **collapse the choice**:
++
++- **Inside each service: Options 3 + 4, unchanged.** Each service is one bounded context owning its own `DbContext` and its own database; commands still get exactly one commit point, enforced by the pipeline behavior. If one service feels it needs two internal contexts, question its boundaries first.
++- **Between services: Option 5 stops being an optimization and becomes *the architecture*.** Database-per-service means a cross-service transaction cannot exist even in principle — 2PC/distributed transactions are effectively dead in modern practice — so every workflow spanning services is a **saga** (choreographed or orchestrated) built on outbox + message broker.
++
++What changes versus the modular-monolith playbook is mostly transport and failure semantics, not the unit-of-work model:
++
++| Concern | Modular monolith | Microservices |
++|---|---|---|
++| Event transport | in-process dispatcher / Worker over shared infra | message broker (RabbitMQ / Kafka / Azure Service Bus) |
++| Delivery guarantees | effectively once | at-least-once → consumers **must be idempotent** |
++| Workflow failures | local retry, rarely visible | saga compensation ("cancel booking when payment fails") |
++| Consistency visibility | usually hidden from users | often user-visible → APIs designed for pending states (`202 Accepted` + status endpoint) |
++
++What does **not** change: ad-hoc saves are still broken; a global UoW goes from anti-pattern to *physical impossibility* (no shared process, no shared database); optimistic concurrency remains per-aggregate inside each service; and the intra-service invariant stays *one commit point per command*.
++
++**Stated plainly — go-to baseline for microservices:** Options 3+4 inside every service, Option 5's outbox + sagas between services. Nothing else survives contact with distributed reality.
++
+ ### Recommendation for this repo (2026-08-26 audit)
+ 
+ This codebase implements Option 3 with Option 5 deliberately deferred:

@@ -1,4 +1,4 @@
-namespace PriceNegotiationApp.Modules.Identity.Public;
+namespace PriceNegotiationApp.Modules.Identity.Features.Auth;
 
 public static class IdentityErrorCodes
 {

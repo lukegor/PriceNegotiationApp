@@ -7,7 +7,7 @@ namespace PriceNegotiationApp.Modules.Negotiations.Features.Negotiations.Counter
 
 internal sealed class CounterProposeHandler(NegotiationsDbContext db, TimeProvider clock)
 {
-    public async Task<CounterProposalOutcome> HandleAsync(
+    public async Task<CounterProposalResponse> HandleAsync(
         Guid id, CounterProposalRequest request, CallerContext caller, CancellationToken ct)
     {
         var negotiation = await NegotiationAccess.RequireOwnedAsync(db, caller, id, ct);
@@ -20,6 +20,6 @@ internal sealed class CounterProposeHandler(NegotiationsDbContext db, TimeProvid
         }
 
         await db.SaveChangesAsync(ct);
-        return new CounterProposalOutcome(outcome.ToString(), NegotiationResponses.ToResponse(negotiation));
+        return new CounterProposalResponse(outcome.ToString(), NegotiationResponses.ToResponse(negotiation));
     }
 }

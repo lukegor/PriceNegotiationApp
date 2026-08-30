@@ -4,8 +4,8 @@
     <NoWarn>$(NoWarn);MA0097</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.Modules.Catalog\PriceNegotiationApp.Modules.Catalog.csproj" />
-    <ProjectReference Include="..\..\src\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Modules\PriceNegotiationApp.Modules.Catalog\PriceNegotiationApp.Modules.Catalog.csproj" />
+    <ProjectReference Include="..\..\PriceNegotiationApp.SharedKernel\PriceNegotiationApp.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" />
